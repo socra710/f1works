@@ -1,0 +1,81 @@
+{
+  "name": "codefeat.store",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@fingerprintjs/fingerprintjs": "^4",
+    "@fingerprintjs/fingerprintjs-pro-react": "^2.6.2",
+    "@fullcalendar/core": "^6.1.10",
+    "@fullcalendar/daygrid": "^6.1.10",
+    "@fullcalendar/interaction": "^6.1.11",
+    "@fullcalendar/list": "^6.1.10",
+    "@fullcalendar/react": "^6.1.10",
+    "@fullcalendar/timegrid": "^6.1.10",
+    "@material-ui/core": "4.12.3",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.6.2",
+    "inko": "^1.1.1",
+    "js-confetti": "^0.12.0",
+    "phaser": "^3.70.0",
+    "react": "^18.2.0",
+    "react-countdown": "^2.3.5",
+    "react-dom": "^18.2.0",
+    "react-helmet-async": "^2.0.4",
+    "react-kakao-login": "^2.1.1",
+    "react-modal": "^3.16.1",
+    "react-router-dom": "^6.3.0",
+    "react-scripts": "^5.0.1",
+    "react-snap": "^1.13.1",
+    "react-spinners": "^0.13.8",
+    "react-toastify": "^9.1.3",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "postbuild": "react-snap"
+  },
+  "reactSnap": {
+    "concurrency": 1,
+    "puppeteerArgs": [
+      "--use-gl=egl",
+      "--no-sandbox",
+      "--disable-setuid-sandbox"
+    ],
+    "include": [
+      "/",
+      "/works",
+      "/works/notice",
+      "/works/dispatch",
+      "/works/calendar",
+      "/games/wordle",
+      "/feed"
+    ]
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "homepage": "https://codefeat.store",
+  "devDependencies": {
+    "@babel/plugin-syntax-dynamic-import": "^7.8.3"
+  }
+}

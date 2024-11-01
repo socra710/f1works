@@ -1,0 +1,42 @@
+.header-index {
+  background-color: #e94080;
+  color: white;
+  text-align: center;
+  padding: 1em;
+}
+
+.section-index {
+  max-width: 800px;
+  margin: 2em auto;
+  padding: 1.5em;
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.default-section {
+  max-width: 800px;
+  margin: 2em auto;
+  padding: 1.5em;
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  display: block;
+}
+
+/* 추가된 스타일 */
+.kakao-ad {
+  display: flex;
+  text-align: center;
+  background-color: #f2f2f2;
+  box-shadow: none;
+}
+footer {
+  /* background-color: #e94080; */
+  color: #333;
+  text-align: center;
+  padding: 1em;
+  /* width: 100%; */
+}
+footer a {
+  text-decoration: none;
+  font-weight: bold;
+}

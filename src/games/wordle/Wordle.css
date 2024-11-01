@@ -1,0 +1,643 @@
+/* src/App.css */
+
+.body-div {
+  background-color: #fff;
+}
+
+.header-initial {
+  background-color: #fff;
+  padding: 0px;
+  height: 4rem;
+  border-top: 2px solid #d3d6da;
+  border-bottom: 2px solid #d3d6da;
+  color: #000;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.header-initial h1 {
+  color: #000;
+  font-size: 25px;
+  width: 33%;
+  text-align: center;
+}
+
+.menu-div-start {
+  display: flex;
+  justify-content: flex-start;
+  width: 33%;
+}
+
+.menu-div-end {
+  display: flex;
+  justify-content: flex-end;
+  width: 33%;
+}
+
+.menu-div-end button {
+  display: flex;
+  background-color: #fff;
+  padding: 0 5px;
+  border: none;
+}
+
+.menu-icon1 {
+  margin: 0;
+}
+
+.section-initial {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: var(--justify-important);
+  max-width: 500px;
+  margin: 1rem auto;
+  padding: 0 0.5rem;
+  border-radius: 10px;
+  /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); */
+  text-align: center;
+}
+
+.bottom-div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.bottom-div img {
+  width: 40px;
+  margin-left: 10px;
+}
+
+.bottom-div-kakao {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+}
+
+.bottom-div-kakao-mobile {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+}
+
+/* 모바일에서 광고 숨김 */
+@media screen and (max-width: 767px) {
+  .bottom-div-kakao {
+    display: none;
+  }
+
+  .section-initial {
+    margin: 0;
+  }
+}
+
+/* 웹에서 광고 숨김 */
+@media screen and (min-width: 767px) {
+  .bottom-div-kakao-mobile {
+    display: none;
+  }
+
+  .section-initial {
+    margin: 1rem auto;
+  }
+}
+
+.quiz-question-title {
+  font-size: 23px;
+  margin: 10px;
+  padding: 10px;
+  width: 100%;
+  color: #333;
+  border-bottom: 2px solid #333;
+}
+
+.quiz-question {
+  font-size: 32px;
+  margin-top: 10px;
+  display: inline-block;
+}
+
+.quiz-char {
+  margin: 0 5px;
+  font-size: 28px;
+  color: var(--color-link);
+}
+
+.quiz-question-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input-answer {
+  width: 50px;
+  height: 50px;
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  margin-right: 5px;
+  border: 2px solid #d3d6da;
+  caret-color: transparent;
+  cursor: not-allowed; /* 커서를 not-allowed로 변경 */
+  pointer-events: none; /* 이벤트를 비활성화하여 클릭 등의 동작 방지 */
+  border-radius: 4px;
+}
+
+.input-answer:disabled {
+  width: 50px;
+  height: 50px;
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  margin-right: 5px;
+  border: 2px solid #d3d6da;
+  background-color: #fff;
+  color: #000;
+  cursor: not-allowed; /* Not-allowed cursor for disabled state */
+  border-radius: 4px;
+}
+
+.normal-answer:disabled {
+  border: 2px solid #787c7e;
+  background-color: #787c7e; /* Grey background for disabled state */
+  cursor: not-allowed; /* Not-allowed cursor for disabled state */
+  color: #fff;
+  transform: rotateY(360deg); /* 마우스 호버 시 Y축을 중심으로 180도 회전 */
+  transition: all 1s ease; /* 변환 효과를 부드럽게 적용 */
+}
+
+.input-answer:disabled.correct-answer {
+  border: 2px solid var(--color-link);
+  background-color: var(--color-link);
+  cursor: not-allowed; /* Not-allowed cursor for disabled state */
+  color: #fff;
+  transform: rotateY(360deg); /* 마우스 호버 시 Y축을 중심으로 180도 회전 */
+  transition: all 1s ease; /* 변환 효과를 부드럽게 적용 */
+}
+
+.yellow-answer:disabled {
+  border: 2px solid #c9b458;
+  background-color: #c9b458;
+  cursor: not-allowed; /* Not-allowed cursor for disabled state */
+  color: #fff;
+  transform: rotateY(360deg); /* 마우스 호버 시 Y축을 중심으로 180도 회전 */
+  transition: all 1s ease; /* 변환 효과를 부드럽게 적용 */
+}
+
+/* Hide the cursor when the input is in focus */
+.input-answer:disabled:focus {
+  caret-color: transparent;
+  border: 2px solid #878a8c;
+}
+
+.input-answer.empty-input {
+  border: 2px solid red;
+  animation: vibration 0.1s infinite ease;
+}
+
+.input-answer:disabled.empty-input {
+  border: 2px solid red;
+  animation: vibration 0.1s infinite ease;
+}
+
+.input-answer.no-empty-input {
+  border: 2px solid #878a8c;
+  animation: bounce 0.1s ease;
+}
+.input-answer:disabled.no-empty-input {
+  border: 2px solid #878a8c;
+  animation: bounce 0.1s ease;
+}
+
+@keyframes bounce {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes vibration {
+  from {
+    transform: rotate(2deg);
+  }
+  to {
+    transform: rotate(-2deg);
+  }
+}
+
+/* Add more styles as needed */
+
+.input-div {
+  margin-top: 5px;
+}
+
+.modal-about {
+  display: block;
+  font-size: 15px;
+  padding: 5px 15px; /* Padding */
+}
+
+.modal-static {
+  display: block;
+  font-size: 15px;
+  padding: 5px 15px; /* Padding */
+}
+
+.modal-static.hidden {
+  display: none;
+}
+
+.hidden {
+  display: none;
+}
+
+.underline font-bold {
+  font-weight: bold;
+}
+
+.button {
+  background-color: var(--color-link); /* Green background */
+  color: white; /* White text */
+  padding: 0 15px; /* Padding */
+  font-size: 25px; /* Font size */
+  font-weight: bold;
+  /* border: none; No border */
+  border-radius: 4px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor */
+  margin-top: 20px;
+  transition: background-color 0.3s; /* Add a smooth transition on hover */
+  display: none;
+}
+
+button:disabled {
+  background-color: #787c7e; /* Grey background for disabled state */
+  cursor: not-allowed; /* Not-allowed cursor for disabled state */
+}
+
+/* .active:disabled {
+  background-color: var(--color-link);
+  cursor: not-allowed;
+}
+
+button:hover:not([disabled]) {
+  background-color: #ff9966;
+} */
+
+.remaining-attempts {
+  font-size: 18px;
+  color: #000; /* Red color for better visibility */
+  font-weight: bold;
+}
+
+.horizontal-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.horizontal-set {
+  display: flex;
+  margin-bottom: 0;
+}
+
+/* Container styles */
+.game-stats-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 5px 20px 20px 20px;
+  padding: 20px;
+  background-color: #f4f4f4;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Statistics styles */
+.stats-container {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.statistics-heading {
+  font-size: 1.8em;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.statistics-list {
+  display: flex;
+  list-style: none;
+}
+
+.statistic-item {
+  margin-right: 10px;
+  margin-bottom: 12px;
+}
+
+.statistic-label {
+  font-size: 1rem;
+  color: grey;
+}
+
+.statistic-value {
+  font-size: 1.5rem;
+  color: #000;
+  font-weight: bold;
+}
+
+/* Guess Distribution styles */
+.guess-distribution {
+  text-align: center;
+}
+
+.guess-graph {
+  /* Add styles for guess distribution graphs */
+}
+
+/* Wordlebot link styles */
+.wordlebot-link {
+  display: inline-block;
+  margin: 20px 0;
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+  transition: color 0.3s ease-in-out;
+}
+
+.wordlebot-link:hover {
+  color: #0056b3;
+}
+
+/* Call to Action styles */
+.cta-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-cta {
+  margin-bottom: 20px;
+}
+
+/* Footer styles */
+.footer {
+  display: flex;
+  align-items: center;
+}
+
+.share-button {
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.share-button.copy {
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+  margin-left: 10px;
+}
+
+.share-button:hover {
+  background-color: #218838;
+}
+
+.spelling-bee-cta {
+  /* Add styles for Spelling Bee CTA */
+}
+
+.share-button {
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+}
+
+.share-icon {
+  fill: #fff;
+  margin-right: 8px;
+}
+
+.share-button:hover {
+  background-color: #218838;
+}
+
+.custom-icon {
+  position: relative;
+  left: 42%;
+  width: 48px; /* 이미지의 너비 조정 */
+  height: 48px; /* 이미지의 높이 조정 */
+  background-color: #dcfce7; /* 배경 색상 지정 */
+  border-radius: 50%; /* 둥근 테두리를 위한 경계 반경 설정 */
+}
+
+.custom-icon svg {
+}
+
+.modal-div {
+  margin: 40px;
+}
+
+.div-time {
+  display: flex;
+  justify-content: center;
+}
+
+.div-sets {
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.div-sets-none {
+  display: flex;
+  justify-content: center;
+  display: none;
+}
+
+.div-answer {
+  width: 32px;
+  height: 32px;
+  /* line-height: 1rem; */
+  margin-right: 4px;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.6rem;
+  perspective: 1000px; /* 원근거리 설정 */
+  transform-style: preserve-3d; /* 3D 변환을 보존하여 요소를 완전히 뒤집을 수 있게 함 */
+  transition: all 1s ease; /* 변환 효과를 부드럽게 적용 */
+}
+
+.flipped .div-answer.correct-answer {
+  transform: rotateY(360deg);
+}
+
+.div-answer.correct-answer {
+  --tw-bg-opacity: 1;
+  border: 2px solid var(--color-link);
+  background-color: var(--color-link);
+}
+.div-answer.correct-answer.white {
+  color: #fff;
+}
+
+.flipped .div-answer.yellow-answer {
+  transform: rotateY(360deg);
+}
+
+.div-answer.yellow-answer {
+  --tw-bg-opacity: 1;
+  border: 2px solid #c9b458;
+  background-color: #c9b458;
+}
+
+.div-answer.yellow-answer.white {
+  color: #fff;
+}
+
+.flipped .div-answer.answer {
+  transform: rotateY(360deg);
+}
+
+.div-answer.answer {
+  --tw-border-opacity: 1;
+  border: 2px solid #787c7e;
+  background-color: #787c7e;
+}
+
+.div-answer.answer.white {
+  color: #fff;
+}
+
+.div-answer.no-answer {
+  --tw-border-opacity: 1;
+  border: 2px solid #d3d6da;
+}
+
+.menu-div {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Guess distribution container style */
+.guess-distribution-container {
+  width: 100%;
+}
+
+/* Individual guess item style */
+.guess-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+  margin-right: 100px;
+}
+
+/* Guess number style */
+.guess-number {
+  font-size: 12px;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+/* Guess graph container style */
+.guess-graph {
+  display: contents;
+  width: 100px;
+  background-color: #f0f0f0;
+  overflow: hidden;
+}
+
+/* Graph bar style */
+.graph-bar {
+  height: 100%;
+  background-color: #787c7e;
+}
+.graph-bar.correct {
+  height: 100%;
+  background-color: var(--color-link);
+}
+
+.graph-text {
+  font-size: 11px;
+  font-weight: bold;
+  color: #fff; /* Adjust the text color as needed */
+  margin-right: 3px;
+  float: right;
+}
+
+.keyboard {
+  display: flex;
+  width: 100%;
+  margin: 0 auto 8px;
+  touch-action: manipulation;
+}
+
+.keyboard button {
+  font-size: 1.25em;
+  font-weight: bold;
+  border: 0;
+  padding: 0;
+  margin: 0 6px 0 0;
+  height: 50px;
+  border-radius: 4px;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  background-color: #d3d6da;
+  color: #333;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-transform: uppercase;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.3);
+}
+
+.spacer {
+  flex: 0.5;
+}
+
+.keyboard-correct {
+  background-color: var(--color-link) !important;
+  color: #fff !important;
+}
+
+.keyboard-yellow {
+  background-color: #c9b458 !important;
+  color: #fff !important;
+}
+
+.keyboard-normal {
+  background-color: #787c7e !important;
+  color: #fff !important;
+}
+
+.keyboard button:hover {
+  filter: none;
+}

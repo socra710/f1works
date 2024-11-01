@@ -1,0 +1,229 @@
+:root {
+  --fc-small-font-size: 0.85em;
+  --fc-page-bg-color: #fff;
+  --fc-neutral-bg-color: rgba(208, 208, 208, 0.3);
+  --fc-neutral-text-color: #808080;
+  --fc-border-color: #ddd;
+
+  --fc-button-text-color: #fff;
+  --fc-button-bg-color: var(--color-link);
+  --fc-button-border-color: var(--color-link);
+  --fc-button-hover-bg-color: var(--color-link-active);
+  --fc-button-hover-border-color: var(--color-link-active);
+  --fc-button-active-bg-color: var(--color-link-active);
+  --fc-button-active-border-color: var(--color-link-active);
+
+  --fc-event-bg-color: #3788d8;
+  --fc-event-border-color: #3788d8;
+  --fc-event-text-color: #fff;
+  --fc-event-selected-overlay-color: rgba(0, 0, 0, 0.25);
+
+  --fc-more-link-bg-color: #d0d0d0;
+  --fc-more-link-text-color: inherit;
+
+  --fc-event-resizer-thickness: 8px;
+  --fc-event-resizer-dot-total-width: 8px;
+  --fc-event-resizer-dot-border-width: 1px;
+
+  --fc-non-business-color: rgba(215, 215, 215, 0.3);
+  --fc-bg-event-color: rgb(143, 223, 130);
+  --fc-bg-event-opacity: 0.3;
+  --fc-highlight-color: rgba(188, 232, 241, 0.3);
+  --fc-today-bg-color: rgba(255, 220, 40, 0.15);
+  --fc-now-indicator-color: red;
+
+  --fc-list-event-hover-bg-color: none;
+}
+
+#lightbox {
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.494);
+  top: 0%;
+  left: 0%;
+  position: fixed;
+  display: none;
+}
+
+#lightboxImage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 3px solid #eee;
+}
+
+#calendar {
+  max-width: 1100px;
+  margin: 10px;
+  padding: 0;
+}
+
+/* FullCalendar 이벤트 텍스트의 폰트 크기 설정 */
+.fc-event-time {
+  font-size: 12px;
+}
+
+.fc-event-title {
+  font-size: 12px;
+}
+
+.fc-daygrid-day-number {
+  font-size: 14px;
+}
+
+.fc td,
+.fc th {
+  vertical-align: middle;
+}
+
+.fc .fc-day-today th {
+  border: 2px solid var(--color-link) !important;
+  border-left: 2px solid var(--color-link) !important;
+}
+
+.fc-theme-standard .fc-list-day-cushion {
+  background-color: var(--color-secondary-accent);
+}
+
+.fc tr th a {
+  color: #000;
+  font-weight: bold;
+}
+
+.fc td a {
+  color: #000;
+  font-weight: normal;
+}
+
+.fc-button {
+  box-shadow: none !important;
+}
+
+.fc .fc-list-empty {
+  height: auto;
+}
+
+.section-calendar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+@media screen and (min-width: 767px) {
+  .fc .fc-toolbar {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .main-calendar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  .div-flex-calendar {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+  }
+
+  .div-flex-calendar1 {
+    width: 10%;
+    height: 100%;
+    min-width: 170px;
+  }
+
+  .div-flex-calendar2 {
+    width: 90%;
+    height: 100%;
+  }
+
+  .fc .fc-toolbar-title {
+    font-size: 1.75rem;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .fc .fc-toolbar {
+    display: block;
+  }
+
+  .main-calendar {
+    padding: 0;
+  }
+
+  .div-flex-calendar {
+  }
+
+  .div-flex-calendar1 {
+    width: 100%;
+    height: 100%;
+  }
+
+  .div-flex-calendar2 {
+    width: 100%;
+    height: 100%;
+  }
+
+  .header-calendar {
+    padding: 0 1rem;
+  }
+
+  .nav-calendar {
+    margin-bottom: 0;
+  }
+
+  .btnCreateSch {
+    display: none;
+  }
+
+  .bottom-div-kakao-calendar {
+    display: none;
+  }
+
+  .fc .fc-toolbar-title {
+    font-size: 1.1rem;
+  }
+}
+
+/* Checkbox에 대한 스타일 지정 */
+.input-calendar {
+  width: 20px;
+  height: 20px;
+}
+
+/* 체크된 상태의 Checkbox에 대한 스타일 지정 */
+.checkbox1:checked {
+  accent-color: #2a83d5;
+}
+.checkbox2:checked {
+  accent-color: #a374db;
+}
+.checkbox3:checked {
+  accent-color: #f7bac5;
+}
+.checkbox4:checked {
+  accent-color: #eab602;
+}
+.checkbox5:checked {
+  accent-color: #00c5cc;
+}
+.ul-calendar {
+  list-style: none;
+  padding-inline-start: 5px;
+}
+
+.li-calendar {
+  padding: 0;
+}
+
+.label-calendar {
+  position: relative;
+  margin-left: 10px;
+  bottom: 5px;
+}
