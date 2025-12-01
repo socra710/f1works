@@ -220,7 +220,7 @@ export default function Calendar() {
                     </li>
                     <li className="li-calendar">
                       <input className="input-calendar checkbox3" type="checkbox" readOnly checked="checked" />
-                      <label className="label-calendar">배차 일정</label>
+                      <label className="label-calendar">모니터/배차 일정</label>
                     </li>
                     <li className="li-calendar">
                       <input className="input-calendar checkbox4" type="checkbox" readOnly checked="checked" />

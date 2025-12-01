@@ -51,6 +51,8 @@
       "/works",
       "/works/notice",
       "/works/dispatch",
+      "/works/dispatch/car",
+      "/works/dispatch/monitor",
       "/works/calendar",
       "/games/wordle",
       "/feed"

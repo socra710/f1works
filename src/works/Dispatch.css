@@ -1,256 +1,44 @@
-.div-dispatch p {
-}
-
-.div-dispatch ol li,
-.div-dispatch ul li {
-  font-size: 12px;
-}
-
-.div-dispatch sup {
-  top: 4px;
-  font-size: 12px;
-}
-
-.div-dispatch .container {
-  vertical-align: middle;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
-.div-dispatch section aside {
-  border: 1px solid var(--color-bg-secondary);
-  border-radius: var(--border-radius);
-  box-shadow: none;
-  margin: 1rem;
-  padding: 1.25rem;
-  width: var(--width-card);
-}
-
-.div-dispatch section aside:hover {
-  box-shadow: none;
-}
-
-.div-dispatch table {
-  border: 1px solid var(--color-bg-secondary);
-  border-radius: var(--border-radius);
-  border-spacing: 0;
-  display: inline-block;
-  max-width: 100%;
-  overflow-x: auto;
-  padding: 0;
-  white-space: nowrap;
-  -ms-overflow-style: none; /* IE and Edge */
-}
-
-.div-dispatch table td,
-.div-dispatch table th,
-.div-dispatch table tr {
-  padding: 0.4rem 0.8rem;
-  text-align: var(--justify-important);
-}
-
-.div-dispatch table thead {
-  background-color: var(--color-table);
-  border-collapse: collapse;
-  border-radius: var(--border-radius);
-  color: var(--color-table-text-color);
-  font-size: 15px;
-  margin: 0;
-  padding: 0;
-}
-
-.div-dispatch table thead th:first-child {
-  border-top-left-radius: var(--border-radius);
-}
-
-.div-dispatch table thead th:last-child {
-  border-top-right-radius: var(--border-radius);
-}
-
-.div-dispatch table thead th:first-child,
-.div-dispatch table tr td:first-child {
-  text-align: var(--justify-normal);
-}
-
-.div-dispatch table tbody tr:nth-child(2n + 1) {
-  background-color: #fff;
-}
-
-.div-dispatch table tr:nth-child(even) {
-  background-color: var(--color-accent);
-}
-
-/* The popup form - hidden by default */
-.form-popup {
-  display: none;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  /* border: 3px solid #999999; */
-  z-index: 99;
-  transform: translate(-50%, -50%);
-}
-
-/* Add styles to the form container */
-.form-container {
-  /* max-width: 700px; */
-  /* padding: 20px; */
-  border: 3px solid #999999;
-  background-color: #fff;
-}
-
-/* Full-width input fields */
-.form-container input[type='text'],
-.form-container input[type='password'],
-.form-container input[type='time'],
-.form-container input[type='number'] {
-  width: 100%;
-  /* width: 200px; */
-  padding: 13px;
-  /* margin: 5px 0 15px 0; */
-  /* border: none; */
-  /* background: #f1f1f1; */
-}
-
-.form-container input[type='date'] {
-  width: 100%;
-  padding: 12px;
-}
-
-/* When the inputs get focus, do something */
-.form-container input[type='text']:focus,
-.form-container input[type='password']:focus,
-.form-container input[type='date']:focus,
-.form-container input[type='time']:focus,
-.form-container input[type='number']:focus {
-  /* background-color: #ddd; */
-  outline: none;
-}
-
-/* Set a style for the submit/login button */
-.form-container .btn {
-  color: white;
-  padding: 10px 14px;
+.dispatch {
   font-size: 13px;
-  border: none;
-  cursor: pointer;
-  margin-bottom: 10px;
+  font-weight: 500 !important;
+  letter-spacing: -1;
 }
 
-/* Add a red background color to the cancel button */
-.form-container .btn.cancel {
-  background-color: gray;
-  /* margin-right: 5px; */
+.dispatch p {
+  font-size: 16px;
+  font-weight: 500 !important;
+  letter-spacing: -1;
 }
 
-/* Add some hover effects to buttons */
-.form-container .btn:hover,
-.open-button:hover {
-  opacity: 1;
-}
-
-.div-dispatch .btn {
-  color: white;
-  padding: 10px 14px;
-  font-size: 13px;
-  border: none;
-  cursor: pointer;
-}
-
-.div-dispatch .btnHelp {
-  color: white;
-  padding: 10px 14px;
-  font-size: 13px;
-  border: none;
-  cursor: pointer;
-}
-
-/* Add a red background color to the cancel button */
-.div-dispatch .btnHelp {
-  background-color: gray;
-  margin-right: 5px;
-}
-
-.form-container {
-  border: 1px solid var(--color-bg-secondary);
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow) var(--color-shadow);
-  display: block;
-  max-width: var(--width-card-wide);
-  min-width: var(--width-card);
-  padding: 1.5rem;
-  text-align: var(--justify-normal);
-}
-
-.form-container header {
-  margin: 1.5rem 0;
-  padding: 1.5rem 0;
-}
-
-.form-container input,
-.form-container label,
-.form-container select,
-.form-container textarea {
-  display: block;
-  font-size: inherit;
-  max-width: var(--width-card-wide);
-}
-
-.form-container input[type='checkbox'],
-.form-container input[type='radio'] {
-  display: inline-block;
-}
-
-.form-container input[type='checkbox'] + label,
-.form-container input[type='radio'] + label {
-  display: inline-block;
-  font-weight: normal;
-  position: relative;
-  top: 1px;
-}
-
-.form-container input[type='range'] {
-  padding: 0.4rem 0;
-}
-
-.form-container input,
-.form-container select,
-.form-container textarea {
-  border: 1px solid var(--color-bg-secondary);
-  border-radius: var(--border-radius);
-  margin-bottom: 1rem;
-  padding: 0.4rem 0.8rem;
-}
-
-.form-container input[type='text'],
-.form-container input[type='password'],
-.form-container input[type='date'],
-.form-container input[type='time'],
-.form-container input[type='number'],
-.form-container textarea {
-  width: calc(100% - 1.8rem);
-}
-
-.form-container input[readonly],
-.form-container textarea[readonly] {
-  background-color: var(--color-bg-secondary);
-}
-
-.div-dispatch input,
-.div-dispatch label,
-.div-dispatch select,
-.div-dispatch textarea {
-  display: block;
+.dispatch sup {
+  top: 5px;
+  left: 15px;
   font-size: 12px;
-  max-width: var(--width-card-wide);
+  background-color: #f6a800 !important;
 }
 
-.div-space-between {
+.dispatch aside {
+  font-weight: 500;
+}
+
+.div-space-between-dispatch {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  margin-top: 20px;
+}
+
+.div-space-between-dispatch aside {
+  flex-basis: 50%;
+}
+
+.div-space-between-dispatch {
+  border: 1px solid var(--color-bg-secondary);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow) var(--color-shadow);
+  margin: 0.5rem;
+  padding: 2rem;
+  margin-bottom: 40px;
 }
 
 .importantCell {
@@ -276,110 +64,76 @@
 }
 
 #my_modal {
-  width: 320px;
-  padding: 10px 10px;
-  background-color: #fefefe;
-  line-height: 16px;
-  border: 1px solid #888;
-  border-radius: 3px;
 }
 
-@media screen and (min-width: 767px) {
-  .div-dispatch {
-    margin: 0 10px;
-  }
+#my_modal .modal_close_btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: noone;
+}
 
-  .div-dispatch section {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: var(--justify-important);
-  }
+#popup_open_btn {
+  display: none;
+}
 
-  .infoI {
-    font-size: 13px;
-  }
+.point01 {
+  font-weight: 500;
+  color: #282c3d;
+}
 
-  .btnHelp {
-    display: none;
+@media screen and (max-width: 900px) {
+  #popup_open_btn {
+    display: inline-block;
+    float: right;
+    font-size: 14px;
+    height: 27px;
+    width: 60px;
+    padding: 2px;
+    background-color: #eee;
+    color: #33343b;
+    margin-right: 1%;
+    margin-left: 1%;
+    border: 1px solid #d5d5d6;
+    margin-top: 18px;
   }
 
   #my_modal {
-    display: none;
-  }
-}
-
-@media screen and (max-width: 767px) {
-  .div-dispatch {
-    margin: 0;
-  }
-
-  .div-dispatch table {
-    scrollbar-width: none; /* Firefox */
-  }
-
-  .div-dispatch table::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera*/
-  }
-
-  .pc_exp {
+    width: 600px;
+    padding: 20px 10px;
+    background-color: #fefefe;
+    border: 1px solid #888;
+    border-radius: 3px;
     display: none;
   }
 
-  .btnHelp {
-    display: flex;
-  }
-
-  .infoI {
-    margin-top: 5px;
-    font-size: 15px;
-  }
-
-  #popup_open_btn {
-    display: block;
-    float: right;
-    width: 50px;
-    padding: 4px 1px;
-    font-size: 12px;
-    background-color: #eee;
-    color: #000;
-    margin-right: 1%;
-    border: 1px solid #999;
-  }
-
-  .div-space-between {
+  .div-space-between-dispatch {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: baseline;
   }
 
-  .div-space-between aside {
-    width: 95%;
-    padding: 0px;
-    box-shadow: none;
-    border: none;
-    margin: 1%;
+  .div-space-between-dispatch aside {
+    width: 90%;
   }
+}
 
-  .modal_close_btn {
-    cursor: pointer;
-    display: inline-block;
-    float: right;
-    text-align: center;
-    width: 80px;
-    padding: 8px;
-    background-color: #eee;
-    color: #000;
-    margin-right: 1%;
-    border: 1px solid #999;
-  }
+.button03 {
+  padding: 4px 14px;
+  font-size: 16px;
+  font-weight: 600;
+  height: 100px;
+  line-height: 1.5;
+  width: 120px;
+}
 
-  body {
-    padding: 1%;
-  }
-
-  .form-container {
-    height: 80vh;
-    overflow-y: scroll;
-  }
+.point01 {
+  font-weight: 500;
+  color: #282c3d;
+}
+ol li,
+ul li {
+  padding: 0.2rem 0;
+  list-style: none;
 }
