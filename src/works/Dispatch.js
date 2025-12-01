@@ -163,11 +163,8 @@ export default function Dispatch() {
             </p>
             <ul>
               <li>
-                -{' '}
-                <span className="point01">
-                  차량 정보가 업데이트 되었습니다.
-                </span>
-                이 업데이트 되었습니다.<span className="point01"></span>
+                - <span className="point01">차량 정보</span>가 업데이트
+                되었습니다.<span className="point01"></span>
               </li>
               {/* <li>
                 - <span className="point01">모니터 신청 화면</span>이 추가
