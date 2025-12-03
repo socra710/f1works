@@ -1,9 +1,9 @@
-import React from 'react';
+// import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom'; // 이 구문을 넣으면 됨
 
 import './App.css';
 
-import Home from './home/Home';
+// import Home from './home/Home';
 import Works from './works/index';
 import Notice from './works/Notice';
 import Dispatch from './works/Dispatch';
@@ -18,7 +18,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Wordle />}></Route>
+        <Route path="/" element={<Works />}></Route>
         <Route path="/works" element={<Works />}></Route>
         <Route path="/works/notice" element={<Works />}></Route>
         <Route path="/works/dispatch" element={<Dispatch />}></Route>

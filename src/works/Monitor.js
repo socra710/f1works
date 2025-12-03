@@ -1,10 +1,10 @@
-import "./Monitor.css";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet-async"; // 추가
-import ClipLoader from "react-spinners/ClipLoader"; //설치한 cliploader을 import한다
+import './Monitor.css';
+import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async'; // 추가
+import ClipLoader from 'react-spinners/ClipLoader'; //설치한 cliploader을 import한다
 
-import ModalHelp from "./components/ModalHelp2";
+import ModalHelp from './components/ModalHelp2';
 
 export default function Monitor() {
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
@@ -31,222 +31,33 @@ export default function Monitor() {
       } else {
         if (!window.sessionStorage.getItem('extensionLogin')) {
           alert('로그인이 필요한 서비스입니다.');
-          navigate('/works')
+          navigate('/works');
           return;
         }
         setAuthUser(window.sessionStorage.getItem('extensionLogin'));
       }
       setLoading(false);
     }, 1000);
-  }, [isMobile]);
+  }, [isMobile, navigate]);
 
-  useEffect(() => {
-
-    if (!authUser) {
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = "https://t1.daumcdn.net/kas/static/ba.min.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    var openDispatch = document.querySelector('#openDispatch');
-    openDispatch.addEventListener('click', function (event) {
-      document.querySelector('#lightbox').style.display = "block";
-      document.querySelector('#formDispatch').reset();
-      onSetDefault();
-
-      document.querySelector('#btnSave').setAttribute('style', 'float:right;margin-right:5px;');
-      document.querySelector('#btnModify').setAttribute('style', 'display:none');
-      document.querySelector('#btnDelete').setAttribute('style', 'visibility:hidden');
-
-      document.getElementById("myForm").style.display = "block";
-    });
-
-    var closeDispatch = document.querySelector('#closeDispatch');
-    closeDispatch.addEventListener('click', function (event) {
-      document.querySelector('#lightbox').style.display = "none";
-      document.getElementById("myForm").style.display = "none";
-    });
-
-    var helpDispatch = document.querySelector('#helpDispatch');
-    helpDispatch.addEventListener('click', function (event) {
-      document.querySelector('#btn-help').click();
-      setIsOpen(true);
-    })
-
-    var formDispatch = document.querySelector('#formDispatch');
-    formDispatch.addEventListener('submit', async function (event) {
-      event.preventDefault();
-
-      try {
-
-        var myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
-        const query = ''
-          + 'factoryCode=000001'
-          + '&dispatchNo=' + document.querySelector('#dispatchNo').value
-          + '&rideUserName=' + document.querySelector('#rideUserName').value
-          + '&useDateFrom=' + document.querySelector('#useDateFrom').value
-          + '&useDateTo=' + document.querySelector('#useDateTo').value
-          + '&useTimeFrom=' + document.querySelector('#useTimeFrom').value
-          + '&useTimeTo=' + document.querySelector('#useTimeTo').value
-          + '&locationName=' + document.querySelector('#locationName').value
-          + '&distance=' + document.querySelector('#distance').value
-          + '&fluxFrom=' + document.querySelector('#fluxFrom').value
-          + '&fluxTo=' + document.querySelector('#fluxTo').value
-          + '&oilingYn=' + document.querySelector('#oilingYn').value
-          + '&parkingArea=' + document.querySelector('#parkingArea').value
-          + '&bigo=' + document.querySelector('#bigo').value.replace(/(?:\r\n|\r|\n)/g, '<br />')
-          + '&appNo=' + document.querySelector('#appNo').value
-          + '&dispatchGbn=02'
-          + '&opmanCode=' + myId
-          + '&iud=IU';
-        fetch(`${API_BASE_URL}/jvWorksSetDispatch?` + query, {
-        }).then(e => e.json()).then(e => {
-
-          if (e.success === 'false') {
-            // chrome.storage.sync.set({ attendanceDate: getStringToDate() });
-            alert('시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' + e.message);
-            return;
-          }
-
-          var x = document.getElementById("snackbar");
-          x.className = "show";
-          x.innerHTML = '모니터가 신청 되었습니다.';
-
-          document.querySelector('#lightbox').style.display = "none";
-          document.getElementById("myForm").style.display = "none";
-
-          setTimeout(function () { x.className = x.className.replace("show", ""); }, 3000);
-
-          onViewDispatch();
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    });
-
-    var modifyDispatch = document.querySelector('#btnModify');
-    modifyDispatch.addEventListener('click', function (event) {
-      event.preventDefault();
-
-      try {
-
-        var myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
-        const query = ''
-          + 'factoryCode=000001'
-          + '&dispatchNo=' + document.querySelector('#dispatchNo').value
-          + '&rideUserName=' + document.querySelector('#rideUserName').value
-          + '&useDateFrom=' + document.querySelector('#useDateFrom').value
-          + '&useDateTo=' + document.querySelector('#useDateTo').value
-          + '&useTimeFrom=' + document.querySelector('#useTimeFrom').value
-          + '&useTimeTo=' + document.querySelector('#useTimeTo').value
-          + '&locationName=' + document.querySelector('#locationName').value
-          + '&distance=' + document.querySelector('#distance').value
-          + '&fluxFrom=' + document.querySelector('#fluxFrom').value
-          + '&fluxTo=' + document.querySelector('#fluxTo').value
-          + '&oilingYn=' + document.querySelector('#oilingYn').value
-          + '&parkingArea=' + document.querySelector('#parkingArea').value
-          + '&bigo=' + document.querySelector('#bigo').value.replace(/(?:\r\n|\r|\n)/g, '<br />')
-          + '&appNo=' + document.querySelector('#appNo').value
-          + '&dispatchGbn=02'
-          + '&opmanCode=' + myId
-          + '&iud=IU';
-        fetch(`${API_BASE_URL}/jvWorksSetDispatch?` + query, {
-        }).then(e => e.json()).then(e => {
-
-          if (e.success === 'false') {
-            // chrome.storage.sync.set({ attendanceDate: getStringToDate() });
-            alert('시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' + e.message);
-            return;
-          }
-
-          var x = document.getElementById("snackbar");
-          x.className = "show";
-          x.innerHTML = '수정 되었습니다.';
-
-          document.querySelector('#lightbox').style.display = "none";
-          document.getElementById("myForm").style.display = "none";
-
-          setTimeout(function () { x.className = x.className.replace("show", ""); }, 3000);
-
-          onViewDispatch();
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    });
-
-    var deleteDispatch = document.querySelector('#btnDelete');
-    deleteDispatch.addEventListener('click', function (event) {
-      event.preventDefault();
-
-      var isConfirmed = window.confirm("모니터 신청 내역을 삭제하시겠습니까?");
-      if (isConfirmed) {
-        try {
-
-          var myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
-          const query = ''
-            + 'factoryCode=000001'
-            + '&dispatchNo=' + document.querySelector('#dispatchNo').value
-            + '&rideUserName=' + document.querySelector('#rideUserName').value
-            + '&useDateFrom=' + document.querySelector('#useDateFrom').value
-            + '&useDateTo=' + document.querySelector('#useDateTo').value
-            + '&useTimeFrom=' + document.querySelector('#useTimeFrom').value
-            + '&useTimeTo=' + document.querySelector('#useTimeTo').value
-            + '&locationName=' + document.querySelector('#locationName').value
-            + '&distance=' + document.querySelector('#distance').value
-            + '&fluxFrom=' + document.querySelector('#fluxFrom').value
-            + '&fluxTo=' + document.querySelector('#fluxTo').value
-            + '&oilingYn=' + document.querySelector('#oilingYn').value
-            + '&parkingArea=' + document.querySelector('#parkingArea').value
-            + '&bigo=' + document.querySelector('#bigo').value.replace(/(?:\r\n|\r|\n)/g, '<br />')
-            + '&appNo=' + document.querySelector('#appNo').value
-            + '&dispatchGbn=02'
-            + '&opmanCode=' + myId
-            + '&iud=D';
-          fetch(`${API_BASE_URL}/jvWorksSetDispatch?` + query, {
-          }).then(e => e.json()).then(e => {
-
-            if (e.success === 'false') {
-              // chrome.storage.sync.set({ attendanceDate: getStringToDate() });
-              alert('시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' + e.message);
-              return;
-            }
-
-            var x = document.getElementById("snackbar");
-            x.className = "show";
-            x.innerHTML = '삭제 되었습니다.';
-
-            document.querySelector('#lightbox').style.display = "none";
-            document.getElementById("myForm").style.display = "none";
-
-            setTimeout(function () { x.className = x.className.replace("show", ""); }, 3000);
-
-            onViewDispatch();
-          });
-        } catch (error) {
-          console.log(error);
-        }
-      } else {
-        event.preventDefault();
-      }
-    });
-
-    onViewDispatch();
-  }, [authUser]);
+  // 아래 함수 선언 이후에 이벤트 바인딩 useEffect를 배치하여
+  // 의존성 배열의 참조 초기화 문제를 방지합니다.
 
   const getStringToDate = () => {
     const curDate = new Date();
     const year = curDate.getFullYear();
-    const month = curDate.getMonth() + 1
+    const month = curDate.getMonth() + 1;
     const day = curDate.getDate();
 
-    const convertDate = year + '-' + (("00" + month.toString()).slice(-2)) + '-' + (("00" + day.toString()).slice(-2));
+    const convertDate =
+      year +
+      '-' +
+      ('00' + month.toString()).slice(-2) +
+      '-' +
+      ('00' + day.toString()).slice(-2);
 
     return convertDate;
-  }
+  };
 
   const getStringToDateTime = () => {
     const curDate = new Date();
@@ -256,12 +67,17 @@ export default function Monitor() {
     const hour = curDate.getHours();
     const minute = curDate.getMinutes();
 
-    const convertDateTime = year + (("00" + month.toString()).slice(-2)) + (("00" + day.toString()).slice(-2)) + (("00" + hour.toString()).slice(-2)) + (("00" + minute.toString()).slice(-2));
+    const convertDateTime =
+      year +
+      ('00' + month.toString()).slice(-2) +
+      ('00' + day.toString()).slice(-2) +
+      ('00' + hour.toString()).slice(-2) +
+      ('00' + minute.toString()).slice(-2);
 
     return convertDateTime;
-  }
+  };
 
-  const onSetDefault = () => {
+  const onSetDefault = useCallback(() => {
     document.querySelector('#appDate').value = getStringToDate();
     document.querySelector('#useDateFrom').min = getStringToDate();
     document.querySelector('#useDateTo').min = getStringToDate();
@@ -270,166 +86,196 @@ export default function Monitor() {
     document.querySelector('#div02').setAttribute('style', 'display:none');
 
     document.querySelector('#appNo').removeAttribute('disabled');
-  }
+  }, []);
 
-  const onViewDispatch = () => {
+  const onModifyForm = useCallback(
+    (ele) => {
+      var myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
+      const query =
+        'factoryCode=000001&userId=' +
+        myId +
+        '&dispatchNo=' +
+        ele.innerHTML +
+        '&dateFrom=' +
+        '&dateTo=' +
+        '&dispatchGbn=02';
 
+      fetch(`${API_BASE_URL}/jvWorksGetDispatch?` + query, {})
+        .then((e) => e.json())
+        .then((e) => {
+          if (e.data.length === 0) {
+            return;
+          }
+
+          if (e.success === 'false') {
+            alert(
+              '시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' +
+                e.message
+            );
+            return;
+          }
+
+          const item = e.data[0];
+
+          document.querySelector('#formDispatch').reset();
+
+          document
+            .querySelector('#div01')
+            .setAttribute('style', 'display:none');
+          document
+            .querySelector('#div02')
+            .setAttribute('style', 'display:none');
+
+          document
+            .querySelector('#btnSave')
+            .setAttribute('style', 'display:none');
+          document
+            .querySelector('#btnModify')
+            .setAttribute('style', 'float:right;margin-right:5px;');
+          document.querySelector('#btnDelete').setAttribute('style', '');
+
+          document.getElementById('myForm').style.display = 'block';
+
+          document.querySelector('#dispatchNo').value = item.DISPATCH_NO;
+          document.querySelector('#appNo').value = item.APP_NO;
+          document.querySelector('#appNo').setAttribute('disabled', 'true');
+          document.querySelector('#appDate').value = item.APP_DATE;
+          document.querySelector('#rideUserName').value = item.RIDE_USER_NAME;
+          document.querySelector('#useDateFrom').value = item.USE_DATE_FROM;
+          document.querySelector('#useDateTo').value = item.USE_DATE_TO;
+          document.querySelector('#useTimeFrom').value = item.USE_TIME_FROM;
+          document.querySelector('#useTimeTo').value = item.USE_TIME_TO;
+          document.querySelector('#locationName').value = item.LOCATION_NAME;
+          document.querySelector('#distance').value = item.DISTANCE;
+          document.querySelector('#fluxFrom').value = item.FLUX_FROM;
+          document.querySelector('#fluxTo').value = item.FLUX_TO;
+          document.querySelector('#oilingYn').value = item.OILING_YN;
+          document.querySelector('#parkingArea').value = item.PARKING_AREA;
+
+          document.querySelector('#bigo').value = item.BIGO.replaceAll(
+            '<br />',
+            '\r\n'
+          );
+        });
+    },
+    [authUser, API_BASE_URL]
+  );
+
+  const onViewDispatch = useCallback(() => {
     var myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
     const query =
       'factoryCode=000001&userId=' +
       myId +
-      "&dateFrom=" +
-      "&dateTo=" +
-      "&dispatchGbn=02";
+      '&dateFrom=' +
+      '&dateTo=' +
+      '&dispatchGbn=02';
 
-    fetch(`${API_BASE_URL}/jvWorksGetDispatch?` + query, {
-    }).then(e => e.json()).then(e => {
-
-      if (e.data.length === 0) {
-        return;
-      }
-
-      if (e.success === 'false') {
-        alert('시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' + e.message);
-        return;
-      }
-
-      const ele = document.querySelector('#tbDispatch');
-      while (ele.firstChild) {
-        ele.firstChild.remove()
-      }
-
-      document.querySelector(`#supNoA-261`).setAttribute('style', 'background-color:#808080');
-      document.querySelector(`#supNoA-261`).innerHTML = '미사용';
-      document.querySelector(`#supNoA-262`).setAttribute('style', 'background-color:#808080');
-      document.querySelector(`#supNoA-262`).innerHTML = '미사용';
-      document.querySelector(`#supNoA-263`).setAttribute('style', 'background-color:#808080');
-      document.querySelector(`#supNoA-263`).innerHTML = '미사용';
-
-      for (var i = 0; i < e.data.length; i++) {
-        const item = e.data[i];
-
-        let tr = document.createElement('tr');
-
-        let td = document.createElement('td');
-        td.innerHTML = i + 1;
-        tr.append(td);
-
-        // 신청번호
-        td = document.createElement('td');
-        td.innerHTML = '<a href="#" class="aTagDispatCh">' + item.DISPATCH_NO + '</a>';
-        tr.append(td);
-
-        // 신청일
-        td = document.createElement('td');
-        td.innerHTML = item.APP_DATE;
-        tr.append(td);
-
-        // 관리번호
-        td = document.createElement('td');
-        td.innerHTML = item.APP_NO;
-        tr.append(td);
-
-        // 사용일
-        td = document.createElement('td');
-        td.innerHTML = item.USE_DATE_FROM + ' (' + item.USE_TIME_FROM + ')';
-        tr.append(td);
-
-        // 사용일
-        td = document.createElement('td');
-        td.innerHTML = item.USE_DATE_TO + ' (' + item.USE_TIME_TO + ')';
-        tr.append(td);
-
-        td = document.createElement('td');
-        td.setAttribute('style', 'text-align:left;');
-        td.innerHTML = item.LOCATION_NAME;
-        tr.append(td);
-
-        td = document.createElement('td');
-        td.innerHTML = item.RIDE_USER_NAME;
-        tr.append(td);
-
-        td = document.createElement('td');
-        td.setAttribute('style', 'text-align:left;');
-        td.innerHTML = item.BIGO;
-        tr.append(td);
-
-        ele.append(tr);
-
-        if (Number(item.USE_DATE_FROM_CHECK) <= Number(getStringToDateTime())
-          && Number(getStringToDateTime()) <= Number(item.USE_DATE_TO_CHECK)) {
-          document.querySelector(`#supNo${item.APP_NO}`).setAttribute('style', '');
-          document.querySelector(`#supNo${item.APP_NO}`).innerHTML = '사용중';
-
-          // document.querySelector(`#supNoModal${item.APP_NO}`).setAttribute('style', '');
-          // document.querySelector(`#supNoModal${item.APP_NO}`).innerHTML = '사용중';
+    fetch(`${API_BASE_URL}/jvWorksGetDispatch?` + query, {})
+      .then((e) => e.json())
+      .then((e) => {
+        if (e.data.length === 0) {
+          return;
         }
-      }
 
-      document.querySelectorAll('.aTagDispatCh').forEach((target) => target.addEventListener("click", function (evt) {
+        if (e.success === 'false') {
+          alert(
+            '시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' +
+              e.message
+          );
+          return;
+        }
 
-        document.querySelector('#lightbox').style.display = "block";
-        onModifyForm(this);
-      }));
-    })
-  }
+        const ele = document.querySelector('#tbDispatch');
+        while (ele.firstChild) {
+          ele.firstChild.remove();
+        }
 
-  const onModifyForm = (ele) => {
+        document
+          .querySelector(`#supNoA-261`)
+          .setAttribute('style', 'background-color:#808080');
+        document.querySelector(`#supNoA-261`).innerHTML = '미사용';
+        document
+          .querySelector(`#supNoA-262`)
+          .setAttribute('style', 'background-color:#808080');
+        document.querySelector(`#supNoA-262`).innerHTML = '미사용';
+        document
+          .querySelector(`#supNoA-263`)
+          .setAttribute('style', 'background-color:#808080');
+        document.querySelector(`#supNoA-263`).innerHTML = '미사용';
 
-    var myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
-    const query =
-      'factoryCode=000001&userId=' +
-      myId +
-      "&dispatchNo=" +
-      ele.innerHTML +
-      "&dateFrom=" +
-      "&dateTo=" +
-      "&dispatchGbn=02";
+        for (var i = 0; i < e.data.length; i++) {
+          const item = e.data[i];
 
-    fetch(`${API_BASE_URL}/jvWorksGetDispatch?` + query, {
-    }).then(e => e.json()).then(e => {
+          let tr = document.createElement('tr');
 
-      if (e.data.length === 0) {
-        return;
-      }
+          let td = document.createElement('td');
+          td.innerHTML = i + 1;
+          tr.append(td);
 
-      if (e.success === 'false') {
-        alert('시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' + e.message);
-        return;
-      }
+          // 신청번호
+          td = document.createElement('td');
+          td.innerHTML =
+            '<a href="#" class="aTagDispatCh">' + item.DISPATCH_NO + '</a>';
+          tr.append(td);
 
-      const item = e.data[0];
+          // 신청일
+          td = document.createElement('td');
+          td.innerHTML = item.APP_DATE;
+          tr.append(td);
 
-      document.querySelector('#formDispatch').reset();
+          // 관리번호
+          td = document.createElement('td');
+          td.innerHTML = item.APP_NO;
+          tr.append(td);
 
-      document.querySelector('#div01').setAttribute('style', 'display:none');
-      document.querySelector('#div02').setAttribute('style', 'display:none');
+          // 사용일
+          td = document.createElement('td');
+          td.innerHTML = item.USE_DATE_FROM + ' (' + item.USE_TIME_FROM + ')';
+          tr.append(td);
 
-      document.querySelector('#btnSave').setAttribute('style', 'display:none');
-      document.querySelector('#btnModify').setAttribute('style', 'float:right;margin-right:5px;');
-      document.querySelector('#btnDelete').setAttribute('style', '');
+          // 사용일
+          td = document.createElement('td');
+          td.innerHTML = item.USE_DATE_TO + ' (' + item.USE_TIME_TO + ')';
+          tr.append(td);
 
-      document.getElementById("myForm").style.display = "block";
+          td = document.createElement('td');
+          td.setAttribute('style', 'text-align:left;');
+          td.innerHTML = item.LOCATION_NAME;
+          tr.append(td);
 
-      document.querySelector('#dispatchNo').value = item.DISPATCH_NO;
-      document.querySelector('#appNo').value = item.APP_NO;
-      document.querySelector('#appNo').setAttribute('disabled', 'true');
-      document.querySelector('#appDate').value = item.APP_DATE;
-      document.querySelector('#rideUserName').value = item.RIDE_USER_NAME;
-      document.querySelector('#useDateFrom').value = item.USE_DATE_FROM;
-      document.querySelector('#useDateTo').value = item.USE_DATE_TO;
-      document.querySelector('#useTimeFrom').value = item.USE_TIME_FROM;
-      document.querySelector('#useTimeTo').value = item.USE_TIME_TO;
-      document.querySelector('#locationName').value = item.LOCATION_NAME;
-      document.querySelector('#distance').value = item.DISTANCE;
-      document.querySelector('#fluxFrom').value = item.FLUX_FROM;
-      document.querySelector('#fluxTo').value = item.FLUX_TO;
-      document.querySelector('#oilingYn').value = item.OILING_YN;
-      document.querySelector('#parkingArea').value = item.PARKING_AREA;
+          td = document.createElement('td');
+          td.innerHTML = item.RIDE_USER_NAME;
+          tr.append(td);
 
-      document.querySelector('#bigo').value = item.BIGO.replaceAll('<br />', "\r\n");
-    })
-  }
+          td = document.createElement('td');
+          td.setAttribute('style', 'text-align:left;');
+          td.innerHTML = item.BIGO;
+          tr.append(td);
+
+          ele.append(tr);
+
+          if (
+            Number(item.USE_DATE_FROM_CHECK) <= Number(getStringToDateTime()) &&
+            Number(getStringToDateTime()) <= Number(item.USE_DATE_TO_CHECK)
+          ) {
+            document
+              .querySelector(`#supNo${item.APP_NO}`)
+              .setAttribute('style', '');
+            document.querySelector(`#supNo${item.APP_NO}`).innerHTML = '사용중';
+
+            // document.querySelector(`#supNoModal${item.APP_NO}`).setAttribute('style', '');
+            // document.querySelector(`#supNoModal${item.APP_NO}`).innerHTML = '사용중';
+          }
+        }
+
+        document.querySelectorAll('.aTagDispatCh').forEach((target) =>
+          target.addEventListener('click', function (evt) {
+            document.querySelector('#lightbox').style.display = 'block';
+            onModifyForm(this);
+          })
+        );
+      });
+  }, [authUser, API_BASE_URL, onModifyForm]);
 
   const [useDateFrom, setUseDateFrom] = useState('');
   const [useDateTo, setUseDateTo] = useState('');
@@ -443,21 +289,295 @@ export default function Monitor() {
     setUseDateTo(newDateTo);
   };
 
+  // 함수 선언 이후 배치된 이벤트 바인딩 useEffect
+  useEffect(() => {
+    if (!authUser) {
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    var openDispatch = document.querySelector('#openDispatch');
+    openDispatch.addEventListener('click', function (event) {
+      document.querySelector('#lightbox').style.display = 'block';
+      document.querySelector('#formDispatch').reset();
+      onSetDefault();
+
+      document
+        .querySelector('#btnSave')
+        .setAttribute('style', 'float:right;margin-right:5px;');
+      document
+        .querySelector('#btnModify')
+        .setAttribute('style', 'display:none');
+      document
+        .querySelector('#btnDelete')
+        .setAttribute('style', 'visibility:hidden');
+
+      document.getElementById('myForm').style.display = 'block';
+    });
+
+    var closeDispatch = document.querySelector('#closeDispatch');
+    closeDispatch.addEventListener('click', function (event) {
+      document.querySelector('#lightbox').style.display = 'none';
+      document.getElementById('myForm').style.display = 'none';
+    });
+
+    var helpDispatch = document.querySelector('#helpDispatch');
+    helpDispatch.addEventListener('click', function (event) {
+      document.querySelector('#btn-help').click();
+      setIsOpen(true);
+    });
+
+    var formDispatch = document.querySelector('#formDispatch');
+    formDispatch.addEventListener('submit', async function (event) {
+      event.preventDefault();
+
+      try {
+        var myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
+        const query =
+          '' +
+          'factoryCode=000001' +
+          '&dispatchNo=' +
+          document.querySelector('#dispatchNo').value +
+          '&rideUserName=' +
+          document.querySelector('#rideUserName').value +
+          '&useDateFrom=' +
+          document.querySelector('#useDateFrom').value +
+          '&useDateTo=' +
+          document.querySelector('#useDateTo').value +
+          '&useTimeFrom=' +
+          document.querySelector('#useTimeFrom').value +
+          '&useTimeTo=' +
+          document.querySelector('#useTimeTo').value +
+          '&locationName=' +
+          document.querySelector('#locationName').value +
+          '&distance=' +
+          document.querySelector('#distance').value +
+          '&fluxFrom=' +
+          document.querySelector('#fluxFrom').value +
+          '&fluxTo=' +
+          document.querySelector('#fluxTo').value +
+          '&oilingYn=' +
+          document.querySelector('#oilingYn').value +
+          '&parkingArea=' +
+          document.querySelector('#parkingArea').value +
+          '&bigo=' +
+          document
+            .querySelector('#bigo')
+            .value.replace(/(?:\r\n|\r|\n)/g, '<br />') +
+          '&appNo=' +
+          document.querySelector('#appNo').value +
+          '&dispatchGbn=02' +
+          '&opmanCode=' +
+          myId +
+          '&iud=IU';
+        fetch(`${API_BASE_URL}/jvWorksSetDispatch?` + query, {})
+          .then((e) => e.json())
+          .then((e) => {
+            if (e.success === 'false') {
+              alert(
+                '시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' +
+                  e.message
+              );
+              return;
+            }
+
+            var x = document.getElementById('snackbar');
+            x.className = 'show';
+            x.innerHTML = '모니터가 신청 되었습니다.';
+
+            document.querySelector('#lightbox').style.display = 'none';
+            document.getElementById('myForm').style.display = 'none';
+
+            setTimeout(function () {
+              x.className = x.className.replace('show', '');
+            }, 3000);
+
+            onViewDispatch();
+          });
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    var modifyDispatch = document.querySelector('#btnModify');
+    modifyDispatch.addEventListener('click', function (event) {
+      event.preventDefault();
+
+      try {
+        var myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
+        const query =
+          '' +
+          'factoryCode=000001' +
+          '&dispatchNo=' +
+          document.querySelector('#dispatchNo').value +
+          '&rideUserName=' +
+          document.querySelector('#rideUserName').value +
+          '&useDateFrom=' +
+          document.querySelector('#useDateFrom').value +
+          '&useDateTo=' +
+          document.querySelector('#useDateTo').value +
+          '&useTimeFrom=' +
+          document.querySelector('#useTimeFrom').value +
+          '&useTimeTo=' +
+          document.querySelector('#useTimeTo').value +
+          '&locationName=' +
+          document.querySelector('#locationName').value +
+          '&distance=' +
+          document.querySelector('#distance').value +
+          '&fluxFrom=' +
+          document.querySelector('#fluxFrom').value +
+          '&fluxTo=' +
+          document.querySelector('#fluxTo').value +
+          '&oilingYn=' +
+          document.querySelector('#oilingYn').value +
+          '&parkingArea=' +
+          document.querySelector('#parkingArea').value +
+          '&bigo=' +
+          document
+            .querySelector('#bigo')
+            .value.replace(/(?:\r\n|\r|\n)/g, '<br />') +
+          '&appNo=' +
+          document.querySelector('#appNo').value +
+          '&dispatchGbn=02' +
+          '&opmanCode=' +
+          myId +
+          '&iud=IU';
+        fetch(`${API_BASE_URL}/jvWorksSetDispatch?` + query, {})
+          .then((e) => e.json())
+          .then((e) => {
+            if (e.success === 'false') {
+              alert(
+                '시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' +
+                  e.message
+              );
+              return;
+            }
+
+            var x = document.getElementById('snackbar');
+            x.className = 'show';
+            x.innerHTML = '수정 되었습니다.';
+
+            document.querySelector('#lightbox').style.display = 'none';
+            document.getElementById('myForm').style.display = 'none';
+
+            setTimeout(function () {
+              x.className = x.className.replace('show', '');
+            }, 3000);
+
+            onViewDispatch();
+          });
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    var deleteDispatch = document.querySelector('#btnDelete');
+    deleteDispatch.addEventListener('click', function (event) {
+      event.preventDefault();
+
+      var isConfirmed = window.confirm('모니터 신청 내역을 삭제하시겠습니까?');
+      if (isConfirmed) {
+        try {
+          var myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
+          const query =
+            '' +
+            'factoryCode=000001' +
+            '&dispatchNo=' +
+            document.querySelector('#dispatchNo').value +
+            '&rideUserName=' +
+            document.querySelector('#rideUserName').value +
+            '&useDateFrom=' +
+            document.querySelector('#useDateFrom').value +
+            '&useDateTo=' +
+            document.querySelector('#useDateTo').value +
+            '&useTimeFrom=' +
+            document.querySelector('#useTimeFrom').value +
+            '&useTimeTo=' +
+            document.querySelector('#useTimeTo').value +
+            '&locationName=' +
+            document.querySelector('#locationName').value +
+            '&distance=' +
+            document.querySelector('#distance').value +
+            '&fluxFrom=' +
+            document.querySelector('#fluxFrom').value +
+            '&fluxTo=' +
+            document.querySelector('#fluxTo').value +
+            '&oilingYn=' +
+            document.querySelector('#oilingYn').value +
+            '&parkingArea=' +
+            document.querySelector('#parkingArea').value +
+            '&bigo=' +
+            document
+              .querySelector('#bigo')
+              .value.replace(/(?:\r\n|\r|\n)/g, '<br />') +
+            '&appNo=' +
+            document.querySelector('#appNo').value +
+            '&dispatchGbn=02' +
+            '&opmanCode=' +
+            myId +
+            '&iud=D';
+          fetch(`${API_BASE_URL}/jvWorksSetDispatch?` + query, {})
+            .then((e) => e.json())
+            .then((e) => {
+              if (e.success === 'false') {
+                alert(
+                  '시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' +
+                    e.message
+                );
+                return;
+              }
+
+              var x = document.getElementById('snackbar');
+              x.className = 'show';
+              x.innerHTML = '삭제 되었습니다.';
+
+              document.querySelector('#lightbox').style.display = 'none';
+              document.getElementById('myForm').style.display = 'none';
+
+              setTimeout(function () {
+                x.className = x.className.replace('show', '');
+              }, 3000);
+
+              onViewDispatch();
+            });
+        } catch (error) {
+          console.log(error);
+        }
+      } else {
+        event.preventDefault();
+      }
+    });
+
+    onViewDispatch();
+  }, [authUser, API_BASE_URL, onSetDefault, onViewDispatch]);
+
   return (
     <>
       <Helmet>
         <title>업무 모니터 신청 현황</title>
         <meta property="og:title" content="업무 모니터 신청 현황" />
-        <meta property="og:description" content="F1Soft 회사 업무 모니터 신청하는 화면입니다." />
-        <meta property="og:image" content="https://f1lab.co.kr:444/mail_sign/sign_logo01.jpg" />
-        <meta property="og:url" content={`https://codefeat.netlify.app/works/dispatch`} />
+        <meta
+          property="og:description"
+          content="F1Soft 회사 업무 모니터 신청하는 화면입니다."
+        />
+        <meta
+          property="og:image"
+          content="https://f1lab.co.kr:444/mail_sign/sign_logo01.jpg"
+        />
+        <meta
+          property="og:url"
+          content={`https://codefeat.netlify.app/works/dispatch`}
+        />
       </Helmet>
       <div className="div-monitor">
-
         {loading ? (
-          <section className='container'>
+          <section className="container">
             <ClipLoader
-              color='#f88c6b'
+              color="#f88c6b"
               loading={loading} //useState로 관리
               size={150}
             />
@@ -465,66 +585,131 @@ export default function Monitor() {
         ) : (
           <>
             <main style={{ padding: '0', maxWidth: 'max-content' }}>
-              <div className="bottom-div-kakao" style={{
-                justifyContent: 'center', margin: '5px auto',
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100%',
-                zIndex: 1000, // 다른 요소 위에 배치
-                backgroundColor: '#fff', // 배경색 (필요에 따라 설정)
-              }}>
-                <ins className="kakao_ad_area"
+              <div
+                className="bottom-div-kakao"
+                style={{
+                  justifyContent: 'center',
+                  margin: '5px auto',
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  zIndex: 1000, // 다른 요소 위에 배치
+                  backgroundColor: '#fff', // 배경색 (필요에 따라 설정)
+                }}
+              >
+                <ins
+                  className="kakao_ad_area"
                   data-ad-unit="DAN-pZmlN1MItQ7KYhKe"
                   data-ad-width="728"
-                  data-ad-height="90"></ins>
+                  data-ad-height="90"
+                ></ins>
               </div>
-              <div className="bottom-div-kakao-mobile" style={{
-                justifyContent: 'center', margin: '5px auto',
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100%',
-                zIndex: 1000, // 다른 요소 위에 배치
-                backgroundColor: '#fff', // 배경색 (필요에 따라 설정)
-              }}>
-                <ins className="kakao_ad_area"
+              <div
+                className="bottom-div-kakao-mobile"
+                style={{
+                  justifyContent: 'center',
+                  margin: '5px auto',
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  zIndex: 1000, // 다른 요소 위에 배치
+                  backgroundColor: '#fff', // 배경색 (필요에 따라 설정)
+                }}
+              >
+                <ins
+                  className="kakao_ad_area"
                   data-ad-unit="DAN-SbkOGtj1vmVCDoVX"
                   data-ad-width="320"
-                  data-ad-height="50"></ins>
+                  data-ad-height="50"
+                ></ins>
               </div>
               <section className="pc_exp">
                 <div className="div-space-between" style={{ width: '100%' }}>
                   <aside style={{ width: '60%', minHeight: '310px' }}>
-                    <p><sup>필독</sup><b>휴대용 모니터 사용 지침</b></p>
+                    <p>
+                      <sup>필독</sup>
+                      <b>휴대용 모니터 사용 지침</b>
+                    </p>
                     <ul>
                       <li>예약신청한 이후에 사용 가능</li>
-                      <li>다른 사용자를 위해 <b>3일을 초과</b>하는 예약 자제</li>
+                      <li>
+                        다른 사용자를 위해 <b>3일을 초과</b>하는 예약 자제
+                      </li>
                       <li>사용 후 케이블 등 부속과 함께 케이스에 보관</li>
-                      <li><b>제품 이상</b> 발견 시 관리팀에 문의</li>
-                      <li>사용자 부주의로 파손 시 <b>본인 부담</b>으로 수리 또는 구매</li>
+                      <li>
+                        <b>제품 이상</b> 발견 시 관리팀에 문의
+                      </li>
+                      <li>
+                        사용자 부주의로 파손 시 <b>본인 부담</b>으로 수리 또는
+                        구매
+                      </li>
                     </ul>
                   </aside>
                   <aside style={{ width: '40%', minHeight: '310px' }}>
-                    <p><b>모니터 정보</b></p>
+                    <p>
+                      <b>모니터 정보</b>
+                    </p>
                     <ul>
                       <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
-                      <li>관리번호 : <b>A-261</b><sup id='supNoA-261' style={{ backgroundColor: '#808080' }}>미사용</sup></li>
+                      <li>
+                        관리번호 : <b>A-261</b>
+                        <sup
+                          id="supNoA-261"
+                          style={{ backgroundColor: '#808080' }}
+                        >
+                          미사용
+                        </sup>
+                      </li>
                       <br></br>
                       <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
-                      <li>관리번호 : <b>A-262</b><sup id='supNoA-262' style={{ backgroundColor: '#808080' }}>미사용</sup></li>
+                      <li>
+                        관리번호 : <b>A-262</b>
+                        <sup
+                          id="supNoA-262"
+                          style={{ backgroundColor: '#808080' }}
+                        >
+                          미사용
+                        </sup>
+                      </li>
                       <br></br>
                       <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
-                      <li>관리번호 : <b>A-263</b><sup id='supNoA-263' style={{ backgroundColor: '#808080' }}>미사용</sup></li>
+                      <li>
+                        관리번호 : <b>A-263</b>
+                        <sup
+                          id="supNoA-263"
+                          style={{ backgroundColor: '#808080' }}
+                        >
+                          미사용
+                        </sup>
+                      </li>
                     </ul>
                   </aside>
                 </div>
               </section>
               <div className="div-space-between2">
-                <i className="infoI">💡 작성된 신청 내역은 <b>신청번호</b>를 클릭하여 수정할 수 있습니다.</i>
-                <div style={{ justifyContent: "space-between", display: 'flex' }}>
-                  <button id="openDispatch" className="btn" style={{ marginRight: '5px' }}>모니터 신청</button>
-                  <button id="helpDispatch" className="btnHelp" style={{ fontSize: '13px' }}>도움말</button>
+                <i className="infoI">
+                  💡 작성된 신청 내역은 <b>신청번호</b>를 클릭하여 수정할 수
+                  있습니다.
+                </i>
+                <div
+                  style={{ justifyContent: 'space-between', display: 'flex' }}
+                >
+                  <button
+                    id="openDispatch"
+                    className="btn"
+                    style={{ marginRight: '5px' }}
+                  >
+                    모니터 신청
+                  </button>
+                  <button
+                    id="helpDispatch"
+                    className="btnHelp"
+                    style={{ fontSize: '13px' }}
+                  >
+                    도움말
+                  </button>
                 </div>
               </div>
               <section>
@@ -575,18 +760,36 @@ export default function Monitor() {
 
                 <div className="div-space-between">
                   <div style={{ marginRight: '5px', width: '100%' }}>
-                    <label htmlFor="dispatchNo"><b>신청번호</b></label>
-                    <input type="text" id="dispatchNo" name="dispatchNo" placeholder="자동생성" readOnly />
+                    <label htmlFor="dispatchNo">
+                      <b>신청번호</b>
+                    </label>
+                    <input
+                      type="text"
+                      id="dispatchNo"
+                      name="dispatchNo"
+                      placeholder="자동생성"
+                      readOnly
+                    />
                   </div>
                   <div style={{ marginRight: '5px', width: '100%' }}>
-                    <label htmlFor="appDate"><b>신청일</b></label>
-                    <input type="date" id="appDate" name="appDate" required readOnly />
+                    <label htmlFor="appDate">
+                      <b>신청일</b>
+                    </label>
+                    <input
+                      type="date"
+                      id="appDate"
+                      name="appDate"
+                      required
+                      readOnly
+                    />
                   </div>
                 </div>
 
                 <div className="div-space-between">
                   <div style={{ marginRight: '5px', width: '100%' }}>
-                    <label htmlFor="appNo"><b>모니터 선택</b></label>
+                    <label htmlFor="appNo">
+                      <b>모니터 선택</b>
+                    </label>
                     <select id="appNo" name="appNo" required>
                       <option value="">선택하세요</option>
                       <option value="A-261">A-261(P15A)</option>
@@ -595,14 +798,23 @@ export default function Monitor() {
                     </select>
                   </div>
                   <div style={{ width: '100%' }}>
-                    <label htmlFor="rideUserName"><b>사용자</b></label>
-                    <input type="text" id="rideUserName" name="rideUserName" required />
+                    <label htmlFor="rideUserName">
+                      <b>사용자</b>
+                    </label>
+                    <input
+                      type="text"
+                      id="rideUserName"
+                      name="rideUserName"
+                      required
+                    />
                   </div>
                 </div>
 
                 <div className="div-space-between">
                   <div style={{ marginRight: '5px', width: '100%' }}>
-                    <label htmlFor="useDate"><b>사용일</b></label>
+                    <label htmlFor="useDate">
+                      <b>사용일</b>
+                    </label>
                     <div className="div-space-between">
                       <input
                         type="date"
@@ -614,12 +826,21 @@ export default function Monitor() {
                         defaultValue={useDateFrom}
                         required
                       />
-                      <input type="date" placeholder="복귀" id="useDateTo" name="useDateTo" defaultValue={useDateTo} required />
+                      <input
+                        type="date"
+                        placeholder="복귀"
+                        id="useDateTo"
+                        name="useDateTo"
+                        defaultValue={useDateTo}
+                        required
+                      />
                     </div>
                   </div>
 
                   <div style={{ width: '100%' }}>
-                    <label htmlFor="useTime"><b>사용시간</b></label>
+                    <label htmlFor="useTime">
+                      <b>사용시간</b>
+                    </label>
                     <div className="div-space-between">
                       <input
                         type="time"
@@ -629,59 +850,127 @@ export default function Monitor() {
                         style={{ marginRight: '5px' }}
                         required
                       />
-                      <input type="time" placeholder="복귀" id="useTimeTo" name="useTimeTo" required />
+                      <input
+                        type="time"
+                        placeholder="복귀"
+                        id="useTimeTo"
+                        name="useTimeTo"
+                        required
+                      />
                     </div>
                   </div>
                 </div>
 
-                <label htmlFor="locationName"><b>출장지</b></label>
-                <input type="text" id="locationName" name="locationName" required />
+                <label htmlFor="locationName">
+                  <b>출장지</b>
+                </label>
+                <input
+                  type="text"
+                  id="locationName"
+                  name="locationName"
+                  required
+                />
 
                 <div id="div01" className="div-space-between">
                   <div style={{ marginRight: '5px', width: '100%' }}>
-                    <label htmlFor="distance"><b>이동거리</b></label>
+                    <label htmlFor="distance">
+                      <b>이동거리</b>
+                    </label>
                     <input type="text" id="distance" name="distance" />
                   </div>
                   <div style={{ width: '100%' }}>
-                    <label htmlFor="flux"><b>유량(%)</b></label>
+                    <label htmlFor="flux">
+                      <b>유량(%)</b>
+                    </label>
                     <div className="div-space-between">
-                      <input type="number" placeholder="출발" id="fluxFrom" name="fluxFrom" style={{ marginRight: '5px' }} min="0" />
-                      <input type="number" placeholder="복귀" id="fluxTo" name="fluxTo" min="0" />
+                      <input
+                        type="number"
+                        placeholder="출발"
+                        id="fluxFrom"
+                        name="fluxFrom"
+                        style={{ marginRight: '5px' }}
+                        min="0"
+                      />
+                      <input
+                        type="number"
+                        placeholder="복귀"
+                        id="fluxTo"
+                        name="fluxTo"
+                        min="0"
+                      />
                     </div>
                   </div>
                 </div>
 
                 <div id="div02" className="div-space-between">
                   <div style={{ marginRight: '5px', width: '100%' }}>
-                    <label htmlFor="oilingYn"><b>주유여부(경유)</b></label>
+                    <label htmlFor="oilingYn">
+                      <b>주유여부(경유)</b>
+                    </label>
                     <input type="text" id="oilingYn" name="oilingYn" />
                   </div>
                   <div style={{ width: '100%' }}>
-                    <label htmlFor="parkingArea"><b>주차구역</b></label>
+                    <label htmlFor="parkingArea">
+                      <b>주차구역</b>
+                    </label>
                     <input type="text" id="parkingArea" name="parkingArea" />
                   </div>
                 </div>
 
                 <div id="div03">
-                  <label htmlFor="bigo"><b>특이사항</b></label>
-                  <textarea id="bigo" name="bigo" rows="3" style={{ resize: 'none' }}></textarea>
+                  <label htmlFor="bigo">
+                    <b>특이사항</b>
+                  </label>
+                  <textarea
+                    id="bigo"
+                    name="bigo"
+                    rows="3"
+                    style={{ resize: 'none' }}
+                  ></textarea>
                 </div>
 
-
-                <button type="button" id="btnDelete" className="btn" style={{ display: 'none', float: 'right' }}>삭제하기</button>
-                <button id="closeDispatch" type="button" className="btn cancel" style={{ float: 'right' }}>닫기</button>
-                <button type="submit" id="btnSave" className="btn" style={{ float: 'right' }}>신청하기</button>
-                <button type="button" id="btnModify" className="btn" style={{ display: 'none', float: 'right' }}>수정하기</button>
+                <button
+                  type="button"
+                  id="btnDelete"
+                  className="btn"
+                  style={{ display: 'none', float: 'right' }}
+                >
+                  삭제하기
+                </button>
+                <button
+                  id="closeDispatch"
+                  type="button"
+                  className="btn cancel"
+                  style={{ float: 'right' }}
+                >
+                  닫기
+                </button>
+                <button
+                  type="submit"
+                  id="btnSave"
+                  className="btn"
+                  style={{ float: 'right' }}
+                >
+                  신청하기
+                </button>
+                <button
+                  type="button"
+                  id="btnModify"
+                  className="btn"
+                  style={{ display: 'none', float: 'right' }}
+                >
+                  수정하기
+                </button>
               </form>
             </div>
             <ModalHelp isOpen={isOpen} />
             <div id="snackbar">Some text some message..</div>
             <div id="lightbox">
-              <img id="lightboxImage" />
+              <img id="lightboxImage" alt="상세 이미지" />
             </div>
           </>
         )}
-      </div >
+      </div>
     </>
   );
 }
