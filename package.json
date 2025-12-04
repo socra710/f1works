@@ -54,6 +54,8 @@
       "/works/dispatch/car",
       "/works/dispatch/monitor",
       "/works/calendar",
+      "/works/expense",
+      "/works/expense-management",
       "/games/wordle",
       "/feed"
     ]

@@ -1,0 +1,265 @@
+.expense-management-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.management-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #007bff;
+}
+
+.management-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+
+.btn-back {
+  padding: 8px 20px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.btn-back:hover {
+  background-color: #5a6268;
+}
+
+.filter-section {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.month-selector,
+.status-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.month-selector label,
+.status-filter label {
+  font-weight: 600;
+  color: #495057;
+  font-size: 14px;
+}
+
+.month-selector input,
+.status-filter select {
+  padding: 6px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
+}
+
+.summary-info {
+  margin-left: auto;
+  font-weight: 600;
+  color: #007bff;
+  font-size: 15px;
+}
+
+.expense-list-table {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.expense-list-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.expense-list-table thead {
+  background-color: #007bff;
+  color: white;
+}
+
+.expense-list-table th {
+  padding: 12px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.expense-list-table tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s;
+}
+
+.expense-list-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.expense-list-table td {
+  padding: 12px;
+  text-align: center;
+  font-size: 14px;
+  color: #495057;
+}
+
+.expense-list-table td.amount {
+  font-weight: 600;
+  color: #28a745;
+}
+
+.expense-list-table td.memo-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-draft {
+  background-color: #6c757d;
+  color: white;
+}
+
+.badge-submitted {
+  background-color: #007bff;
+  color: white;
+}
+
+.badge-approved {
+  background-color: #28a745;
+  color: white;
+}
+
+.badge-rejected {
+  background-color: #dc3545;
+  color: white;
+}
+
+.badge-default {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.check-icon {
+  color: #28a745;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.uncheck-icon {
+  color: #ced4da;
+  font-size: 18px;
+}
+
+.btn-view {
+  padding: 6px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background-color 0.2s;
+}
+
+.btn-view:hover {
+  background-color: #0056b3;
+}
+
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: #6c757d;
+}
+
+.empty-state p {
+  font-size: 16px;
+  margin: 0;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  gap: 20px;
+}
+
+.loading-container p {
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.loading-center {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.95);
+  z-index: 9999;
+  gap: 20px;
+}
+
+.loading-center p {
+  color: #6c757d;
+  font-size: 16px;
+  margin: 0;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .expense-management-container {
+    padding: 10px;
+  }
+
+  .management-header h1 {
+    font-size: 22px;
+  }
+
+  .filter-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .summary-info {
+    margin-left: 0;
+    text-align: center;
+  }
+
+  .expense-list-table {
+    overflow-x: auto;
+  }
+
+  .expense-list-table table {
+    min-width: 900px;
+  }
+}

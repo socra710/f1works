@@ -1,0 +1,529 @@
+/* 경비 청구 페이지 스타일 */
+
+.expense-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+}
+.expense-container section {
+  display: block;
+}
+
+.expense-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  box-sizing: border-box;
+}
+
+/* 헤더 */
+.expense-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.expense-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.expense-header p {
+  font-size: 1rem;
+  color: #7f8c8d;
+}
+
+/* 섹션 */
+.expense-section {
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #667eea;
+}
+
+/* 폼 그룹 */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
+}
+
+.form-group-horizontal {
+  display: flex;
+  grid-template-columns: 200px 1fr;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #34495e;
+  margin-bottom: 0.6rem;
+  display: block;
+}
+
+.flex-grow {
+  min-width: 0;
+  flex: 1;
+}
+
+/* 입력 필드 */
+.input-field,
+.select-field {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  box-sizing: border-box;
+  background-color: white;
+}
+
+.input-field:focus,
+.select-field:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.text-right {
+  text-align: right;
+}
+
+/* 테이블 */
+.expense-table-container {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.expense-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: white;
+  table-layout: auto;
+  min-width: 100%;
+}
+
+/* 매니저 모드: 스크롤 가능하게 설정 */
+.expense-table.manager-mode {
+  min-width: 1400px;
+}
+
+.expense-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.expense-table th {
+  padding: 1rem 0.75rem;
+  text-align: left;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  border: none;
+  white-space: nowrap;
+  min-width: 80px;
+}
+
+/* 날짜 열 최소 너비 보장 */
+.expense-table th:nth-child(2) {
+  min-width: 130px;
+}
+
+.expense-table th:first-child {
+  border-top-left-radius: 8px;
+}
+
+.expense-table th:last-child {
+  border-top-right-radius: 8px;
+}
+
+.expense-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #e9ecef;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.expense-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.expense-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.expense-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 8px;
+}
+
+.expense-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 8px;
+}
+
+/* 파일 입력 */
+.file-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.file-label {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #667eea;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-align: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.file-label:hover {
+  background: #5568d3;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+.file-input {
+  display: none;
+}
+
+.file-name {
+  font-size: 0.75rem;
+  color: #6c757d;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+}
+
+/* 버튼 */
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.3rem;
+  padding: 0.5rem;
+  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon:hover {
+  transform: scale(1.15);
+}
+
+.btn-delete:hover {
+  filter: brightness(1.2);
+}
+
+.btn-add-row {
+  padding: 0.75rem 1.5rem;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.btn-add-row:hover {
+  background: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* 합계 섹션 */
+.total-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  color: white;
+}
+
+.total-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.total-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* 버튼 그룹 */
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.btn-secondary,
+.btn-primary {
+  padding: 0.8rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* 안내사항 */
+.info-box {
+  background: #f8f9fa;
+  border-left: 4px solid #667eea;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.info-box h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.info-box ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.info-box li {
+  padding: 0.5rem 0;
+  color: #495057;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.info-box li::before {
+  content: '•';
+  position: absolute;
+  left: 0.5rem;
+  color: #667eea;
+  font-weight: bold;
+}
+
+/* 반응형 디자인 */
+@media screen and (max-width: 1024px) {
+  .expense-content {
+    padding: 1.5rem;
+  }
+
+  .expense-table {
+    font-size: 0.85rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .expense-container {
+    padding: 1rem 0.5rem;
+  }
+
+  .expense-content {
+    padding: 1.5rem 1rem;
+    border-radius: 8px;
+  }
+
+  .expense-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .expense-header p {
+    font-size: 0.9rem;
+  }
+
+  .form-group-horizontal {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .expense-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+  }
+
+  .expense-table {
+    min-width: 900px;
+    font-size: 0.8rem;
+  }
+
+  .expense-table th,
+  .expense-table td {
+    padding: 0.6rem 0.5rem;
+  }
+
+  .input-field,
+  .select-field {
+    font-size: 0.85rem;
+    padding: 0.5rem;
+  }
+
+  .total-section {
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: center;
+    padding: 1.25rem;
+  }
+
+  .total-label {
+    font-size: 1rem;
+  }
+
+  .total-amount {
+    font-size: 1.35rem;
+  }
+
+  .button-group {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .btn-secondary,
+  .btn-primary {
+    width: 100%;
+    padding: 0.9rem 1.5rem;
+  }
+
+  .file-label {
+    font-size: 0.75rem;
+    padding: 0.45rem 0.8rem;
+  }
+
+  .btn-add-row {
+    width: 100%;
+    justify-content: center;
+    padding: 0.8rem 1.25rem;
+  }
+
+  .info-box {
+    padding: 1.25rem;
+  }
+
+  .info-box li {
+    font-size: 0.9rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .expense-container {
+    padding: 0.5rem;
+  }
+
+  .expense-content {
+    padding: 1rem;
+  }
+
+  .expense-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .expense-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .expense-header p {
+    font-size: 0.85rem;
+  }
+
+  .section-title {
+    font-size: 1.05rem;
+  }
+
+  .expense-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .total-section {
+    padding: 1rem;
+  }
+
+  .total-label {
+    font-size: 0.95rem;
+  }
+
+  .total-amount {
+    font-size: 1.2rem;
+  }
+
+  .btn-secondary,
+  .btn-primary {
+    font-size: 0.95rem;
+    padding: 0.85rem 1.25rem;
+  }
+
+  .info-box {
+    padding: 1rem;
+  }
+
+  .info-box h3 {
+    font-size: 1rem;
+  }
+
+  .info-box li {
+    font-size: 0.85rem;
+    padding: 0.4rem 0;
+  }
+}
