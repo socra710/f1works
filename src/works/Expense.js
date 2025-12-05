@@ -65,17 +65,13 @@ export default function Expense() {
       navigator.userAgent
     );
     setTimeout(() => {
-      if (isMobileDevice) {
-        initializeExpense('m');
-      } else {
-        const sessionUser = window.sessionStorage.getItem('extensionLogin');
-        if (!sessionUser) {
-          showToast('로그인이 필요한 서비스입니다.', 'warning');
-          navigate('/works');
-          return;
-        }
-        initializeExpense(sessionUser);
+      const sessionUser = window.sessionStorage.getItem('extensionLogin');
+      if (!sessionUser) {
+        showToast('로그인이 필요한 서비스입니다.', 'warning');
+        navigate('/works');
+        return;
       }
+      initializeExpense(sessionUser);
     }, 1000);
     // eslint-disable-next-line
   }, [navigate, expenseId]);

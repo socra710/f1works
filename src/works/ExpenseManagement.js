@@ -23,17 +23,13 @@ export default function ExpenseManagement() {
       navigator.userAgent
     );
     setTimeout(() => {
-      if (isMobileDevice) {
-        checkManagerPermission('m');
-      } else {
-        const sessionUser = window.sessionStorage.getItem('extensionLogin');
-        if (!sessionUser) {
-          alert('로그인이 필요한 서비스입니다.');
-          navigate('/works');
-          return;
-        }
-        checkManagerPermission(sessionUser);
+      const sessionUser = window.sessionStorage.getItem('extensionLogin');
+      if (!sessionUser) {
+        alert('로그인이 필요한 서비스입니다.');
+        navigate('/works');
+        return;
       }
+      checkManagerPermission(sessionUser);
     }, 1000);
     // eslint-disable-next-line
   }, [navigate]);
@@ -102,7 +98,6 @@ export default function ExpenseManagement() {
         console.warn('JSON 아님, 원시 텍스트 응답:', rawText);
         data = null;
       }
-      console.log('목록 조회 응답 객체:', data);
 
       const list = data && Array.isArray(data.list) ? data.list : [];
       setExpenseList(list);
@@ -157,122 +152,146 @@ export default function ExpenseManagement() {
     return new Intl.NumberFormat('ko-KR').format(amount || 0);
   };
 
+  // 날짜 포맷 (yyyy-MM-dd HH:mm:ss)
+  const formatDateTime = (dateTimeStr) => {
+    if (!dateTimeStr) return '-';
+    // 이미 "yyyy-MM-dd HH:mm:ss" 형식이면 그대로 반환
+    if (dateTimeStr.length === 19 && dateTimeStr.includes(' ')) {
+      return dateTimeStr;
+    }
+    // 다른 형식이면 변환 시도
+    try {
+      const date = new Date(dateTimeStr);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    } catch (e) {
+      return dateTimeStr;
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="loading-container">
-        <ClipLoader color="#007bff" size={50} />
+      <div className="expense-management-wrapper">
+        <Helmet>
+          <title>경비 청구 관리 - F1Soft Works</title>
+        </Helmet>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '60vh',
+          }}
+        >
+          <ClipLoader color="#f88c6b" loading={isLoading} size={120} />
+        </div>
       </div>
     );
   }
 
   return (
-    <>
+    <div className="expense-management-wrapper">
       <Helmet>
         <title>경비 청구 관리 - F1Soft Works</title>
       </Helmet>
+      <div className="expense-management-container">
+        <header className="management-header">
+          <h1>경비 청구 관리</h1>
+          <button className="btn-back" onClick={() => navigate('/works')}>
+            뒤로가기
+          </button>
+        </header>
 
-      {isLoading ? (
-        <div className="loading-center">
-          <ClipLoader color="#4285f4" size={50} />
-          <p>데이터를 불러오는 중입니다...</p>
-        </div>
-      ) : (
-        <div className="expense-management-container">
-          <header className="management-header">
-            <h1>경비 청구 관리</h1>
-            <button className="btn-back" onClick={() => navigate('/works')}>
-              뒤로가기
-            </button>
-          </header>
-
-          <div className="filter-section">
-            <div className="month-selector">
-              <label>조회 월:</label>
-              <input
-                type="month"
-                value={selectedMonth}
-                onChange={handleMonthChange}
-                max={`${new Date().getFullYear()}-${String(
-                  new Date().getMonth() + 1
-                ).padStart(2, '0')}`}
-              />
-            </div>
-
-            <div className="status-filter">
-              <label>상태:</label>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-              >
-                <option value="ALL">전체</option>
-                <option value="SUBMITTED">제출</option>
-                <option value="APPROVED">승인</option>
-                <option value="REJECTED">반려</option>
-              </select>
-            </div>
-
-            <div className="summary-info">
-              <span>총 {filteredList.length}건</span>
-            </div>
+        <div className="filter-section">
+          <div className="month-selector">
+            <label>조회 월:</label>
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={handleMonthChange}
+              max={`${new Date().getFullYear()}-${String(
+                new Date().getMonth() + 1
+              ).padStart(2, '0')}`}
+            />
           </div>
 
-          <div className="expense-list-table">
-            {filteredList.length === 0 ? (
-              <div className="empty-state">
-                <p>조회된 경비 청구 내역이 없습니다.</p>
-              </div>
-            ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th style={{ width: '200px' }}>제출일</th>
-                    <th>사원명</th>
-                    <th>사원번호</th>
-                    {/* <th>총 청구액</th> */}
-                    <th>총 지급액</th>
-                    <th>상태</th>
-                    <th>관리팀 확인</th>
-                    <th style={{ width: '300px' }}>비고</th>
-                    <th>상세</th>
+          <div className="status-filter">
+            <label>상태:</label>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+            >
+              <option value="ALL">전체</option>
+              <option value="SUBMITTED">제출</option>
+              <option value="APPROVED">승인</option>
+              <option value="REJECTED">반려</option>
+            </select>
+          </div>
+
+          <div className="summary-info">
+            <span>총 {filteredList.length}건</span>
+          </div>
+        </div>
+
+        <div className="expense-list-table">
+          {filteredList.length === 0 ? (
+            <div className="empty-state">
+              <p>조회된 경비 청구 내역이 없습니다.</p>
+            </div>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th style={{ width: '200px' }}>제출일</th>
+                  <th>사원명</th>
+                  <th>사원번호</th>
+                  {/* <th>총 청구액</th> */}
+                  <th>총 지급액</th>
+                  <th>상태</th>
+                  <th>관리팀 확인</th>
+                  <th style={{ width: '300px' }}>비고</th>
+                  <th>상세</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredList.map((item, index) => (
+                  <tr key={index}>
+                    <td>{formatDateTime(item.submitDate)}</td>
+                    <td>{item.userName}</td>
+                    <td>{item.userId}</td>
+                    {/* <td className="amount">
+                          {formatAmount(item.totalAmount)}원
+                        </td> */}
+                    <td className="amount">{formatAmount(item.totalPay)}원</td>
+                    <td>{getStatusBadge(item.status)}</td>
+                    <td>
+                      {item.managerChecked ? (
+                        <span className="check-icon">✓</span>
+                      ) : (
+                        <span className="uncheck-icon">-</span>
+                      )}
+                    </td>
+                    <td className="memo-cell">{item.memo || '-'}</td>
+                    <td>
+                      <button
+                        className="btn-view"
+                        onClick={() => handleViewDetail(item.expenseId)}
+                      >
+                        보기
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {filteredList.map((item, index) => (
-                    <tr key={index}>
-                      <td>{item.submitDate || '-'}</td>
-                      <td>{item.userName}</td>
-                      <td>{item.userId}</td>
-                      {/* <td className="amount">
-                        {formatAmount(item.totalAmount)}원
-                      </td> */}
-                      <td className="amount">
-                        {formatAmount(item.totalPay)}원
-                      </td>
-                      <td>{getStatusBadge(item.status)}</td>
-                      <td>
-                        {item.managerChecked ? (
-                          <span className="check-icon">✓</span>
-                        ) : (
-                          <span className="uncheck-icon">-</span>
-                        )}
-                      </td>
-                      <td className="memo-cell">{item.memo || '-'}</td>
-                      <td>
-                        <button
-                          className="btn-view"
-                          onClick={() => handleViewDetail(item.expenseId)}
-                        >
-                          보기
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
-      )}
-    </>
+      </div>
+    </div>
   );
 }
