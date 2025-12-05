@@ -35,6 +35,13 @@ export default function Works() {
       category: '업무',
     },
     {
+      title: '경비 청구 관리',
+      description: '직원들의 경비 청구 내역을 확인하고 승인하세요',
+      icon: '📊',
+      path: '/works/expense-management',
+      category: '관리',
+    },
+    {
       title: 'Wordle 게임',
       description: '영어 단어 퍼즐 게임으로 짧은 휴식을 즐겨보세요',
       icon: '🎮',
@@ -43,7 +50,7 @@ export default function Works() {
     },
     {
       title: '오늘의 메뉴',
-      description: '식당의 오늘 메뉴를 확인하세요',
+      description: '소담뷔페 오늘의 메뉴를 확인하세요',
       icon: '🍽️',
       path: 'https://watbab.com',
       category: '메뉴',

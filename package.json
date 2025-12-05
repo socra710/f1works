@@ -36,27 +36,29 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "postbuild": "react-snap"
+    "eject": "react-scripts eject"
   },
   "reactSnap": {
     "concurrency": 1,
     "puppeteerArgs": [
       "--use-gl=egl",
       "--no-sandbox",
-      "--disable-setuid-sandbox"
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--disable-software-rasterizer"
     ],
+    "skipThirdPartyRequests": true,
+    "cacheAjaxRequests": false,
+    "minifyHtml": false,
+    "waitFor": 2000,
+    "timeout": 60000,
     "include": [
-      "/",
-      "/works",
-      "/works/dispatch",
-      "/works/dispatch/car",
-      "/works/dispatch/monitor",
-      "/works/calendar",
-      "/works/expense",
-      "/works/expense-management",
-      "/games/wordle",
       "/feed"
+    ],
+    "ignoreForPrerender": [
+      "script[src*='fingerprintjs']",
+      "script[src*='analytics']"
     ]
   },
   "eslintConfig": {

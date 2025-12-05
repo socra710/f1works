@@ -32,7 +32,7 @@ export default function Expense() {
   const [userId, setUserId] = useState('');
   const [userName, setUserName] = useState('');
   const [memo, setMemo] = useState('');
-  const [userEfficiency, setUserEfficiency] = useState(12.8); // 사용자별 연비 (km/L)
+  const [userEfficiency, setUserEfficiency] = useState(15); // 사용자별 연비 (km/L)
   const [baseEfficiency, setBaseEfficiency] = useState(12.8); // 관리자 설정 기준연비
   const [isLoading, setIsLoading] = useState(true);
   const [status, setStatus] = useState('DRAFT');
@@ -61,6 +61,7 @@ export default function Expense() {
       managerConfirmed: false, // 관리자 확인 여부
     },
   ]);
+  const [allChecked, setAllChecked] = useState(false);
   const authCheckRef = useRef(false);
 
   // 인증 및 초기화
@@ -99,8 +100,7 @@ export default function Expense() {
           setManagerChecked(!!parsed.managerChecked);
           setRows(
             parsed.rows?.map((row) => ({
-              dirty: true,
-              managerConfirmed: false,
+              rowId: row.rowId || null,
               type:
                 row.type || (row.category === '유류비' ? 'fuel' : 'expense'),
               category: row.category === '유류비' ? 'FUEL' : row.category || '',
@@ -123,8 +123,8 @@ export default function Expense() {
                     : ''
                   : '',
               file: null,
+              fileName: row.fileName || '',
               dirty: true,
-              managerConfirmed: false,
               managerConfirmed: row.managerConfirmed || false,
             })) || [
               {
@@ -895,7 +895,13 @@ export default function Expense() {
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              height: '60vh',
+              minHeight: '100vh',
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 9999,
             }}
           >
             <ClipLoader color="#f88c6b" loading={isLoading} size={120} />
@@ -904,6 +910,14 @@ export default function Expense() {
       </div>
     );
   }
+
+  const handleCheckAll = (event) => {
+    const checked = event.target.checked;
+    setAllChecked(checked);
+    setRows((prevRows) =>
+      prevRows.map((row) => ({ ...row, managerConfirmed: checked }))
+    );
+  };
 
   return (
     <div className="expense-container">
@@ -1174,7 +1188,30 @@ export default function Expense() {
                         textAlign: 'center',
                       }}
                     >
-                      확인
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={allChecked}
+                          onChange={handleCheckAll}
+                          disabled={status === 'COMPLETED'}
+                          style={{
+                            cursor:
+                              status === 'COMPLETED'
+                                ? 'not-allowed'
+                                : 'pointer',
+                            width: '18px',
+                            height: '18px',
+                          }}
+                        />
+                        <span>확인</span>
+                      </div>
                     </th>
                   )}
                   <th
@@ -1363,6 +1400,10 @@ export default function Expense() {
                             const updated = [...rows];
                             updated[idx].managerConfirmed = e.target.checked;
                             setRows(updated);
+                            // 모든 행의 체크 상태 확인
+                            setAllChecked(
+                              updated.every((r) => r.managerConfirmed)
+                            );
                           }}
                           disabled={status === 'COMPLETED'}
                           style={{
@@ -1614,11 +1655,12 @@ export default function Expense() {
         <section className="expense-section info-box">
           <h3>📌 안내사항</h3>
           <ul>
-            <li>제출 후에는 담당자가 확인할 때까지 수정할 수 있습니다.</li>
-            <li>담당자가 확인 처리한 항목은 수정할 수 없습니다.</li>
+            <li>제출 후에는 경비 청구를 수정할 수 없습니다.</li>
+            <li>담당자가 반려 처리한 경우에만 수정할 수 있습니다.</li>
             <li>
               임시 저장 기능을 이용하여 작성 중인 내용을 저장할 수 있습니다.
             </li>
+            <li>유류비 항목은 거리를 입력하면 자동으로 금액이 계산됩니다.</li>
           </ul>
         </section>
       </div>

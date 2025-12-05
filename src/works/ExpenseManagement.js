@@ -10,6 +10,7 @@ export default function ExpenseManagement() {
   const navigate = useNavigate();
   const { showToast } = useToast();
 
+  // const [userId, setUserId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState('');
   const [expenseList, setExpenseList] = useState([]);
@@ -55,6 +56,7 @@ export default function ExpenseManagement() {
       // TODO: 실제 권한 확인 API 호출 (임시로 통과)
       // const response = await fetch(...)
       // if (!response.data.isManager) { alert('권한이 없습니다.'); return; }
+      // setUserId(userIdEncoded);
 
       // 기본 월 설정 (이전 달 - 경비는 지난달 기준)
       const now = new Date();
@@ -65,7 +67,7 @@ export default function ExpenseManagement() {
       setSelectedMonth(defaultMonth);
 
       // 목록 조회
-      await fetchExpenseList(factoryCode, defaultMonth);
+      await fetchExpenseList(factoryCode, defaultMonth, userIdEncoded);
 
       setIsLoading(false);
     } catch (error) {
@@ -76,12 +78,13 @@ export default function ExpenseManagement() {
   };
 
   // 경비 청구 목록 조회
-  const fetchExpenseList = async (factoryCode, month) => {
+  const fetchExpenseList = async (factoryCode, month, userIdEncoded) => {
     setIsLoading(true);
     try {
       const formData = new FormData();
       formData.append('factoryCode', factoryCode);
       formData.append('month', month);
+      formData.append('userId', atob(userIdEncoded));
 
       const response = await fetch(`${API_BASE_URL}/jvWorksGetExpenseList`, {
         method: 'POST',
@@ -89,7 +92,12 @@ export default function ExpenseManagement() {
       });
 
       if (!response.ok) {
-        console.error('목록 조회 실패:', response.status, response.statusText);
+        if (response.status === 403 || response.status === 401) {
+          showToast('해당 사용자는 접근할 수 없는 페이지입니다.', 'warning');
+          navigate('/works');
+          return;
+        }
+
         const errText = await response.text();
         console.error('오류 응답 본문:', errText);
         throw new Error(`HTTP ${response.status}`);
@@ -282,7 +290,13 @@ export default function ExpenseManagement() {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            minHeight: '60vh',
+            minHeight: '100vh',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
           }}
         >
           <ClipLoader color="#f88c6b" loading={isLoading} size={120} />
