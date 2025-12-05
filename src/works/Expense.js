@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import './Expense.css';
@@ -13,12 +13,6 @@ const categories = [
   { code: 'UTILITY', name: '공공요금' },
   { code: 'ETC', name: '기타' },
 ];
-const fuelTypes = [
-  { name: '휘발유', price: 1663, efficiency: 12.8 },
-  { name: '경유', price: 1536, efficiency: 12.8 },
-  { name: 'LPG', price: 999, efficiency: 12.8 },
-];
-const maintenanceRate = 1.2;
 
 export default function Expense() {
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
@@ -38,9 +32,18 @@ export default function Expense() {
   const [userId, setUserId] = useState('');
   const [userName, setUserName] = useState('');
   const [memo, setMemo] = useState('');
+  const [userEfficiency, setUserEfficiency] = useState(12.8); // 사용자별 연비 (km/L)
+  const [baseEfficiency, setBaseEfficiency] = useState(12.8); // 관리자 설정 기준연비
   const [isLoading, setIsLoading] = useState(true);
   const [status, setStatus] = useState('DRAFT');
   const [managerChecked, setManagerChecked] = useState(false);
+  const [fuelTypes, setFuelTypes] = useState([
+    { name: '없음', price: 0, efficiency: 0 },
+    { name: '휘발유', price: 1663, efficiency: 12.8 },
+    { name: '경유', price: 1536, efficiency: 12.8 },
+    { name: 'LPG', price: 999, efficiency: 12.8 },
+  ]);
+  const [maintenanceRate, setMaintenanceRate] = useState(1.2);
   const [rows, setRows] = useState([
     {
       rowId: null, // 서버에서 받은 행 ID
@@ -58,9 +61,13 @@ export default function Expense() {
       managerConfirmed: false, // 관리자 확인 여부
     },
   ]);
+  const authCheckRef = useRef(false);
 
   // 인증 및 초기화
   useEffect(() => {
+    if (authCheckRef.current) return;
+    authCheckRef.current = true;
+
     const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(
       navigator.userAgent
     );
@@ -92,12 +99,14 @@ export default function Expense() {
           setManagerChecked(!!parsed.managerChecked);
           setRows(
             parsed.rows?.map((row) => ({
-              rowId: row.rowId || null,
+              dirty: true,
+              managerConfirmed: false,
               type:
                 row.type || (row.category === '유류비' ? 'fuel' : 'expense'),
               category: row.category === '유류비' ? 'FUEL' : row.category || '',
               date: row.date || '',
               description: row.description || '',
+              pay: row.pay || 0,
               amount:
                 row.type && row.type === 'fuel'
                   ? ''
@@ -114,7 +123,8 @@ export default function Expense() {
                     : ''
                   : '',
               file: null,
-              fileName: row.fileName || '',
+              dirty: true,
+              managerConfirmed: false,
               managerConfirmed: row.managerConfirmed || false,
             })) || [
               {
@@ -143,6 +153,78 @@ export default function Expense() {
     return false; // 임시 데이터 없음 또는 거부
   };
 
+  // 유류비 설정 불러오기
+  const fetchFuelSettings = async (month, userId) => {
+    if (!month || !userId) return;
+
+    try {
+      const url = `${API_BASE_URL}/jvWorksGetFuelSettings?factoryCode=000001&month=${month}`;
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        console.error('유류비 설정 조회 실패:', response.status);
+        return;
+      }
+
+      const result = await response.json();
+
+      if (result) {
+        const data = result;
+
+        // 유류 타입 업데이트
+        const updatedFuelTypes = [
+          { name: '없음', price: 0, efficiency: 0 },
+          {
+            name: '휘발유',
+            price: data.gasoline || 0,
+            efficiency: data.baseEfficiency || 12.8,
+          },
+          {
+            name: '경유',
+            price: data.diesel || 0,
+            efficiency: data.baseEfficiency || 12.8,
+          },
+          {
+            name: 'LPG',
+            price: data.lpg || 0,
+            efficiency: data.baseEfficiency || 12.8,
+          },
+        ];
+        setFuelTypes(updatedFuelTypes);
+
+        // 유지보수율 업데이트
+        setMaintenanceRate(data.maintenanceRate || 1.2);
+
+        // 차량연비는 로컬스토리지에서 불러오거나 API 기준연비로부터 계산
+        const savedUserEfficiency = localStorage.getItem(
+          `user_efficiency_${userId}`
+        );
+
+        if (savedUserEfficiency) {
+          // 로컬스토리지에 저장된 차량연비가 있으면 사용
+          const userEff = parseFloat(savedUserEfficiency);
+          setUserEfficiency(userEff);
+          // 차량연비로 기준연비 계산 (소수점 한자리 반올림)
+          const calculatedBaseEff = Math.round(userEff * 0.85 * 10) / 10;
+          setBaseEfficiency(calculatedBaseEff);
+        } else if (data.baseEfficiency) {
+          // 없으면 API 기준연비로부터 역산하여 차량연비 계산 (소수점 한자리 반올림)
+          const apiBaseEff = data.baseEfficiency;
+          const calculatedUserEff = Math.round((apiBaseEff / 0.85) * 10) / 10; // 12.8 / 0.85 = 15.058... → 15.1
+          setBaseEfficiency(apiBaseEff);
+          setUserEfficiency(calculatedUserEff);
+          localStorage.setItem(
+            `user_efficiency_${userId}`,
+            calculatedUserEff.toString()
+          );
+        }
+      }
+    } catch (error) {
+      console.error('유류비 설정 조회 오류:', error);
+    }
+  };
+
   // 경비청구 초기화
   const initializeExpense = (user) => {
     // expenseId가 있으면 ID 기준, 없으면 월 기준 조회
@@ -164,6 +246,10 @@ export default function Expense() {
 
       setMonth(formattedMonth);
       setUserId(user);
+
+      // 유류비 설정 불러오기
+      fetchFuelSettings(formattedMonth, user);
+
       fetchExpenseData(formattedMonth, user, null);
     }
   };
@@ -178,6 +264,33 @@ export default function Expense() {
   const unformatToInt = (value) => {
     const num = String(value).replace(/[^0-9]/g, '');
     return num ? parseInt(num, 10) : 0;
+  };
+
+  // 사용자 차량 연비 변경 핸들러 (기준연비는 차량연비 × 0.85로 계산, 소수점 한자리)
+  const handleEfficiencyChange = (e) => {
+    const inputValue = e.target.value;
+
+    // 빈 값이면 0으로 설정
+    if (inputValue === '') {
+      setUserEfficiency(0);
+      setBaseEfficiency(0);
+      return;
+    }
+
+    const value = parseFloat(inputValue);
+    if (isNaN(value) || value < 0) return;
+
+    // 입력한 값 그대로 설정 (15 입력 → 15로 유지)
+    setUserEfficiency(value);
+
+    // 차량연비 × 0.85로 기준연비 계산 (15 × 0.85 = 12.75 → 12.8)
+    const calculatedBaseEfficiency = Math.round(value * 0.85 * 10) / 10;
+    setBaseEfficiency(calculatedBaseEfficiency);
+
+    // 로컬스토리지에 차량연비 저장
+    if (userId && value > 0) {
+      localStorage.setItem(`user_efficiency_${userId}`, value.toString());
+    }
   };
 
   // 입력 가능 여부 확인 (매니저 모드 제출 상태는 수정 가능, COMPLETED는 비활성화)
@@ -199,6 +312,7 @@ export default function Expense() {
     const cleaned = String(raw).replace(/[^0-9]/g, '');
     const updated = [...rows];
     updated[idx][key] = cleaned; // 실시간 콤마 없이 저장
+    updated[idx].dirty = true;
     setRows(updated);
   };
 
@@ -281,6 +395,8 @@ export default function Expense() {
           // month가 설정되지 않았다면 (ID 기준 조회인 경우) 월 정보 설정
           if (!month && data.month) {
             setMonth(data.month);
+            // 유류비 설정 불러오기
+            fetchFuelSettings(data.month, userId);
           }
 
           setRows(
@@ -291,6 +407,8 @@ export default function Expense() {
               category: row.category === '유류비' ? 'FUEL' : row.category || '',
               date: row.date || '',
               description: row.description || '',
+              pay: row.pay ?? null,
+              dirty: false,
               amount:
                 row.type && row.type === 'fuel'
                   ? ''
@@ -359,6 +477,20 @@ export default function Expense() {
 
   // 지급액 계산 함수
   const calcPay = (row) => {
+    // 제출 이후(제출, 승인, 완료 등)에는 서버에 저장된 지급액을 그대로 사용하여
+    // 추후 단가/연비 변경 시에도 과거 청구 금액이 변하지 않도록 한다.
+    if (
+      status !== 'DRAFT' &&
+      status !== 'REJECTED' &&
+      row.pay !== undefined &&
+      row.pay !== null &&
+      // 매니저가 확인 전(SUBMITTED 등) 수정 중일 때는 최신 단가로 재계산하도록
+      // stored pay 사용을 건너뛴다.
+      !(isManagerMode && !managerChecked && row.dirty)
+    ) {
+      return row.pay;
+    }
+
     if (row.type === 'fuel') {
       const fuelPay = calcFuelPay(row.fuelType, row.distance);
       const toll = unformatToInt(row.tollFee);
@@ -366,17 +498,32 @@ export default function Expense() {
     }
     const amt = unformatToInt(row.amount);
     const cnt = parseInt(row.people) || 1;
-    if (cnt === 1) return Math.min(amt, 8000);
-    return Math.min(amt, 8000 * cnt);
+
+    // 점심, 저녁일 경우만 인당 8천원 제한 적용
+    if (row.category === 'LUNCH' || row.category === 'DINNER') {
+      if (cnt === 1) return Math.min(amt, 8000);
+      return Math.min(amt, 8000 * cnt);
+    }
+
+    // 그 외 카테고리는 제한 없음
+    return amt;
   };
 
-  // 유류비 계산 함수
+  // 유류비 계산 함수 (기준연비 사용)
   const calcFuelPay = (fuelType, distance) => {
     const fuel = fuelTypes.find((f) => f.name === fuelType);
     if (!fuel) return 0;
+    // '없음'인 경우 유류비 계산하지 않음 (통행료만)
+    if (fuelType === '없음') return 0;
     const dist = parseFloat(distance) || 0;
-    const fuelCost = (dist / fuel.efficiency) * fuel.price;
-    return Math.round(fuelCost * maintenanceRate);
+    // 기준연비 사용
+    const efficiency = baseEfficiency || 12.8;
+    const fuelCost = (dist / efficiency) * fuel.price;
+    const beforeRound = fuelCost * maintenanceRate;
+    // 원단위 반올림 (10원 단위에서 반올림)
+    const result = Math.round(beforeRound / 10) * 10;
+
+    return result;
   };
 
   // 지급액 합계
@@ -402,6 +549,7 @@ export default function Expense() {
         people: 1,
         file: null,
         fileName: '',
+        dirty: true,
         managerConfirmed: false,
       },
     ]);
@@ -426,6 +574,7 @@ export default function Expense() {
         tollFee: '',
         file: null,
         fileName: '',
+        dirty: true,
         managerConfirmed: false,
       },
     ]);
@@ -449,6 +598,7 @@ export default function Expense() {
     } else {
       updated[idx][key] = value;
     }
+    updated[idx].dirty = true;
     setRows(updated);
   };
 
@@ -522,6 +672,10 @@ export default function Expense() {
         formData.append(`rows[${idx}].amount`, row.amount);
         formData.append(`rows[${idx}].people`, row.people);
       }
+      formData.append(
+        `rows[${idx}].pay`,
+        `${calcPay(row).toLocaleString()}` || 0
+      );
 
       if (row.file) {
         formData.append(`rows[${idx}].file`, row.file);
@@ -567,14 +721,12 @@ export default function Expense() {
 
     const hasEmptyRow = rows.some((row) => {
       if (row.type === 'fuel') {
-        // 유류비: 비고, 유류타입, 거리, 날짜 필수 (통행료는 0원 가능)
-        if (
-          !row.category ||
-          !row.date ||
-          !row.description ||
-          !row.fuelType ||
-          !row.distance
-        ) {
+        // 유류비: 비고, 유류타입, 날짜 필수 (거리는 '없음'이 아닐 때만 필수, 통행료는 0원 가능)
+        if (!row.category || !row.date || !row.description || !row.fuelType) {
+          return true;
+        }
+        // '없음'이 아닐 때만 거리 필수
+        if (row.fuelType !== '없음' && !row.distance) {
           return true;
         }
       } else {
@@ -635,6 +787,10 @@ export default function Expense() {
         formData.append(`rows[${idx}].amount`, row.amount);
         formData.append(`rows[${idx}].people`, row.people);
       }
+      formData.append(
+        `rows[${idx}].pay`,
+        `${calcPay(row).toLocaleString()}` || 0
+      );
 
       if (row.file) {
         formData.append(`rows[${idx}].file`, row.file);
@@ -759,64 +915,49 @@ export default function Expense() {
 
       <div className="expense-content">
         <header className="expense-header">
-          <h1>{isManagerMode ? '경비 청구 상세 확인' : '경비 청구서 제출'}</h1>
-          <p>
-            {isManagerMode
-              ? `${userName}님의 경비 청구 내역`
-              : '월별 경비를 입력하고 제출하세요'}
-          </p>
+          <div className="header-left">
+            <h1>{isManagerMode ? '경비 청구 관리' : '경비 청구서 제출'}</h1>
+          </div>
+          <div className="header-right">
+            {isManagerMode && (
+              <>
+                {status === 'SUBMITTED' && !managerChecked && (
+                  <>
+                    <button onClick={handleApprove} className="btn-approve">
+                      승인
+                    </button>
+                    <button onClick={handleReject} className="btn-reject">
+                      반려
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => navigate('/works/expense-management')}
+                  className="btn-back-inline"
+                >
+                  뒤로가기
+                </button>
+              </>
+            )}
+          </div>
+        </header>
 
-          {isManagerMode && (
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-              <button
-                onClick={() => navigate('/works/expense-management')}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
-              >
-                목록으로
-              </button>
-              {status === 'SUBMITTED' && !managerChecked && (
-                <>
-                  <button
-                    onClick={handleApprove}
-                    style={{
-                      padding: '8px 16px',
-                      backgroundColor: '#28a745',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    승인
-                  </button>
-                  <button
-                    onClick={handleReject}
-                    style={{
-                      padding: '8px 16px',
-                      backgroundColor: '#dc3545',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    반려
-                  </button>
-                </>
-              )}
-            </div>
-          )}
+        {/* 상태 정보 섹션 */}
+        {isManagerMode && (
+          <div className="status-info-section">
+            <p>{userName}님의 경비 청구 내역</p>
+          </div>
+        )}
+        {!isManagerMode && (
+          <div className="status-info-section">
+            <p>월별 경비를 입력하고 제출하세요</p>
+          </div>
+        )}
 
+        {/* 상태 및 알림 정보 */}
+        <div className="status-alerts">
           <div
             style={{
-              marginTop: '0.5rem',
               display: 'flex',
               gap: '1rem',
               alignItems: 'center',
@@ -863,7 +1004,7 @@ export default function Expense() {
               관리팀 확인됨: 항목 수정/삭제 및 임시저장/제출이 모두 불가합니다.
             </div>
           )}
-        </header>
+        </div>
 
         {/* 기본 정보 */}
         <section className="expense-section">
@@ -891,6 +1032,36 @@ export default function Expense() {
                 className="input-field"
                 disabled
                 style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="userEfficiency">
+                차량 연비 (km/L)
+                <span
+                  style={{
+                    fontSize: '0.85rem',
+                    color: '#888',
+                    marginLeft: '4px',
+                  }}
+                >
+                  (기준연비 자동계산)
+                </span>
+              </label>
+              <input
+                id="userEfficiency"
+                type="number"
+                step="0.1"
+                min="0.1"
+                value={userEfficiency}
+                onChange={handleEfficiencyChange}
+                className="input-field"
+                placeholder="예: 15"
+                disabled={status === 'COMPLETED'}
+                style={
+                  status === 'COMPLETED'
+                    ? { backgroundColor: '#f5f5f5', cursor: 'not-allowed' }
+                    : {}
+                }
               />
             </div>
             <div className="form-group flex-grow">
@@ -1341,6 +1512,102 @@ export default function Expense() {
               </ul>
             </div>
           )}
+        </section>
+
+        {/* 유류비 정보 */}
+        <section className="expense-section">
+          <h2 className="section-title">💰 유류비 설정 정보</h2>
+          <div className="form-group-horizontal">
+            <div className="form-group">
+              <label>기준연비 (km/L)</label>
+              <input
+                type="text"
+                value={baseEfficiency.toFixed(1)}
+                className="input-field"
+                disabled
+                style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                title="차량연비 × 0.85로 자동 계산됩니다"
+              />
+            </div>
+            <div className="form-group">
+              <label>휘발유 (원/L)</label>
+              <input
+                type="text"
+                value={
+                  fuelTypes
+                    .find((f) => f.name === '휘발유')
+                    ?.price.toLocaleString() || '1,663'
+                }
+                className="input-field"
+                disabled
+                style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+              />
+            </div>
+            <div className="form-group">
+              <label>경유 (원/L)</label>
+              <input
+                type="text"
+                value={
+                  fuelTypes
+                    .find((f) => f.name === '경유')
+                    ?.price.toLocaleString() || '1,536'
+                }
+                className="input-field"
+                disabled
+                style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+              />
+            </div>
+            <div className="form-group">
+              <label>LPG (원/L)</label>
+              <input
+                type="text"
+                value={
+                  fuelTypes
+                    .find((f) => f.name === 'LPG')
+                    ?.price.toLocaleString() || '999'
+                }
+                className="input-field"
+                disabled
+                style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+              />
+            </div>
+            <div className="form-group">
+              <label>유지보수율</label>
+              <input
+                type="text"
+                value={maintenanceRate}
+                className="input-field"
+                disabled
+                style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+              />
+            </div>
+          </div>
+          <div
+            className="info-box"
+            style={{
+              marginTop: '1rem',
+              background: '#e3f2fd',
+              borderLeftColor: '#1976d2',
+            }}
+          >
+            <ul>
+              <li>
+                차량연비를 입력하면 기준연비가 자동으로 계산됩니다 (차량연비 ×
+                0.85, 소수점 한자리).
+              </li>
+              <li>
+                예: 차량연비 15 입력 → 기준연비 12.8로 계산되며, 이 값으로
+                유류비가 계산됩니다.
+              </li>
+              <li>
+                유류비는 하단의{' '}
+                <strong>기준연비, 휘발유 가격, 유지보수율</strong>로 계산됩니다.
+              </li>
+              <li>
+                위 유류비 설정은 {month || '해당'} 월 기준 관리자 설정값입니다.
+              </li>
+            </ul>
+          </div>
         </section>
 
         {/* 안내사항 */}

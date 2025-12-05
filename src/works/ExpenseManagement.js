@@ -3,16 +3,28 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import './ExpenseManagement.css';
 import { ClipLoader } from 'react-spinners';
+import { useToast } from '../common/Toast';
 
 export default function ExpenseManagement() {
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState('');
   const [expenseList, setExpenseList] = useState([]);
   const [filterStatus, setFilterStatus] = useState('ALL'); // ALL, SUBMITTED, APPROVED, REJECTED
   const initializedRef = useRef(false);
+
+  // 유류비 설정 모달
+  const [showFuelModal, setShowFuelModal] = useState(false);
+  const [fuelSettings, setFuelSettings] = useState({
+    month: '',
+    gasoline: 1663,
+    diesel: 1536,
+    lpg: 999,
+    maintenanceRate: 1.2,
+  });
 
   // 권한 확인 및 초기화
   useEffect(() => {
@@ -25,7 +37,7 @@ export default function ExpenseManagement() {
     setTimeout(() => {
       const sessionUser = window.sessionStorage.getItem('extensionLogin');
       if (!sessionUser) {
-        alert('로그인이 필요한 서비스입니다.');
+        showToast('로그인이 필요한 서비스입니다.', 'warning');
         navigate('/works');
         return;
       }
@@ -58,7 +70,7 @@ export default function ExpenseManagement() {
       setIsLoading(false);
     } catch (error) {
       console.error('초기화 오류:', error);
-      alert('데이터를 불러오는 중 오류가 발생했습니다.');
+      showToast('데이터를 불러오는 중 오류가 발생했습니다.', 'error');
       setIsLoading(false);
     }
   };
@@ -103,7 +115,7 @@ export default function ExpenseManagement() {
       setExpenseList(list);
     } catch (error) {
       console.error('목록 조회 오류:', error);
-      alert('목록을 불러오는 중 오류가 발생했습니다.');
+      showToast('목록을 불러오는 중 오류가 발생했습니다.', 'error');
       setExpenseList([]);
     } finally {
       setIsLoading(false);
@@ -150,6 +162,91 @@ export default function ExpenseManagement() {
   // 금액 포맷
   const formatAmount = (amount) => {
     return new Intl.NumberFormat('ko-KR').format(amount || 0);
+  };
+
+  // 유류비 설정 모달 열기
+  const handleOpenFuelModal = () => {
+    // 현재 선택된 월로 초기화
+    setFuelSettings((prev) => ({
+      ...prev,
+      month: selectedMonth,
+    }));
+    // 해당 월의 설정 불러오기
+    loadFuelSettings(selectedMonth);
+    setShowFuelModal(true);
+  };
+
+  // 유류비 설정 불러오기
+  const loadFuelSettings = async (month) => {
+    try {
+      const factoryCode =
+        window.sessionStorage.getItem('factoryCode') || '000001';
+      const formData = new FormData();
+      formData.append('factoryCode', factoryCode);
+      formData.append('month', month);
+
+      const response = await fetch(`${API_BASE_URL}/jvWorksGetFuelSettings`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('유류비 설정 조회 응답:', data);
+        if (data) {
+          setFuelSettings({
+            month: month,
+            gasoline: data.gasoline || 0,
+            diesel: data.diesel || 0,
+            lpg: data.lpg || 0,
+            maintenanceRate: data.maintenanceRate || 1.2,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('유류비 설정 불러오기 오류:', error);
+    }
+  };
+
+  // 유류비 설정 저장
+  const handleSaveFuelSettings = async () => {
+    try {
+      const factoryCode =
+        window.sessionStorage.getItem('factoryCode') || '000001';
+      const formData = new FormData();
+      formData.append('factoryCode', factoryCode);
+      formData.append('month', fuelSettings.month);
+      formData.append('gasoline', fuelSettings.gasoline);
+      formData.append('diesel', fuelSettings.diesel);
+      formData.append('lpg', fuelSettings.lpg);
+      formData.append('maintenanceRate', fuelSettings.maintenanceRate);
+
+      const response = await fetch(`${API_BASE_URL}/jvWorksSetFuelSettings`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        if (data.success) {
+          showToast('유류비 설정이 저장되었습니다.', 'success');
+          setShowFuelModal(false);
+        } else {
+          showToast(
+            '저장 실패: ' + (data.message || '알 수 없는 오류'),
+            'error'
+          );
+        }
+      } else {
+        const errorText = await response.text();
+        console.error('HTTP 오류:', response.status, errorText);
+        showToast('저장 중 오류가 발생했습니다.', 'error');
+      }
+    } catch (error) {
+      console.error('유류비 설정 저장 오류:', error);
+      showToast('저장 중 오류가 발생했습니다.', 'error');
+    }
   };
 
   // 날짜 포맷 (yyyy-MM-dd HH:mm:ss)
@@ -202,9 +299,14 @@ export default function ExpenseManagement() {
       <div className="expense-management-container">
         <header className="management-header">
           <h1>경비 청구 관리</h1>
-          <button className="btn-back" onClick={() => navigate('/works')}>
-            뒤로가기
-          </button>
+          <div className="header-buttons">
+            <button className="btn-fuel-settings" onClick={handleOpenFuelModal}>
+              유류비 설정
+            </button>
+            <button className="btn-back" onClick={() => navigate('/works')}>
+              뒤로가기
+            </button>
+          </div>
         </header>
 
         <div className="filter-section">
@@ -291,6 +393,110 @@ export default function ExpenseManagement() {
             </table>
           )}
         </div>
+
+        {/* 유류비 설정 모달 */}
+        {showFuelModal && (
+          <div
+            className="modal-overlay"
+            onClick={() => setShowFuelModal(false)}
+          >
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>유류비 설정</h2>
+                <button
+                  className="modal-close"
+                  onClick={() => setShowFuelModal(false)}
+                >
+                  ×
+                </button>
+              </div>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>기준년월:</label>
+                  <input
+                    type="month"
+                    value={fuelSettings.month}
+                    onChange={(e) => {
+                      const newMonth = e.target.value;
+                      setFuelSettings({
+                        ...fuelSettings,
+                        month: newMonth,
+                      });
+                      loadFuelSettings(newMonth);
+                    }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>휘발유 (원/L):</label>
+                  <input
+                    type="number"
+                    step="1"
+                    value={fuelSettings.gasoline}
+                    onChange={(e) =>
+                      setFuelSettings({
+                        ...fuelSettings,
+                        gasoline: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                  />
+                </div>
+                <div className="form-group">
+                  <label>경유 (원/L):</label>
+                  <input
+                    type="number"
+                    step="1"
+                    value={fuelSettings.diesel}
+                    onChange={(e) =>
+                      setFuelSettings({
+                        ...fuelSettings,
+                        diesel: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                  />
+                </div>
+                <div className="form-group">
+                  <label>LPG (원/L):</label>
+                  <input
+                    type="number"
+                    step="1"
+                    value={fuelSettings.lpg}
+                    onChange={(e) =>
+                      setFuelSettings({
+                        ...fuelSettings,
+                        lpg: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                  />
+                </div>
+                <div className="form-group">
+                  <label>유지관리비율:</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={fuelSettings.maintenanceRate}
+                    onChange={(e) =>
+                      setFuelSettings({
+                        ...fuelSettings,
+                        maintenanceRate: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn-save" onClick={handleSaveFuelSettings}>
+                  저장
+                </button>
+                <button
+                  className="btn-cancel"
+                  onClick={() => setShowFuelModal(false)}
+                >
+                  취소
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

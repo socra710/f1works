@@ -22,10 +22,97 @@
 
 /* 헤더 */
 .expense-header {
-  text-align: center;
-  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
   padding-bottom: 1.5rem;
   border-bottom: 2px solid #f0f0f0;
+}
+
+.header-left h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.header-right {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.btn-approve {
+  padding: 0.5rem 1.5rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-approve:hover {
+  background: #5568d3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-reject {
+  padding: 0.5rem 1.5rem;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-reject:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-back-inline {
+  padding: 0.5rem 1.5rem;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-back-inline:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+.status-info-section {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.status-info-section p {
+  font-size: 1rem;
+  color: #7f8c8d;
+  margin: 0;
+}
+
+.status-alerts {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
 }
 
 .expense-header h1 {
@@ -63,9 +150,19 @@
 
 .form-group-horizontal {
   display: flex;
-  grid-template-columns: 200px 1fr;
-  gap: 2rem;
+  gap: 1rem;
   align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.form-group-horizontal > .form-group {
+  flex: 1 1 200px;
+  min-width: 200px;
+}
+
+.form-group-horizontal > .flex-grow {
+  flex: 3 1 400px;
+  min-width: 400px;
 }
 
 .form-group label {
@@ -74,11 +171,6 @@
   color: #34495e;
   margin-bottom: 0.6rem;
   display: block;
-}
-
-.flex-grow {
-  min-width: 0;
-  flex: 1;
 }
 
 /* 입력 필드 */
@@ -385,6 +477,21 @@
     border-radius: 8px;
   }
 
+  .expense-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .header-left h1 {
+    font-size: 1.5rem;
+  }
+
+  .header-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
   .expense-header h1 {
     font-size: 1.5rem;
   }
@@ -394,8 +501,14 @@
   }
 
   .form-group-horizontal {
-    grid-template-columns: 1fr;
+    flex-direction: column;
     gap: 0;
+  }
+
+  .form-group-horizontal > .form-group {
+    flex: 1 1 100%;
+    min-width: 100%;
+    margin-bottom: 1rem;
   }
 
   .expense-table-container {
