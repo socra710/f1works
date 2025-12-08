@@ -98,6 +98,7 @@ export default function Expense() {
           setMemo(parsed.memo || '');
           setStatus(parsed.status || 'DRAFT');
           setManagerChecked(!!parsed.managerChecked);
+          setUserEfficiency(parsed.userEfficiency || 15);
           setRows(
             parsed.rows?.map((row) => ({
               rowId: row.rowId || null,
@@ -634,6 +635,7 @@ export default function Expense() {
       rows,
       status: tempStatus,
       managerChecked,
+      userEfficiency,
       savedAt: new Date().toISOString(),
     };
     localStorage.setItem(
@@ -650,6 +652,7 @@ export default function Expense() {
     formData.append('memo', memo);
     formData.append('status', tempStatus); // 임시 저장 상태
     formData.append('managerChecked', managerChecked ? 'true' : 'false');
+    formData.append('userEfficiency', userEfficiency); // 사용자 차량 연비 추가
     if (expenseId) {
       formData.append('expenseId', expenseId);
     }
@@ -768,6 +771,7 @@ export default function Expense() {
     formData.append('userName', userName);
     formData.append('memo', memo);
     formData.append('status', 'SUBMITTED'); // 제출 상태
+    formData.append('userEfficiency', userEfficiency); // 사용자 차량 연비 추가
 
     rows.forEach((row, idx) => {
       // rowId 전송
@@ -1070,9 +1074,9 @@ export default function Expense() {
                 onChange={handleEfficiencyChange}
                 className="input-field"
                 placeholder="예: 15"
-                disabled={status === 'COMPLETED'}
+                disabled={status === 'COMPLETED' || status === 'SUBMITTED'}
                 style={
-                  status === 'COMPLETED'
+                  status === 'COMPLETED' || status === 'SUBMITTED'
                     ? { backgroundColor: '#f5f5f5', cursor: 'not-allowed' }
                     : {}
                 }
@@ -1087,9 +1091,9 @@ export default function Expense() {
                 onChange={(e) => setMemo(e.target.value)}
                 className="input-field"
                 placeholder="특이사항이 있으면 입력하세요"
-                disabled={status === 'COMPLETED'}
+                disabled={status === 'COMPLETED' || status === 'SUBMITTED'}
                 style={
-                  status === 'COMPLETED'
+                  status === 'COMPLETED' || status === 'SUBMITTED'
                     ? { backgroundColor: '#f5f5f5', cursor: 'not-allowed' }
                     : {}
                 }

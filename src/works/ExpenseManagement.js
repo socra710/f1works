@@ -134,9 +134,16 @@ export default function ExpenseManagement() {
   const handleMonthChange = (e) => {
     const newMonth = e.target.value;
     setSelectedMonth(newMonth);
+  };
+
+  // 검색 버튼 핸들러
+  const handleSearch = () => {
     const factoryCode =
       window.sessionStorage.getItem('factoryCode') || '000001';
-    fetchExpenseList(factoryCode, newMonth);
+    const userIdEncoded = window.sessionStorage.getItem('extensionLogin');
+    if (userIdEncoded) {
+      fetchExpenseList(factoryCode, selectedMonth, userIdEncoded);
+    }
   };
 
   // 상태별 필터링
@@ -316,6 +323,9 @@ export default function ExpenseManagement() {
           <div className="header-buttons">
             <button className="btn-fuel-settings" onClick={handleOpenFuelModal}>
               유류비 설정
+            </button>
+            <button className="btn-search" onClick={handleSearch}>
+              🔍 검색
             </button>
             <button className="btn-back" onClick={() => navigate('/works')}>
               뒤로가기
