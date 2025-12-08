@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import './Expense.css';
 import { ClipLoader } from 'react-spinners';
-import { useToast, useDialog } from '../common/Toast';
+import { useToast, useDialog } from '../../common/Toast';
 
 const categories = [
   { code: 'LUNCH', name: '점심' },

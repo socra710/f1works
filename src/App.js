@@ -10,8 +10,10 @@ import Notice from './works/Notice';
 import Dispatch from './works/Dispatch';
 import Car from './works/Car';
 import Monitor from './works/Monitor';
-import Expense from './works/Expense';
-import ExpenseManagement from './works/ExpenseManagement';
+import Expense from './works/expense/Expense';
+import ExpenseManagement from './works/expense/ExpenseManagement';
+import SpecialItems from './works/expense/SpecialItems';
+import ExpenseSummary from './works/expense/ExpenseSummary';
 import Wordle from './games/wordle/Wordle';
 import Tetris from './games/tetris/Tetris';
 import Feed from './feed/index';
@@ -38,6 +40,11 @@ function App() {
           <Route
             path="/works/expense-management"
             element={<ExpenseManagement />}
+          ></Route>
+          <Route path="/works/special-items" element={<SpecialItems />}></Route>
+          <Route
+            path="/works/expense-summary"
+            element={<ExpenseSummary />}
           ></Route>
           {/* <Route path="/works/dispatch/:id" element={<Dispatch />}></Route> */}
           <Route path="/games/wordle" element={<Wordle />}></Route>

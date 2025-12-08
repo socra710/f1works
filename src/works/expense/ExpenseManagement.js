@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import './ExpenseManagement.css';
 import { ClipLoader } from 'react-spinners';
-import { useToast } from '../common/Toast';
+import { useToast } from '../../common/Toast';
 
 export default function ExpenseManagement() {
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
