@@ -1,20 +1,28 @@
 /* 기존 Expense.css 패턴에 맞춰 클래스명 및 스타일 통일 */
-.expense-container {
+.expenseSummary-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   padding: 2rem 1rem;
   box-sizing: border-box;
 }
+
+.expenseSummary-container section {
+  display: block;
+}
+
 .expenseSummary-content {
-  max-width: 100%;
+  /* width: 100%; */
+  display: flex !important;
   margin: 0 auto;
   background: white;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  padding: 2.5rem;
+  padding: 1rem;
   box-sizing: border-box;
+  max-width: 100%;
+  overflow-x: hidden;
 }
-.expense-header {
+.expenseSummary-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -60,8 +68,11 @@
 .btn-special-items:hover {
   background-color: #1976d2;
 }
-.expense-section {
-  margin-bottom: 2rem;
+.expenseSummary-section {
+  /* margin-bottom: 2rem; */
+  max-width: 100%;
+  overflow-x: hidden;
+  /* display: flex !important; */
 }
 .section-title {
   font-size: 1.25rem;
@@ -71,13 +82,15 @@
   padding-bottom: 0.5rem;
   border-bottom: 2px solid #667eea;
 }
-.expense-table-container {
+.expenseSummary-table-container {
   overflow-x: auto;
   margin-bottom: 1rem;
   border-radius: 8px;
   border: 1px solid #e9ecef;
+  max-width: 100%;
+  width: 100%;
 }
-.expense-table {
+.expenseSummary-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
@@ -85,14 +98,14 @@
   table-layout: auto;
   min-width: 100%;
 }
-.expense-table.manager-mode {
+.expenseSummary-table.manager-mode {
   min-width: 1400px;
 }
 
-.expense-table thead {
+.expenseSummary-table thead {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
-.expense-table th {
+.expenseSummary-table th {
   padding: 0.6rem 0.5rem;
   text-align: left;
   font-size: 0.85rem;
@@ -103,56 +116,56 @@
   white-space: nowrap;
   min-width: 60px;
 }
-.expense-table th:last-child {
+.expenseSummary-table th:last-child {
   border-right: none;
 }
-.expense-table td {
+.expenseSummary-table td {
   padding: 0.5rem 0.4rem;
   border-bottom: 1px solid #e9ecef;
   vertical-align: middle;
   box-sizing: border-box;
   font-size: 0.85rem;
 }
-.expense-table tbody tr {
+.expenseSummary-table tbody tr {
   transition: background-color 0.2s ease;
 }
-.expense-table tbody tr:hover {
+.expenseSummary-table tbody tr:hover {
   background: #f8f9fa;
 }
-.expense-table .user-name {
+.expenseSummary-table .user-name {
   font-weight: 600;
   color: #333;
 }
-.expense-table .amount {
+.expenseSummary-table .amount {
   text-align: right;
   color: #2196f3;
   font-weight: 500;
 }
-.expense-table .amount.total {
+.expenseSummary-table .amount.total {
   color: #4caf50;
   font-weight: 600;
   font-size: 14px;
 }
-.expense-table .date {
+.expenseSummary-table .date {
   font-size: 12px;
   color: #666;
 }
-.expense-table .status {
+.expenseSummary-table .status {
   padding: 4px 8px;
   border-radius: 3px;
   font-size: 12px;
   font-weight: 600;
   text-align: center;
 }
-.expense-table .status.CLOSED {
+.expenseSummary-table .status.CLOSED {
   background-color: #c8e6c9;
   color: #1b5e20;
 }
-.expense-table .status.REOPENED {
+.expenseSummary-table .status.REOPENED {
   background-color: #ffccbc;
   color: #bf360c;
 }
-.expense-table .actions {
+.expenseSummary-table .actions {
   text-align: center;
 }
 .btn-reopen {
@@ -200,6 +213,7 @@
   align-items: center;
   height: 300px;
 }
+
 .no-data {
   background-color: #f5f5f5;
   padding: 60px 40px;
@@ -208,6 +222,26 @@
   color: #999;
   font-size: 16px;
 }
+
+.empty-state {
+  padding: 4rem 2rem;
+  text-align: center;
+  color: #7f8c8d;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.05) 0%,
+    rgba(118, 75, 162, 0.05) 100%
+  );
+  border-radius: 12px;
+  border: 2px dashed #ddd;
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 500;
+}
+
 .summary-error {
   padding: 60px 40px;
   text-align: center;
@@ -231,6 +265,41 @@
   background-color: #1976d2;
 }
 @media (max-width: 768px) {
+  .expenseSummary-container {
+    padding: 1rem 0.5rem;
+  }
+
+  .expenseSummary-content {
+    padding: 1.5rem;
+  }
+
+  .expenseSummary-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .header-left h1 {
+    font-size: 1.5rem;
+  }
+
+  .header-right {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .year-selector {
+    width: 100%;
+  }
+
+  .year-selector input {
+    width: 100%;
+  }
+
+  .btn-special-items {
+    width: 100%;
+  }
+
   .expense-container {
     padding: 15px;
   }
@@ -624,8 +693,9 @@
 }
 
 /* 연도별 요약 테이블 스타일 */
-.expense-table-container.yearly-table {
+.expenseSummary-table-container.yearly-table {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .yearly-summary-table {
@@ -633,6 +703,58 @@
   border-collapse: collapse;
   background: white;
   min-width: 1800px;
+}
+
+/* 반응형: 화면이 작아질 때 테이블 크기 조정 */
+@media (max-width: 1400px) {
+  .yearly-summary-table {
+    min-width: 1200px;
+    font-size: 11px;
+  }
+
+  .yearly-summary-table th,
+  .yearly-summary-table td {
+    padding: 8px 6px;
+    min-width: 60px;
+  }
+
+  .yearly-summary-table td.category,
+  .yearly-summary-table td.subcategory {
+    min-width: 50px;
+    max-width: 50px;
+  }
+
+  .yearly-summary-table td.subcategory {
+    left: 50px;
+  }
+}
+
+@media (max-width: 768px) {
+  .yearly-summary-table {
+    min-width: 900px;
+    font-size: 10px;
+  }
+
+  .yearly-summary-table th,
+  .yearly-summary-table td {
+    padding: 6px 4px;
+    min-width: 50px;
+  }
+
+  .yearly-summary-table td.category,
+  .yearly-summary-table td.subcategory {
+    min-width: 45px;
+    max-width: 45px;
+  }
+
+  .yearly-summary-table td.subcategory {
+    left: 45px;
+  }
+
+  .yearly-summary-table tbody tr.category-total-row td.category-total,
+  .yearly-summary-table tbody tr.grand-total-row td.grand-total {
+    min-width: 90px;
+  }
 }
 
 .yearly-summary-table thead {
@@ -664,7 +786,7 @@
   position: sticky;
   left: 0;
   z-index: 11;
-  padding: 1rem 0.75rem;
+  padding: 1rem 0.5rem;
 }
 
 .yearly-summary-table td {
@@ -684,17 +806,21 @@
   left: 0;
   background: white;
   z-index: 9;
-  min-width: 80px;
+  min-width: 60px;
+  max-width: 60px;
+  padding: 10px 6px;
 }
 
 .yearly-summary-table td.subcategory {
   text-align: left;
   color: #555;
   position: sticky;
-  left: 80px;
+  left: 60px;
   background: white;
   z-index: 9;
-  min-width: 80px;
+  min-width: 60px;
+  max-width: 60px;
+  padding: 10px 6px;
 }
 
 .yearly-summary-table td.monthly-amount {
@@ -751,7 +877,7 @@
   left: 0;
   background-color: #f0f0f0;
   z-index: 9;
-  min-width: 160px;
+  min-width: 120px;
 }
 
 .yearly-summary-table tbody tr.category-total-row td.category-total-amount {
@@ -778,8 +904,8 @@
   left: 0;
   /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
   z-index: 9;
-  min-width: 160px;
-  padding: 1rem 0.75rem;
+  min-width: 120px;
+  padding: 1rem 0.5rem;
 }
 
 .yearly-summary-table tbody tr.grand-total-row td.grand-total-amount {

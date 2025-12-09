@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import './ExpenseSummary.css';
 import { ClipLoader } from 'react-spinners';
 import { useToast, useDialog } from '../../common/Toast';
+import {
+  getExpenseAggregationByYear,
+  getExpenseAggregationByUser,
+  getSpecialItems,
+} from './expenseAPI';
 
 /**
  * 경비 청구 집계 페이지
@@ -43,798 +48,156 @@ export default function ExpenseSummary() {
     return now.getFullYear().toString();
   });
   const [closingData, setClosingData] = useState([]);
-  const [monthlyData, setMonthlyData] = useState({});
-  const [specialItems, setSpecialItems] = useState([]);
+  const [userMonthlyData, setUserMonthlyData] = useState({});
+  const [specialItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isManagerMode, setIsManagerMode] = useState(
-    searchParams.get('mode') === 'manager'
+  const [isManagerMode] = useState(searchParams.get('mode') === 'manager');
+  const [factoryCode] = useState('000001'); // 예시, 실제로는 로그인 정보에서 가져옴
+  const [userId] = useState(
+    window.sessionStorage.getItem('extensionLogin') || ''
   );
-  const [factoryCode] = useState('F001'); // 예시, 실제로는 로그인 정보에서 가져옴
-  const [currentUser] = useState('ADMIN'); // 예시, 실제로는 로그인 정보에서 가져옴
 
   // 마감 데이터 및 특별항목 조회
+  const didFetch = useRef(false);
+  const initializedRef = useRef(false);
+
+  // 권한 확인 및 초기화
   useEffect(() => {
-    loadSummaryData();
+    // React Strict Mode에서 초기 useEffect가 두 번 실행되는 것을 방지
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
+    setTimeout(() => {
+      const sessionUser = window.sessionStorage.getItem('extensionLogin');
+      if (!sessionUser) {
+        showToast('로그인이 필요한 서비스입니다.', 'warning');
+        navigate('/works');
+        return;
+      }
+
+      if (!isManagerMode) {
+        showToast('관리자만 접근할 수 있는 페이지입니다.', 'warning');
+        navigate('/works');
+        return;
+      }
+
+      if (!didFetch.current) {
+        loadSummaryData();
+        didFetch.current = true;
+      }
+    }, 1000);
+    // eslint-disable-next-line
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!didFetch.current) {
+      return;
+    }
   }, [year]);
 
   const loadSummaryData = async () => {
     setIsLoading(true);
     try {
-      // 목 데이터 (테스트용)
-      const mockData = [
-        // 1월 데이터
-        {
-          closingId: '1',
-          monthYm: '2025-01',
-          category: '점심(소담)',
-          totalAmount: 1504800,
-          closedAt: '2025-01-31',
-        },
-        {
-          closingId: '2',
-          monthYm: '2025-01',
-          category: '저녁(소담)',
-          totalAmount: 140800,
-          closedAt: '2025-01-31',
-        },
-        {
-          closingId: '3',
-          monthYm: '2025-01',
-          category: '점심',
-          totalAmount: 949600,
-          closedAt: '2025-01-31',
-        },
-        {
-          closingId: '4',
-          monthYm: '2025-01',
-          category: '저녁',
-          totalAmount: 69540,
-          closedAt: '2025-01-31',
-        },
-        // 2월 데이터
-        {
-          closingId: '5',
-          monthYm: '2025-02',
-          category: '점심(소담)',
-          totalAmount: 1443200,
-          closedAt: '2025-02-28',
-        },
-        {
-          closingId: '6',
-          monthYm: '2025-02',
-          category: '저녁(소담)',
-          totalAmount: 132000,
-          closedAt: '2025-02-28',
-        },
-        {
-          closingId: '7',
-          monthYm: '2025-02',
-          category: '점심',
-          totalAmount: 1228700,
-          closedAt: '2025-02-28',
-        },
-        {
-          closingId: '8',
-          monthYm: '2025-02',
-          category: '저녁',
-          totalAmount: 207000,
-          closedAt: '2025-02-28',
-        },
-        // 3월 데이터
-        {
-          closingId: '9',
-          monthYm: '2025-03',
-          category: '점심(소담)',
-          totalAmount: 1416800,
-          closedAt: '2025-03-31',
-        },
-        {
-          closingId: '10',
-          monthYm: '2025-03',
-          category: '저녁(소담)',
-          totalAmount: 88000,
-          closedAt: '2025-03-31',
-        },
-        {
-          closingId: '11',
-          monthYm: '2025-03',
-          category: '점심',
-          totalAmount: 1402600,
-          closedAt: '2025-03-31',
-        },
-        {
-          closingId: '12',
-          monthYm: '2025-03',
-          category: '저녁',
-          totalAmount: 242900,
-          closedAt: '2025-03-31',
-        },
-        // 4월 데이터
-        {
-          closingId: '13',
-          monthYm: '2025-04',
-          category: '점심(소담)',
-          totalAmount: 1232000,
-          closedAt: '2025-04-30',
-        },
-        {
-          closingId: '14',
-          monthYm: '2025-04',
-          category: '저녁(소담)',
-          totalAmount: 140800,
-          closedAt: '2025-04-30',
-        },
-        {
-          closingId: '15',
-          monthYm: '2025-04',
-          category: '점심',
-          totalAmount: 1429200,
-          closedAt: '2025-04-30',
-        },
-        {
-          closingId: '16',
-          monthYm: '2025-04',
-          category: '저녁',
-          totalAmount: 269850,
-          closedAt: '2025-04-30',
-        },
-        // 5월 데이터
-        {
-          closingId: '17',
-          monthYm: '2025-05',
-          category: '점심(소담)',
-          totalAmount: 862400,
-          closedAt: '2025-05-31',
-        },
-        {
-          closingId: '18',
-          monthYm: '2025-05',
-          category: '저녁(소담)',
-          totalAmount: 114400,
-          closedAt: '2025-05-31',
-        },
-        {
-          closingId: '19',
-          monthYm: '2025-05',
-          category: '점심',
-          totalAmount: 1377600,
-          closedAt: '2025-05-31',
-        },
-        {
-          closingId: '20',
-          monthYm: '2025-05',
-          category: '저녁',
-          totalAmount: 156000,
-          closedAt: '2025-05-31',
-        },
-        // 6월 데이터
-        {
-          closingId: '21',
-          monthYm: '2025-06',
-          category: '점심(소담)',
-          totalAmount: 695200,
-          closedAt: '2025-06-30',
-        },
-        {
-          closingId: '22',
-          monthYm: '2025-06',
-          category: '저녁(소담)',
-          totalAmount: 105600,
-          closedAt: '2025-06-30',
-        },
-        {
-          closingId: '23',
-          monthYm: '2025-06',
-          category: '점심',
-          totalAmount: 972600,
-          closedAt: '2025-06-30',
-        },
-        {
-          closingId: '24',
-          monthYm: '2025-06',
-          category: '저녁',
-          totalAmount: 213800,
-          closedAt: '2025-06-30',
-        },
-        // 7월 데이터
-        {
-          closingId: '25',
-          monthYm: '2025-07',
-          category: '점심(소담)',
-          totalAmount: 985600,
-          closedAt: '2025-07-31',
-        },
-        {
-          closingId: '26',
-          monthYm: '2025-07',
-          category: '저녁(소담)',
-          totalAmount: 52800,
-          closedAt: '2025-07-31',
-        },
-        {
-          closingId: '27',
-          monthYm: '2025-07',
-          category: '점심(세종)',
-          totalAmount: 342000,
-          closedAt: '2025-07-31',
-        },
-        {
-          closingId: '28',
-          monthYm: '2025-07',
-          category: '저녁(세종)',
-          totalAmount: 27000,
-          closedAt: '2025-07-31',
-        },
-        {
-          closingId: '29',
-          monthYm: '2025-07',
-          category: '점심',
-          totalAmount: 1286800,
-          closedAt: '2025-07-31',
-        },
-        {
-          closingId: '30',
-          monthYm: '2025-07',
-          category: '저녁',
-          totalAmount: 222200,
-          closedAt: '2025-07-31',
-        },
-        // 8월 데이터
-        {
-          closingId: '31',
-          monthYm: '2025-08',
-          category: '점심(소담)',
-          totalAmount: 712800,
-          closedAt: '2025-08-31',
-        },
-        {
-          closingId: '32',
-          monthYm: '2025-08',
-          category: '저녁(소담)',
-          totalAmount: 35200,
-          closedAt: '2025-08-31',
-        },
-        {
-          closingId: '33',
-          monthYm: '2025-08',
-          category: '점심(세종)',
-          totalAmount: 288000,
-          closedAt: '2025-08-31',
-        },
-        {
-          closingId: '34',
-          monthYm: '2025-08',
-          category: '저녁(세종)',
-          totalAmount: 72000,
-          closedAt: '2025-08-31',
-        },
-        {
-          closingId: '35',
-          monthYm: '2025-08',
-          category: '점심',
-          totalAmount: 1175100,
-          closedAt: '2025-08-31',
-        },
-        {
-          closingId: '36',
-          monthYm: '2025-08',
-          category: '저녁',
-          totalAmount: 173400,
-          closedAt: '2025-08-31',
-        },
-        // 9월 데이터
-        {
-          closingId: '37',
-          monthYm: '2025-09',
-          category: '점심(소담)',
-          totalAmount: 1003200,
-          closedAt: '2025-09-30',
-        },
-        {
-          closingId: '38',
-          monthYm: '2025-09',
-          category: '저녁(소담)',
-          totalAmount: 8800,
-          closedAt: '2025-09-30',
-        },
-        {
-          closingId: '39',
-          monthYm: '2025-09',
-          category: '점심(세종)',
-          totalAmount: 288000,
-          closedAt: '2025-09-30',
-        },
-        {
-          closingId: '40',
-          monthYm: '2025-09',
-          category: '저녁(세종)',
-          totalAmount: 144000,
-          closedAt: '2025-09-30',
-        },
-        {
-          closingId: '41',
-          monthYm: '2025-09',
-          category: '점심',
-          totalAmount: 1473550,
-          closedAt: '2025-09-30',
-        },
-        {
-          closingId: '42',
-          monthYm: '2025-09',
-          category: '저녁',
-          totalAmount: 126200,
-          closedAt: '2025-09-30',
-        },
-        // 10월 데이터
-        {
-          closingId: '43',
-          monthYm: '2025-10',
-          category: '점심(소담)',
-          totalAmount: 563200,
-          closedAt: '2025-10-31',
-        },
-        {
-          closingId: '44',
-          monthYm: '2025-10',
-          category: '저녁(소담)',
-          totalAmount: 17600,
-          closedAt: '2025-10-31',
-        },
-        {
-          closingId: '45',
-          monthYm: '2025-10',
-          category: '점심(세종)',
-          totalAmount: 252000,
-          closedAt: '2025-10-31',
-        },
-        {
-          closingId: '46',
-          monthYm: '2025-10',
-          category: '저녁(세종)',
-          totalAmount: 18000,
-          closedAt: '2025-10-31',
-        },
-        {
-          closingId: '47',
-          monthYm: '2025-10',
-          category: '점심',
-          totalAmount: 1166600,
-          closedAt: '2025-10-31',
-        },
-        {
-          closingId: '48',
-          monthYm: '2025-10',
-          category: '저녁',
-          totalAmount: 48000,
-          closedAt: '2025-10-31',
-        },
-        // 11월 데이터
-        {
-          closingId: '49',
-          monthYm: '2025-11',
-          category: '점심(소담)',
-          totalAmount: 739200,
-          closedAt: '2025-11-30',
-        },
-        {
-          closingId: '50',
-          monthYm: '2025-11',
-          category: '저녁(소담)',
-          totalAmount: 17600,
-          closedAt: '2025-11-30',
-        },
-        {
-          closingId: '51',
-          monthYm: '2025-11',
-          category: '점심(세종)',
-          totalAmount: 342000,
-          closedAt: '2025-11-30',
-        },
-        {
-          closingId: '52',
-          monthYm: '2025-11',
-          category: '점심',
-          totalAmount: 718800,
-          closedAt: '2025-11-30',
-        },
-        {
-          closingId: '53',
-          monthYm: '2025-11',
-          category: '저녁',
-          totalAmount: 39600,
-          closedAt: '2025-11-30',
-        },
-        // 1월 데이터 - 비식비
-        {
-          closingId: '54',
-          monthYm: '2025-01',
-          category: '여비',
-          totalAmount: 106860,
-          closedAt: '2025-01-31',
-        },
-        {
-          closingId: '55',
-          monthYm: '2025-01',
-          category: '회식비',
-          totalAmount: 63400,
-          closedAt: '2025-01-31',
-        },
-        {
-          closingId: '56',
-          monthYm: '2025-01',
-          category: '회의비',
-          totalAmount: 33000,
-          closedAt: '2025-01-31',
-        },
-        {
-          closingId: '57',
-          monthYm: '2025-01',
-          category: '공공요금',
-          totalAmount: 5620,
-          closedAt: '2025-01-31',
-        },
-        {
-          closingId: '58',
-          monthYm: '2025-01',
-          category: '기타',
-          totalAmount: 667850,
-          closedAt: '2025-01-31',
-        },
-        // 2월 데이터 - 비식비
-        {
-          closingId: '59',
-          monthYm: '2025-02',
-          category: '여비',
-          totalAmount: 223170,
-          closedAt: '2025-02-28',
-        },
-        {
-          closingId: '60',
-          monthYm: '2025-02',
-          category: '회의비',
-          totalAmount: 53200,
-          closedAt: '2025-02-28',
-        },
-        {
-          closingId: '61',
-          monthYm: '2025-02',
-          category: '공공요금',
-          totalAmount: 2860,
-          closedAt: '2025-02-28',
-        },
-        {
-          closingId: '62',
-          monthYm: '2025-02',
-          category: '기타',
-          totalAmount: 890369,
-          closedAt: '2025-02-28',
-        },
-        // 3월 데이터 - 비식비
-        {
-          closingId: '63',
-          monthYm: '2025-03',
-          category: '여비',
-          totalAmount: 211260,
-          closedAt: '2025-03-31',
-        },
-        {
-          closingId: '64',
-          monthYm: '2025-03',
-          category: '회식비',
-          totalAmount: 196300,
-          closedAt: '2025-03-31',
-        },
-        {
-          closingId: '65',
-          monthYm: '2025-03',
-          category: '회의비',
-          totalAmount: 22000,
-          closedAt: '2025-03-31',
-        },
-        {
-          closingId: '66',
-          monthYm: '2025-03',
-          category: '기타',
-          totalAmount: 1597800,
-          closedAt: '2025-03-31',
-        },
-        // 4월 데이터 - 비식비
-        {
-          closingId: '67',
-          monthYm: '2025-04',
-          category: '여비',
-          totalAmount: 185670,
-          closedAt: '2025-04-30',
-        },
-        {
-          closingId: '68',
-          monthYm: '2025-04',
-          category: '회식비',
-          totalAmount: 141200,
-          closedAt: '2025-04-30',
-        },
-        {
-          closingId: '69',
-          monthYm: '2025-04',
-          category: '공공요금',
-          totalAmount: 3000,
-          closedAt: '2025-04-30',
-        },
-        {
-          closingId: '70',
-          monthYm: '2025-04',
-          category: '기타',
-          totalAmount: 1129300,
-          closedAt: '2025-04-30',
-        },
-        // 5월 데이터 - 비식비
-        {
-          closingId: '71',
-          monthYm: '2025-05',
-          category: '여비',
-          totalAmount: 278660,
-          closedAt: '2025-05-31',
-        },
-        {
-          closingId: '72',
-          monthYm: '2025-05',
-          category: '회식비',
-          totalAmount: 132500,
-          closedAt: '2025-05-31',
-        },
-        {
-          closingId: '73',
-          monthYm: '2025-05',
-          category: '공공요금',
-          totalAmount: 3620,
-          closedAt: '2025-05-31',
-        },
-        {
-          closingId: '74',
-          monthYm: '2025-05',
-          category: '기타',
-          totalAmount: 650000,
-          closedAt: '2025-05-31',
-        },
-        // 6월 데이터 - 비식비
-        {
-          closingId: '75',
-          monthYm: '2025-06',
-          category: '여비',
-          totalAmount: 480960,
-          closedAt: '2025-06-30',
-        },
-        {
-          closingId: '76',
-          monthYm: '2025-06',
-          category: '회식비',
-          totalAmount: 82000,
-          closedAt: '2025-06-30',
-        },
-        {
-          closingId: '77',
-          monthYm: '2025-06',
-          category: '회의비',
-          totalAmount: 70100,
-          closedAt: '2025-06-30',
-        },
-        {
-          closingId: '78',
-          monthYm: '2025-06',
-          category: '기타',
-          totalAmount: 1284400,
-          closedAt: '2025-06-30',
-        },
-        // 7월 데이터 - 비식비
-        {
-          closingId: '79',
-          monthYm: '2025-07',
-          category: '여비',
-          totalAmount: 440310,
-          closedAt: '2025-07-31',
-        },
-        {
-          closingId: '80',
-          monthYm: '2025-07',
-          category: '회의비',
-          totalAmount: 45800,
-          closedAt: '2025-07-31',
-        },
-        {
-          closingId: '81',
-          monthYm: '2025-07',
-          category: '공공요금',
-          totalAmount: 5970,
-          closedAt: '2025-07-31',
-        },
-        {
-          closingId: '82',
-          monthYm: '2025-07',
-          category: '기타',
-          totalAmount: 895700,
-          closedAt: '2025-07-31',
-        },
-        // 8월 데이터 - 비식비
-        {
-          closingId: '83',
-          monthYm: '2025-08',
-          category: '여비',
-          totalAmount: 370290,
-          closedAt: '2025-08-31',
-        },
-        {
-          closingId: '84',
-          monthYm: '2025-08',
-          category: '회의비',
-          totalAmount: 41213,
-          closedAt: '2025-08-31',
-        },
-        {
-          closingId: '85',
-          monthYm: '2025-08',
-          category: '기타',
-          totalAmount: 751200,
-          closedAt: '2025-08-31',
-        },
-        // 9월 데이터 - 비식비
-        {
-          closingId: '86',
-          monthYm: '2025-09',
-          category: '여비',
-          totalAmount: 425190,
-          closedAt: '2025-09-30',
-        },
-        {
-          closingId: '87',
-          monthYm: '2025-09',
-          category: '기타',
-          totalAmount: 684200,
-          closedAt: '2025-09-30',
-        },
-        // 10월 데이터 - 비식비
-        {
-          closingId: '88',
-          monthYm: '2025-10',
-          category: '여비',
-          totalAmount: 252830,
-          closedAt: '2025-10-31',
-        },
-        {
-          closingId: '89',
-          monthYm: '2025-10',
-          category: '회식비',
-          totalAmount: 142900,
-          closedAt: '2025-10-31',
-        },
-        {
-          closingId: '90',
-          monthYm: '2025-10',
-          category: '회의비',
-          totalAmount: 85000,
-          closedAt: '2025-10-31',
-        },
-        {
-          closingId: '91',
-          monthYm: '2025-10',
-          category: '공공요금',
-          totalAmount: 19060,
-          closedAt: '2025-10-31',
-        },
-        {
-          closingId: '92',
-          monthYm: '2025-10',
-          category: '기타',
-          totalAmount: 926074,
-          closedAt: '2025-10-31',
-        },
-        // 11월 데이터 - 비식비
-        {
-          closingId: '93',
-          monthYm: '2025-11',
-          category: '여비',
-          totalAmount: 75700,
-          closedAt: '2025-11-30',
-        },
-        {
-          closingId: '94',
-          monthYm: '2025-11',
-          category: '기타',
-          totalAmount: 1311600,
-          closedAt: '2025-11-30',
-        },
-      ];
+      // 승인된 경비 데이터 집계 조회
+      const aggregationData = await getExpenseAggregationByYear(
+        factoryCode,
+        year,
+        atob(userId)
+      );
 
-      setClosingData(mockData);
-      setMonthlyData({});
-      setSpecialItems([]);
+      // 집계 데이터를 closingData 형식으로 변환
+      const transformedData = aggregationData.map((item) => ({
+        monthYm: item.monthYm,
+        category: item.category || '기타',
+        totalAmount: item.totalAmount || 0,
+        itemCount: item.itemCount || 0,
+      }));
+
+      setClosingData(transformedData);
+
+      // 사용자별 월별 집계 (1~12월 병렬 조회)
+      const months = Array.from(
+        { length: 12 },
+        (_, idx) => `${year}-${String(idx + 1).padStart(2, '0')}`
+      );
+      const userAggResults = await Promise.all(
+        months.map((m) =>
+          getExpenseAggregationByUser(factoryCode, m, atob(userId))
+        )
+      );
+
+      // 사용자별 합산: { [userName]: { status, monthly: {1: 금액}, total, avg } }
+      const userAggregated = {};
+      userAggResults.forEach((list, monthIdx) => {
+        const month = monthIdx + 1;
+        (list || []).forEach((item) => {
+          const name =
+            item.employeeName ||
+            item.userName ||
+            item.name ||
+            item.empName ||
+            item.memberName ||
+            '미상';
+          const empGbnRaw = item.empGbn ?? item.EMP_GBN;
+          const status = empGbnRaw
+            ? empGbnRaw === '1'
+              ? '재직자'
+              : '퇴직자'
+            : item.employeeStatus ||
+              item.empStatus ||
+              item.status ||
+              item.type ||
+              '재직자';
+          const amount = item.totalAmount ?? item.amount ?? 0;
+
+          if (!userAggregated[name]) {
+            userAggregated[name] = {
+              status,
+              monthly: {},
+              total: 0,
+              avg: 0,
+            };
+          }
+          userAggregated[name].status = status;
+          userAggregated[name].monthly[month] =
+            (userAggregated[name].monthly[month] || 0) + amount;
+        });
+      });
+
+      // total, avg 계산 (avg는 값이 있는 월수 기준)
+      Object.values(userAggregated).forEach((entry) => {
+        const monthsWithValue = Object.values(entry.monthly).filter(
+          (v) => v && v !== 0
+        );
+        entry.total = monthsWithValue.reduce((s, v) => s + v, 0);
+        const divisor = monthsWithValue.length || 1;
+        entry.avg = entry.total / divisor;
+      });
+
+      setUserMonthlyData(userAggregated);
+
+      // 특별 항목 조회 (현재 월)
+      // const now = new Date();
+      // const currentMonthYm = `${now.getFullYear()}-${String(
+      //   now.getMonth() + 1
+      // ).padStart(2, '0')}`;
+
+      // const specialItemsList = await getSpecialItems(
+      //   factoryCode,
+      //   currentMonthYm
+      // );
+      // setSpecialItems(specialItemsList || []);
+
+      // setMonthlyData({});
     } catch (error) {
       console.error('Error:', error);
-      showToast('데이터 조회 중 오류가 발생했습니다.', 'error');
+      showToast(
+        error.message || '데이터 조회 중 오류가 발생했습니다.',
+        'error'
+      );
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // 마감 처리
-  const handleCloseExpense = async (closingId) => {
-    showDialog({
-      title: '마감 처리 확인',
-      message: '선택한 경비를 마감 처리하시겠습니까?',
-      buttons: [
-        {
-          text: '마감',
-          onClick: async () => {
-            try {
-              const response = await fetch(
-                `${API_BASE_URL}/api/expense-closing`,
-                {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    closingId,
-                    closedBy: currentUser,
-                  }),
-                }
-              );
-
-              const data = await response.json();
-
-              if (data.success) {
-                showToast(data.message, 'success');
-                loadSummaryData();
-              } else {
-                showToast(data.message || '마감에 실패했습니다.', 'error');
-              }
-            } catch (error) {
-              console.error('Error:', error);
-              showToast('마감 중 오류가 발생했습니다.', 'error');
-            }
-          },
-        },
-        { text: '취소' },
-      ],
-    });
-  };
-
-  // 마감 재개
-  const handleReopenClosing = async (closingId) => {
-    showDialog({
-      title: '마감 재개 확인',
-      message: '선택한 경비의 마감을 재개하시겠습니까?',
-      buttons: [
-        {
-          text: '재개',
-          onClick: async () => {
-            try {
-              const response = await fetch(
-                `${API_BASE_URL}/api/expense-closing`,
-                {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    closingId,
-                    reopenedBy: currentUser,
-                  }),
-                }
-              );
-
-              const data = await response.json();
-
-              if (data.success) {
-                showToast(data.message, 'success');
-                loadSummaryData();
-              } else {
-                showToast(data.message || '재개에 실패했습니다.', 'error');
-              }
-            } catch (error) {
-              console.error('Error:', error);
-              showToast('재개 중 오류가 발생했습니다.', 'error');
-            }
-          },
-        },
-        { text: '취소' },
-      ],
-    });
   };
 
   // 부서별 합계 계산
@@ -871,20 +234,51 @@ export default function ExpenseSummary() {
       let mainCategory = '비식비';
       let subCategory = '기타';
 
-      // categoryMapping에서 매핑 정보 찾기
-      if (categoryMapping[itemCategory]) {
-        mainCategory = categoryMapping[itemCategory].main;
-        subCategory = categoryMapping[itemCategory].sub;
+      // 비식비 카테고리 (유류비, 회의비, 회식비, 기타)
+      const nonFoodCategories = [
+        'FUEL',
+        '유류비',
+        'MEETING',
+        '회의비',
+        'PARTY',
+        '회식비',
+        'ETC',
+        '기타',
+      ];
+
+      if (nonFoodCategories.includes(itemCategory)) {
+        // 비식비 항목
+        if (categoryMapping[itemCategory]) {
+          mainCategory = categoryMapping[itemCategory].main;
+          subCategory = categoryMapping[itemCategory].sub;
+        } else {
+          mainCategory = '비식비';
+          subCategory = itemCategory;
+        }
       } else {
-        // 매핑이 없으면 카테고리를 그대로 사용
-        mainCategory = itemCategory;
-        subCategory = itemCategory;
+        // 나머지는 모두 식비로 처리
+        mainCategory = '식비';
+        if (categoryMapping[itemCategory]) {
+          subCategory = categoryMapping[itemCategory].sub;
+        } else if (itemCategory === 'LUNCH') {
+          subCategory = '점심';
+        } else if (itemCategory === 'LUNCH_SODAM') {
+          subCategory = '점심(소담)';
+        } else if (itemCategory === 'DINNER') {
+          subCategory = '저녁';
+        } else if (itemCategory === 'DINNER_SODAM') {
+          subCategory = '저녁';
+        } else {
+          // 그 외 매핑에 없는 카테고리도 식비로
+          subCategory = itemCategory;
+        }
       }
 
-      // 메인 카테고리 초기화
+      // 메인 카테고리 초기화 (식비 우선 정렬)
       if (!categories[mainCategory]) {
         categories[mainCategory] = {};
-        categoryOrder[mainCategory] = Object.keys(categoryOrder).length;
+        // 식비는 0, 비식비는 1로 우선순위 설정
+        categoryOrder[mainCategory] = mainCategory === '식비' ? 0 : 1;
       }
 
       // 세목별 데이터
@@ -899,9 +293,7 @@ export default function ExpenseSummary() {
       }
 
       // 월별 데이터 집계
-      const itemMonth = item.closedAt
-        ? parseInt(item.closedAt.split('-')[1])
-        : 0;
+      const itemMonth = item.monthYm ? parseInt(item.monthYm.split('-')[1]) : 0;
       if (itemMonth > 0 && itemMonth <= 12) {
         if (!categories[mainCategory][subCategory].monthly[itemMonth]) {
           categories[mainCategory][subCategory].monthly[itemMonth] = 0;
@@ -943,6 +335,42 @@ export default function ExpenseSummary() {
     return { categoryTotals, monthlyGrandTotal };
   };
 
+  // 경비입금 합계 계산 (DINNER, LUNCH + 비식비만 합산, 특별항목 제외)
+  const getExpenseDepositTotal = () => {
+    const monthlyTotal = {};
+
+    const nonFoodCategories = [
+      'FUEL',
+      '유류비',
+      'MEETING',
+      '회의비',
+      'PARTY',
+      '회식비',
+      'ETC',
+      '기타',
+    ];
+    const depositCategories = new Set([
+      'LUNCH',
+      'DINNER',
+      ...nonFoodCategories,
+    ]);
+
+    closingData.forEach((item) => {
+      const itemCategory = item.category || '기타';
+      if (!depositCategories.has(itemCategory)) return; // 식비 중 점심/저녁 외 카테고리는 제외
+
+      const itemMonth = item.monthYm ? parseInt(item.monthYm.split('-')[1]) : 0;
+      if (itemMonth > 0 && itemMonth <= 12) {
+        if (!monthlyTotal[itemMonth]) {
+          monthlyTotal[itemMonth] = 0;
+        }
+        monthlyTotal[itemMonth] += item.totalAmount || 0;
+      }
+    });
+
+    return monthlyTotal;
+  };
+
   // 전체 합계
   const getGrandTotal = () => {
     return {
@@ -981,9 +409,35 @@ export default function ExpenseSummary() {
     );
   }
 
-  const deptSummary = getDepartmentSummary();
-  const grandTotal = getGrandTotal();
-  const specialItemsDept = getSpecialItemsByDepartment();
+  // const deptSummary = getDepartmentSummary();
+  // const grandTotal = getGrandTotal();
+  // const specialItemsDept = getSpecialItemsByDepartment();
+
+  if (isLoading) {
+    return (
+      <div className="expenseSummary-container">
+        <Helmet>
+          <title>경비 청구 집계</title>
+        </Helmet>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '100vh',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
+          }}
+        >
+          <ClipLoader color="#f88c6b" loading={isLoading} size={120} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -991,15 +445,15 @@ export default function ExpenseSummary() {
         <title>경비 청구 집계</title>
       </Helmet>
 
-      <div className="expense-container">
+      <div className="expenseSummary-container">
         <section className="expenseSummary-content">
-          <header className="expense-header">
+          <header className="expenseSummary-header">
             <div className="header-left">
               <h1>경비 청구 집계</h1>
             </div>
             <div className="header-right">
               <div className="year-selector">
-                <label>조회 년도:</label>
+                <label>조회년도:</label>
                 <input
                   type="number"
                   value={year}
@@ -1018,21 +472,34 @@ export default function ExpenseSummary() {
           </header>
 
           {isLoading ? (
-            <div className="loading-container">
-              <ClipLoader size={50} color="#667eea" />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                minHeight: '100vh',
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 9999,
+              }}
+            >
+              <ClipLoader color="#f88c6b" loading={isLoading} size={120} />
             </div>
           ) : (
             <>
               {/* 월별 카테고리 집계 */}
               {closingData.length === 0 ? (
-                <div className="no-data">
-                  <p>{year}년에 마감된 경비가 없습니다.</p>
+                <div className="empty-state">
+                  <p>{year}년 경비 마감 데이터가 없습니다.</p>
                 </div>
               ) : (
                 <>
-                  <section className="expense-section">
-                    <h2 className="section-title">{year}년 경비 청구 집계</h2>
-                    <div className="expense-table-container yearly-table">
+                  <section className="expenseSummary-section">
+                    <h2 className="section-title">{year}년 경비 청구서</h2>
+                    <div className="expenseSummary-table-container yearly-table">
                       <table className="yearly-summary-table">
                         <thead>
                           <tr>
@@ -1066,15 +533,25 @@ export default function ExpenseSummary() {
                                   categoryOrder[catA] - categoryOrder[catB]
                               )
                               .forEach(([category, subcategories]) => {
+                                const subItems = Object.entries(subcategories);
+                                const subItemCount = subItems.length;
+
                                 // 세목 행
-                                Object.entries(subcategories).forEach(
-                                  ([subcategory, data]) => {
+                                subItems.forEach(
+                                  ([subcategory, data], index) => {
                                     rows.push(
                                       <tr
                                         key={`${category}-${subcategory}`}
                                         className="data-row"
                                       >
-                                        <td className="category">{category}</td>
+                                        {index === 0 && (
+                                          <td
+                                            className="category"
+                                            rowSpan={subItemCount + 1}
+                                          >
+                                            {category}
+                                          </td>
+                                        )}
                                         <td className="subcategory">
                                           {subcategory}
                                         </td>
@@ -1101,7 +578,7 @@ export default function ExpenseSummary() {
                                     key={`${category}-total`}
                                     className="category-total-row"
                                   >
-                                    <td colSpan="2" className="category-total">
+                                    <td className="category-total">
                                       {category}합계
                                     </td>
                                     {[
@@ -1122,11 +599,46 @@ export default function ExpenseSummary() {
                                 );
                               });
 
+                            // 합계(경비입금) 행 - DINNER, LUNCH + 비식비 (특별항목 제외)
+                            const expenseDepositTotal =
+                              getExpenseDepositTotal();
+                            rows.push(
+                              <tr
+                                key="expense-deposit"
+                                className="category-total-row"
+                              >
+                                <td
+                                  colSpan="2"
+                                  className="category-total"
+                                  style={{
+                                    backgroundColor: '#FCE4D6',
+                                  }}
+                                >
+                                  합계(경비입금)
+                                </td>
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
+                                  (month) => (
+                                    <td
+                                      key={month}
+                                      className="category-total-amount"
+                                      style={{
+                                        backgroundColor: '#FCE4D6',
+                                      }}
+                                    >
+                                      {(
+                                        expenseDepositTotal[month] || 0
+                                      ).toLocaleString()}
+                                    </td>
+                                  )
+                                )}
+                              </tr>
+                            );
+
                             // 전체 합계 행
                             rows.push(
                               <tr key="grand-total" className="grand-total-row">
                                 <td colSpan="2" className="grand-total">
-                                  합계
+                                  총금액(소담, 세종 포함)
                                 </td>
                                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
                                   (month) => (
@@ -1140,6 +652,150 @@ export default function ExpenseSummary() {
                                     </td>
                                   )
                                 )}
+                              </tr>
+                            );
+
+                            return rows;
+                          })()}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+
+                  {/* 사용자별 집계 그리드 */}
+                  <section className="expenseSummary-section">
+                    {/* <h2 className="section-title">사용자별 집계</h2> */}
+                    <div className="expenseSummary-table-container yearly-table">
+                      <table className="yearly-summary-table">
+                        <thead>
+                          <tr>
+                            <th colSpan={2}>이름</th>
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
+                              (month) => (
+                                <th key={month}>{month}월</th>
+                              )
+                            )}
+                            <th>개인 합계</th>
+                            <th>월 평균</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(() => {
+                            const entries = Object.entries(
+                              userMonthlyData
+                            ).sort(([aName, aData], [bName, bData]) => {
+                              const statusOrder = (s) =>
+                                s === '재직자' ? 0 : 1;
+                              const diff =
+                                statusOrder(aData.status) -
+                                statusOrder(bData.status);
+                              if (diff !== 0) return diff;
+                              return aName.localeCompare(bName);
+                            });
+
+                            const monthlyTotals = {};
+                            let overallTotal = 0;
+                            entries.forEach(([, data]) => {
+                              overallTotal += data.total;
+                              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].forEach(
+                                (m) => {
+                                  monthlyTotals[m] =
+                                    (monthlyTotals[m] || 0) +
+                                    (data.monthly[m] || 0);
+                                }
+                              );
+                            });
+
+                            // 상태별 rowspan 계산
+                            const statusRowSpan = entries.reduce(
+                              (acc, [, data]) => {
+                                const key = data.status || '기타';
+                                acc[key] = (acc[key] || 0) + 1;
+                                return acc;
+                              },
+                              {}
+                            );
+
+                            let renderedStatusCount = {};
+                            const rows = entries.map(([name, data]) => {
+                              const statusKey = data.status || '기타';
+                              const shouldRenderStatus =
+                                !renderedStatusCount[statusKey];
+                              renderedStatusCount[statusKey] =
+                                (renderedStatusCount[statusKey] || 0) + 1;
+
+                              return (
+                                <tr key={name}>
+                                  {shouldRenderStatus && (
+                                    <td
+                                      className="category"
+                                      rowSpan={statusRowSpan[statusKey] || 1}
+                                    >
+                                      {statusKey}
+                                    </td>
+                                  )}
+                                  <td
+                                    className="subcategory"
+                                    style={{ textAlign: 'center' }}
+                                  >
+                                    {name}
+                                  </td>
+                                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
+                                    (month) => (
+                                      <td
+                                        key={month}
+                                        className="monthly-amount"
+                                      >
+                                        {(
+                                          data.monthly[month] || 0
+                                        ).toLocaleString()}
+                                      </td>
+                                    )
+                                  )}
+                                  <td
+                                    className="category-total-amount"
+                                    style={{ background: '#C0E6F5' }}
+                                  >
+                                    {data.total.toLocaleString()}
+                                  </td>
+                                  <td
+                                    className="category-total-amount"
+                                    style={{ background: '#C0E6F5' }}
+                                  >
+                                    {Math.round(data.avg).toLocaleString()}
+                                  </td>
+                                </tr>
+                              );
+                            });
+
+                            rows.push(
+                              <tr
+                                key="user-monthly-total"
+                                className="category-total-row"
+                              >
+                                <td className="category-total" colSpan="2">
+                                  총합계
+                                </td>
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
+                                  (month) => (
+                                    <td
+                                      key={month}
+                                      className="category-total-amount"
+                                    >
+                                      {(
+                                        monthlyTotals[month] || 0
+                                      ).toLocaleString()}
+                                    </td>
+                                  )
+                                )}
+                                <td className="category-total-amount">
+                                  {overallTotal.toLocaleString()}
+                                </td>
+                                <td className="category-total-amount">
+                                  {Math.round(
+                                    overallTotal / 12
+                                  ).toLocaleString()}
+                                </td>
                               </tr>
                             );
 
