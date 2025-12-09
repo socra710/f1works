@@ -1,53 +1,59 @@
-.summary-container {
-  max-width: 1400px;
+/* 기존 Expense.css 패턴에 맞춰 클래스명 및 스타일 통일 */
+.expenseSummary-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+}
+
+.expenseSummary-container section {
+  display: block;
+}
+
+.expenseSummary-content {
+  /* width: 100%; */
+  display: flex !important;
   margin: 0 auto;
-  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-x: hidden;
 }
-
-.summary-container h1 {
-  font-size: 28px;
-  font-weight: 600;
-  margin-bottom: 25px;
-  color: #333;
-  border-bottom: 3px solid #4caf50;
-  padding-bottom: 15px;
-}
-
-.summary-container h2 {
-  font-size: 20px;
-  font-weight: 600;
-  margin-top: 30px;
-  margin-bottom: 20px;
-  color: #333;
-}
-
-.summary-controls {
+.expenseSummary-header {
   display: flex;
-  gap: 15px;
-  margin-bottom: 30px;
+  justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #f0f0f0;
 }
-
-.month-selector {
+.header-left h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+}
+.header-right {
   display: flex;
+  gap: 0.75rem;
   align-items: center;
-  gap: 10px;
 }
-
-.month-selector label {
-  font-weight: 600;
-  color: #555;
+.month-selector,
+.year-selector {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }
-
-.month-selector input {
-  padding: 10px 12px;
+.year-selector input {
+  padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
-  min-width: 150px;
+  width: 100px;
 }
-
 .btn-special-items {
   background-color: #2196f3;
   color: white;
@@ -59,24 +65,276 @@
   cursor: pointer;
   transition: background-color 0.3s;
 }
-
 .btn-special-items:hover {
   background-color: #1976d2;
 }
-
-/* 특별항목 현황 */
-.special-items-summary {
-  background: #f5f5f5;
-  padding: 20px;
+.expenseSummary-section {
+  /* margin-bottom: 2rem; */
+  max-width: 100%;
+  overflow-x: hidden;
+  /* display: flex !important; */
+}
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #667eea;
+}
+.expenseSummary-table-container {
+  overflow-x: auto;
+  margin-bottom: 1rem;
   border-radius: 8px;
-  margin-bottom: 30px;
+  border: 1px solid #e9ecef;
+  max-width: 100%;
+  width: 100%;
+}
+.expenseSummary-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: white;
+  table-layout: auto;
+  min-width: 100%;
+}
+.expenseSummary-table.manager-mode {
+  min-width: 1400px;
 }
 
-.special-items-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-top: 15px;
+.expenseSummary-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.expenseSummary-table th {
+  padding: 0.6rem 0.5rem;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: white;
+  border: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+  min-width: 60px;
+}
+.expenseSummary-table th:last-child {
+  border-right: none;
+}
+.expenseSummary-table td {
+  padding: 0.5rem 0.4rem;
+  border-bottom: 1px solid #e9ecef;
+  vertical-align: middle;
+  box-sizing: border-box;
+  font-size: 0.85rem;
+}
+.expenseSummary-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+.expenseSummary-table tbody tr:hover {
+  background: #f8f9fa;
+}
+.expenseSummary-table .user-name {
+  font-weight: 600;
+  color: #333;
+}
+.expenseSummary-table .amount {
+  text-align: right;
+  color: #2196f3;
+  font-weight: 500;
+}
+.expenseSummary-table .amount.total {
+  color: #4caf50;
+  font-weight: 600;
+  font-size: 14px;
+}
+.expenseSummary-table .date {
+  font-size: 12px;
+  color: #666;
+}
+.expenseSummary-table .status {
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+.expenseSummary-table .status.CLOSED {
+  background-color: #c8e6c9;
+  color: #1b5e20;
+}
+.expenseSummary-table .status.REOPENED {
+  background-color: #ffccbc;
+  color: #bf360c;
+}
+.expenseSummary-table .actions {
+  text-align: center;
+}
+.btn-reopen {
+  padding: 6px 12px;
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.btn-reopen:hover {
+  background-color: #f57c00;
+}
+.reopened-badge {
+  padding: 4px 8px;
+  background-color: #ffccbc;
+  color: #bf360c;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.total-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  color: white;
+}
+.total-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.total-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+}
+
+.no-data {
+  background-color: #f5f5f5;
+  padding: 60px 40px;
+  text-align: center;
+  border-radius: 8px;
+  color: #999;
+  font-size: 16px;
+}
+
+.empty-state {
+  padding: 4rem 2rem;
+  text-align: center;
+  color: #7f8c8d;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.05) 0%,
+    rgba(118, 75, 162, 0.05) 100%
+  );
+  border-radius: 12px;
+  border: 2px dashed #ddd;
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+.summary-error {
+  padding: 60px 40px;
+  text-align: center;
+  color: #f44336;
+}
+.summary-error h2 {
+  margin: 0 0 10px 0;
+}
+.summary-error button {
+  margin-top: 20px;
+  padding: 12px 24px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+}
+.summary-error button:hover {
+  background-color: #1976d2;
+}
+@media (max-width: 768px) {
+  .expenseSummary-container {
+    padding: 1rem 0.5rem;
+  }
+
+  .expenseSummary-content {
+    padding: 1.5rem;
+  }
+
+  .expenseSummary-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .header-left h1 {
+    font-size: 1.5rem;
+  }
+
+  .header-right {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .year-selector {
+    width: 100%;
+  }
+
+  .year-selector input {
+    width: 100%;
+  }
+
+  .btn-special-items {
+    width: 100%;
+  }
+
+  .expense-container {
+    padding: 15px;
+  }
+  .expense-content {
+    padding: 1rem;
+  }
+  .expense-header h1 {
+    font-size: 22px;
+  }
+  .header-right {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .month-selector {
+    flex-direction: column;
+  }
+  .month-selector input {
+    min-width: 100%;
+  }
+  .btn-special-items {
+    width: 100%;
+  }
+  .special-items-cards {
+    grid-template-columns: 1fr;
+  }
+  .expense-table th,
+  .expense-table td {
+    padding: 10px;
+    font-size: 12px;
+  }
+  .total-label {
+    font-size: 1.2rem;
+  }
+
+  /* @media 쿼리 닫기 */
 }
 
 .special-item-card {
@@ -122,18 +380,22 @@
 
 .closing-table th {
   text-align: left;
-  padding: 15px;
+  padding: 10px 8px;
   border-bottom: 2px solid #ddd;
+  border-right: 1px solid #ddd;
   font-weight: 600;
   color: #555;
-  font-size: 13px;
+  font-size: 12px;
   white-space: nowrap;
+}
+.closing-table th:last-child {
+  border-right: none;
 }
 
 .closing-table td {
-  padding: 12px 15px;
+  padding: 8px 8px;
   border-bottom: 1px solid #eee;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .closing-table tbody tr {
@@ -237,9 +499,13 @@
   text-align: left;
   padding: 15px;
   border-bottom: 2px solid #ddd;
+  border-right: 1px solid #ddd;
   font-weight: 600;
   color: #555;
   font-size: 13px;
+}
+.summary-table th:last-child {
+  border-right: none;
 }
 
 .summary-table td {
@@ -277,10 +543,10 @@
 
 /* 전체 합계 */
 .grand-total {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
   color: white;
   padding: 30px;
-  border-radius: 8px;
+  /* border-radius: 8px; */
   margin-bottom: 20px;
 }
 
@@ -299,7 +565,7 @@
 .total-item {
   background: rgba(255, 255, 255, 0.15);
   padding: 20px;
-  border-radius: 6px;
+  /* border-radius: 6px; */
   border: 1px solid rgba(255, 255, 255, 0.3);
   text-align: center;
 }
@@ -424,4 +690,227 @@
   .total-item.grand strong {
     font-size: 24px;
   }
+}
+
+/* 연도별 요약 테이블 스타일 */
+.expenseSummary-table-container.yearly-table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.yearly-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  min-width: 1800px;
+}
+
+/* 반응형: 화면이 작아질 때 테이블 크기 조정 */
+@media (max-width: 1400px) {
+  .yearly-summary-table {
+    min-width: 1200px;
+    font-size: 11px;
+  }
+
+  .yearly-summary-table th,
+  .yearly-summary-table td {
+    padding: 8px 6px;
+    min-width: 60px;
+  }
+
+  .yearly-summary-table td.category,
+  .yearly-summary-table td.subcategory {
+    min-width: 50px;
+    max-width: 50px;
+  }
+
+  .yearly-summary-table td.subcategory {
+    left: 50px;
+  }
+}
+
+@media (max-width: 768px) {
+  .yearly-summary-table {
+    min-width: 900px;
+    font-size: 10px;
+  }
+
+  .yearly-summary-table th,
+  .yearly-summary-table td {
+    padding: 6px 4px;
+    min-width: 50px;
+  }
+
+  .yearly-summary-table td.category,
+  .yearly-summary-table td.subcategory {
+    min-width: 45px;
+    max-width: 45px;
+  }
+
+  .yearly-summary-table td.subcategory {
+    left: 45px;
+  }
+
+  .yearly-summary-table tbody tr.category-total-row td.category-total,
+  .yearly-summary-table tbody tr.grand-total-row td.grand-total {
+    min-width: 90px;
+  }
+}
+
+.yearly-summary-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.yearly-summary-table th {
+  padding: 1rem 0.75rem;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  border: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+  min-width: 70px;
+}
+.yearly-summary-table th:last-child {
+  border-right: none;
+}
+
+.yearly-summary-table th:first-child,
+.yearly-summary-table th:nth-child(2) {
+  text-align: center;
+  min-width: 80px;
+  position: sticky;
+  left: 0;
+  z-index: 11;
+  padding: 1rem 0.5rem;
+}
+
+.yearly-summary-table td {
+  padding: 10px 8px;
+  /* border-bottom: 1px solid #e9ecef; */
+  border-right: 1px solid #e9ecef;
+  text-align: right;
+  font-size: 12px;
+  color: #333;
+}
+
+.yearly-summary-table td.category {
+  text-align: left;
+  font-weight: 600;
+  color: #2c3e50;
+  position: sticky;
+  left: 0;
+  background: white;
+  z-index: 9;
+  min-width: 60px;
+  max-width: 60px;
+  padding: 10px 6px;
+}
+
+.yearly-summary-table td.subcategory {
+  text-align: left;
+  color: #555;
+  position: sticky;
+  left: 60px;
+  background: white;
+  z-index: 9;
+  min-width: 60px;
+  max-width: 60px;
+  padding: 10px 6px;
+}
+
+.yearly-summary-table td.monthly-amount {
+  color: #2196f3;
+  font-weight: 500;
+}
+
+.yearly-summary-table td.budget-amount {
+  background-color: #f0f4ff;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.yearly-summary-table td.total-amount {
+  background-color: #f0f8f0;
+  color: #4caf50;
+  font-weight: 600;
+  /* border-right: 2px solid #4caf50; */
+}
+
+.yearly-summary-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.yearly-summary-table tbody tr.data-row {
+  background-color: white;
+}
+
+.yearly-summary-table tbody tr.data-row:hover {
+  background: #f8f9fa;
+}
+
+.yearly-summary-table tbody tr.data-row:nth-child(4n + 3) {
+  background-color: #fafbff;
+}
+
+.yearly-summary-table tbody tr.data-row:nth-child(4n + 3):hover {
+  background-color: #f0f4ff;
+}
+
+/* 카테고리 소계 행 */
+.yearly-summary-table tbody tr.category-total-row {
+  background-color: #f0f0f0;
+  font-weight: 600;
+  border-top: 2px solid #ddd;
+  border-bottom: 2px solid #ddd;
+}
+
+.yearly-summary-table tbody tr.category-total-row td.category-total {
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  position: sticky;
+  left: 0;
+  background-color: #f0f0f0;
+  z-index: 9;
+  min-width: 120px;
+}
+
+.yearly-summary-table tbody tr.category-total-row td.category-total-amount {
+  color: #666;
+  font-weight: 600;
+  background-color: #f0f0f0;
+}
+
+/* 전체 합계 행 */
+.yearly-summary-table tbody tr.grand-total-row {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 700;
+  font-size: 13px;
+  border-top: none;
+  border-bottom: none;
+}
+
+.yearly-summary-table tbody tr.grand-total-row td.grand-total {
+  text-align: left;
+  font-weight: 700;
+  color: white;
+  position: sticky;
+  left: 0;
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  z-index: 9;
+  min-width: 120px;
+  padding: 1rem 0.5rem;
+}
+
+.yearly-summary-table tbody tr.grand-total-row td.grand-total-amount {
+  color: white;
+  font-weight: 700;
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  padding: 1rem 0.75rem;
 }

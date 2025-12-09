@@ -41,13 +41,13 @@ export default function Works() {
       path: '/works/expense-management',
       category: '관리',
     },
-    // {
-    //   title: '경비 청구 집계',
-    //   description: '월별 마감된 경비 데이터를 집계하여 조회하세요',
-    //   icon: '📈',
-    //   path: '/works/expense-summary?mode=manager',
-    //   category: '관리',
-    // },
+    {
+      title: '경비 청구 집계',
+      description: '월별 마감된 경비 데이터를 집계하여 조회하세요',
+      icon: '📈',
+      path: '/works/expense-summary?mode=manager',
+      category: '관리',
+    },
     {
       title: 'Wordle 게임',
       description: '영어 단어 퍼즐 게임으로 짧은 휴식을 즐겨보세요',

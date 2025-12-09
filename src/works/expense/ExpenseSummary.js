@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import './ExpenseSummary.css';
 import { ClipLoader } from 'react-spinners';
 import { useToast, useDialog } from '../../common/Toast';
+import {
+  getExpenseAggregationByYear,
+  getExpenseAggregationByUser,
+  getSpecialItems,
+} from './expenseAPI';
 
 /**
  * 경비 청구 집계 페이지
@@ -17,142 +22,182 @@ export default function ExpenseSummary() {
   const { showToast } = useToast();
   const { showDialog } = useDialog();
 
-  const [month, setMonth] = useState(() => {
+  // 카테고리 매핑 (category -> {mainCategory, subCategory})
+  const categoryMapping = {
+    '점심(소담)': { main: '식비', sub: '점심(소담)' },
+    '저녁(소담)': { main: '식비', sub: '저녁(소담)' },
+    '점심(세종)': { main: '식비', sub: '점심(세종)' },
+    '저녁(세종)': { main: '식비', sub: '저녁(세종)' },
+    점심: { main: '식비', sub: '점심' },
+    저녁: { main: '식비', sub: '저녁' },
+    여비: { main: '비식비', sub: '여비' },
+    PARTY: { main: '비식비', sub: '회식비' },
+    회식비: { main: '비식비', sub: '회식비' },
+    MEETING: { main: '비식비', sub: '회의비' },
+    회의비: { main: '비식비', sub: '회의비' },
+    UTILITY: { main: '비식비', sub: '공공요금' },
+    공공요금: { main: '비식비', sub: '공공요금' },
+    FUEL: { main: '비식비', sub: '유류비' },
+    유류비: { main: '비식비', sub: '유류비' },
+    ETC: { main: '비식비', sub: '기타' },
+    기타: { main: '비식비', sub: '기타' },
+  };
+
+  const [year, setYear] = useState(() => {
     const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
-      2,
-      '0'
-    )}`;
+    return now.getFullYear().toString();
   });
   const [closingData, setClosingData] = useState([]);
-  const [specialItems, setSpecialItems] = useState([]);
+  const [userMonthlyData, setUserMonthlyData] = useState({});
+  const [specialItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isManagerMode, setIsManagerMode] = useState(
-    searchParams.get('mode') === 'manager'
+  const [isManagerMode] = useState(searchParams.get('mode') === 'manager');
+  const [factoryCode] = useState('000001'); // 예시, 실제로는 로그인 정보에서 가져옴
+  const [userId] = useState(
+    window.sessionStorage.getItem('extensionLogin') || ''
   );
-  const [factoryCode] = useState('F001'); // 예시, 실제로는 로그인 정보에서 가져옴
-  const [currentUser] = useState('ADMIN'); // 예시, 실제로는 로그인 정보에서 가져옴
 
   // 마감 데이터 및 특별항목 조회
+  const didFetch = useRef(false);
+  const initializedRef = useRef(false);
+
+  // 권한 확인 및 초기화
   useEffect(() => {
-    loadSummaryData();
-  }, [month]);
+    // React Strict Mode에서 초기 useEffect가 두 번 실행되는 것을 방지
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
+    setTimeout(() => {
+      const sessionUser = window.sessionStorage.getItem('extensionLogin');
+      if (!sessionUser) {
+        showToast('로그인이 필요한 서비스입니다.', 'warning');
+        navigate('/works');
+        return;
+      }
+
+      if (!isManagerMode) {
+        showToast('관리자만 접근할 수 있는 페이지입니다.', 'warning');
+        navigate('/works');
+        return;
+      }
+
+      if (!didFetch.current) {
+        loadSummaryData();
+        didFetch.current = true;
+      }
+    }, 1000);
+    // eslint-disable-next-line
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!didFetch.current) {
+      return;
+    }
+  }, [year]);
 
   const loadSummaryData = async () => {
     setIsLoading(true);
     try {
-      // 마감 데이터 조회
-      const closingResponse = await fetch(
-        `${API_BASE_URL}/api/expense-closing?factoryCode=${factoryCode}&monthYm=${month}`
+      // 승인된 경비 데이터 집계 조회
+      const aggregationData = await getExpenseAggregationByYear(
+        factoryCode,
+        year,
+        atob(userId)
       );
-      const closingDataJson = await closingResponse.json();
 
-      if (closingDataJson.success) {
-        setClosingData(closingDataJson.data || []);
-      } else {
-        showToast(
-          closingDataJson.message || '마감 데이터 조회에 실패했습니다.',
-          'error'
+      // 집계 데이터를 closingData 형식으로 변환
+      const transformedData = aggregationData.map((item) => ({
+        monthYm: item.monthYm,
+        category: item.category || '기타',
+        totalAmount: item.totalAmount || 0,
+        itemCount: item.itemCount || 0,
+      }));
+
+      setClosingData(transformedData);
+
+      // 사용자별 월별 집계 (1~12월 병렬 조회)
+      const months = Array.from(
+        { length: 12 },
+        (_, idx) => `${year}-${String(idx + 1).padStart(2, '0')}`
+      );
+      const userAggResults = await Promise.all(
+        months.map((m) =>
+          getExpenseAggregationByUser(factoryCode, m, atob(userId))
+        )
+      );
+
+      // 사용자별 합산: { [userName]: { status, monthly: {1: 금액}, total, avg } }
+      const userAggregated = {};
+      userAggResults.forEach((list, monthIdx) => {
+        const month = monthIdx + 1;
+        (list || []).forEach((item) => {
+          const name =
+            item.employeeName ||
+            item.userName ||
+            item.name ||
+            item.empName ||
+            item.memberName ||
+            '미상';
+          const empGbnRaw = item.empGbn ?? item.EMP_GBN;
+          const status = empGbnRaw
+            ? empGbnRaw === '1'
+              ? '재직자'
+              : '퇴직자'
+            : item.employeeStatus ||
+              item.empStatus ||
+              item.status ||
+              item.type ||
+              '재직자';
+          const amount = item.totalAmount ?? item.amount ?? 0;
+
+          if (!userAggregated[name]) {
+            userAggregated[name] = {
+              status,
+              monthly: {},
+              total: 0,
+              avg: 0,
+            };
+          }
+          userAggregated[name].status = status;
+          userAggregated[name].monthly[month] =
+            (userAggregated[name].monthly[month] || 0) + amount;
+        });
+      });
+
+      // total, avg 계산 (avg는 값이 있는 월수 기준)
+      Object.values(userAggregated).forEach((entry) => {
+        const monthsWithValue = Object.values(entry.monthly).filter(
+          (v) => v && v !== 0
         );
-      }
+        entry.total = monthsWithValue.reduce((s, v) => s + v, 0);
+        const divisor = monthsWithValue.length || 1;
+        entry.avg = entry.total / divisor;
+      });
 
-      // 특별항목 조회
-      const specialItemsResponse = await fetch(
-        `${API_BASE_URL}/api/special-items?factoryCode=${factoryCode}&monthYm=${month}`
-      );
-      const specialItemsJson = await specialItemsResponse.json();
+      setUserMonthlyData(userAggregated);
 
-      if (specialItemsJson.success) {
-        setSpecialItems(specialItemsJson.data || []);
-      }
+      // 특별 항목 조회 (현재 월)
+      // const now = new Date();
+      // const currentMonthYm = `${now.getFullYear()}-${String(
+      //   now.getMonth() + 1
+      // ).padStart(2, '0')}`;
+
+      // const specialItemsList = await getSpecialItems(
+      //   factoryCode,
+      //   currentMonthYm
+      // );
+      // setSpecialItems(specialItemsList || []);
+
+      // setMonthlyData({});
     } catch (error) {
       console.error('Error:', error);
-      showToast('데이터 조회 중 오류가 발생했습니다.', 'error');
+      showToast(
+        error.message || '데이터 조회 중 오류가 발생했습니다.',
+        'error'
+      );
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // 마감 처리
-  const handleCloseExpense = async (closingId) => {
-    showDialog({
-      title: '마감 처리 확인',
-      message: '선택한 경비를 마감 처리하시겠습니까?',
-      buttons: [
-        {
-          text: '마감',
-          onClick: async () => {
-            try {
-              const response = await fetch(
-                `${API_BASE_URL}/api/expense-closing`,
-                {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    closingId,
-                    closedBy: currentUser,
-                  }),
-                }
-              );
-
-              const data = await response.json();
-
-              if (data.success) {
-                showToast(data.message, 'success');
-                loadSummaryData();
-              } else {
-                showToast(data.message || '마감에 실패했습니다.', 'error');
-              }
-            } catch (error) {
-              console.error('Error:', error);
-              showToast('마감 중 오류가 발생했습니다.', 'error');
-            }
-          },
-        },
-        { text: '취소' },
-      ],
-    });
-  };
-
-  // 마감 재개
-  const handleReopenClosing = async (closingId) => {
-    showDialog({
-      title: '마감 재개 확인',
-      message: '선택한 경비의 마감을 재개하시겠습니까?',
-      buttons: [
-        {
-          text: '재개',
-          onClick: async () => {
-            try {
-              const response = await fetch(
-                `${API_BASE_URL}/api/expense-closing`,
-                {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    closingId,
-                    reopenedBy: currentUser,
-                  }),
-                }
-              );
-
-              const data = await response.json();
-
-              if (data.success) {
-                showToast(data.message, 'success');
-                loadSummaryData();
-              } else {
-                showToast(data.message || '재개에 실패했습니다.', 'error');
-              }
-            } catch (error) {
-              console.error('Error:', error);
-              showToast('재개 중 오류가 발생했습니다.', 'error');
-            }
-          },
-        },
-        { text: '취소' },
-      ],
-    });
   };
 
   // 부서별 합계 계산
@@ -175,6 +220,155 @@ export default function ExpenseSummary() {
       summary[item.department].count += 1;
     });
     return summary;
+  };
+
+  // 월별 카테고리 데이터 집계 (이미지 형식)
+  const getMonthlyByCategoryData = () => {
+    const categories = {};
+    const categoryOrder = {}; // 카테고리 순서 유지용
+
+    // 모든 마감 데이터에서 카테고리 정보 수집
+    closingData.forEach((item) => {
+      // expenseDetails가 있다면 JSON 파싱, 아니면 기본값
+      let itemCategory = item.category || '기타';
+      let mainCategory = '비식비';
+      let subCategory = '기타';
+
+      // 비식비 카테고리 (유류비, 회의비, 회식비, 기타)
+      const nonFoodCategories = [
+        'FUEL',
+        '유류비',
+        'MEETING',
+        '회의비',
+        'PARTY',
+        '회식비',
+        'ETC',
+        '기타',
+      ];
+
+      if (nonFoodCategories.includes(itemCategory)) {
+        // 비식비 항목
+        if (categoryMapping[itemCategory]) {
+          mainCategory = categoryMapping[itemCategory].main;
+          subCategory = categoryMapping[itemCategory].sub;
+        } else {
+          mainCategory = '비식비';
+          subCategory = itemCategory;
+        }
+      } else {
+        // 나머지는 모두 식비로 처리
+        mainCategory = '식비';
+        if (categoryMapping[itemCategory]) {
+          subCategory = categoryMapping[itemCategory].sub;
+        } else if (itemCategory === 'LUNCH') {
+          subCategory = '점심';
+        } else if (itemCategory === 'LUNCH_SODAM') {
+          subCategory = '점심(소담)';
+        } else if (itemCategory === 'DINNER') {
+          subCategory = '저녁';
+        } else if (itemCategory === 'DINNER_SODAM') {
+          subCategory = '저녁';
+        } else {
+          // 그 외 매핑에 없는 카테고리도 식비로
+          subCategory = itemCategory;
+        }
+      }
+
+      // 메인 카테고리 초기화 (식비 우선 정렬)
+      if (!categories[mainCategory]) {
+        categories[mainCategory] = {};
+        // 식비는 0, 비식비는 1로 우선순위 설정
+        categoryOrder[mainCategory] = mainCategory === '식비' ? 0 : 1;
+      }
+
+      // 세목별 데이터
+      if (!categories[mainCategory][subCategory]) {
+        categories[mainCategory][subCategory] = {
+          mainCategory,
+          subCategory,
+          monthly: {},
+          total: 0,
+          budget: 0,
+        };
+      }
+
+      // 월별 데이터 집계
+      const itemMonth = item.monthYm ? parseInt(item.monthYm.split('-')[1]) : 0;
+      if (itemMonth > 0 && itemMonth <= 12) {
+        if (!categories[mainCategory][subCategory].monthly[itemMonth]) {
+          categories[mainCategory][subCategory].monthly[itemMonth] = 0;
+        }
+        categories[mainCategory][subCategory].monthly[itemMonth] +=
+          item.totalAmount;
+        categories[mainCategory][subCategory].total += item.totalAmount;
+      }
+    });
+
+    return { categories, categoryOrder };
+  };
+
+  // 카테고리별 월별 합계 계산
+  const getCategoryMonthlyTotals = () => {
+    const { categories } = getMonthlyByCategoryData();
+    const categoryTotals = {};
+    const monthlyGrandTotal = {};
+
+    Object.entries(categories).forEach(([category, subcategories]) => {
+      categoryTotals[category] = { monthly: {}, total: 0 };
+
+      Object.entries(subcategories).forEach(([subcategory, data]) => {
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].forEach((month) => {
+          if (!categoryTotals[category].monthly[month]) {
+            categoryTotals[category].monthly[month] = 0;
+          }
+          categoryTotals[category].monthly[month] += data.monthly[month] || 0;
+          categoryTotals[category].total += data.monthly[month] || 0;
+
+          if (!monthlyGrandTotal[month]) {
+            monthlyGrandTotal[month] = 0;
+          }
+          monthlyGrandTotal[month] += data.monthly[month] || 0;
+        });
+      });
+    });
+
+    return { categoryTotals, monthlyGrandTotal };
+  };
+
+  // 경비입금 합계 계산 (DINNER, LUNCH + 비식비만 합산, 특별항목 제외)
+  const getExpenseDepositTotal = () => {
+    const monthlyTotal = {};
+
+    const nonFoodCategories = [
+      'FUEL',
+      '유류비',
+      'MEETING',
+      '회의비',
+      'PARTY',
+      '회식비',
+      'ETC',
+      '기타',
+    ];
+    const depositCategories = new Set([
+      'LUNCH',
+      'DINNER',
+      ...nonFoodCategories,
+    ]);
+
+    closingData.forEach((item) => {
+      const itemCategory = item.category || '기타';
+      if (!depositCategories.has(itemCategory)) return; // 식비 중 점심/저녁 외 카테고리는 제외
+
+      const itemMonth = item.monthYm ? parseInt(item.monthYm.split('-')[1]) : 0;
+      if (itemMonth > 0 && itemMonth <= 12) {
+        if (!monthlyTotal[itemMonth]) {
+          monthlyTotal[itemMonth] = 0;
+        }
+        monthlyTotal[itemMonth] += item.totalAmount || 0;
+      }
+    });
+
+    return monthlyTotal;
   };
 
   // 전체 합계
@@ -215,9 +409,35 @@ export default function ExpenseSummary() {
     );
   }
 
-  const deptSummary = getDepartmentSummary();
-  const grandTotal = getGrandTotal();
-  const specialItemsDept = getSpecialItemsByDepartment();
+  // const deptSummary = getDepartmentSummary();
+  // const grandTotal = getGrandTotal();
+  // const specialItemsDept = getSpecialItemsByDepartment();
+
+  if (isLoading) {
+    return (
+      <div className="expenseSummary-container">
+        <Helmet>
+          <title>경비 청구 집계</title>
+        </Helmet>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '100vh',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
+          }}
+        >
+          <ClipLoader color="#f88c6b" loading={isLoading} size={120} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -225,198 +445,371 @@ export default function ExpenseSummary() {
         <title>경비 청구 집계</title>
       </Helmet>
 
-      <div className="summary-container">
-        <h1>경비 청구 집계</h1>
+      <div className="expenseSummary-container">
+        <section className="expenseSummary-content">
+          <header className="expenseSummary-header">
+            <div className="header-left">
+              <h1>경비 청구 집계</h1>
+            </div>
+            <div className="header-right">
+              <div className="year-selector">
+                <label>조회년도:</label>
+                <input
+                  type="number"
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
+                  min="2020"
+                  max="2099"
+                />
+              </div>
+              <button
+                className="btn-special-items"
+                onClick={() => navigate('/works/special-items?mode=manager')}
+              >
+                특별 항목 관리
+              </button>
+            </div>
+          </header>
 
-        <div className="summary-controls">
-          <div className="month-selector">
-            <label>조회 월:</label>
-            <input
-              type="month"
-              value={month}
-              onChange={(e) => setMonth(e.target.value)}
-            />
-          </div>
-          <button
-            className="btn-special-items"
-            onClick={() => navigate('/works/special-items?mode=manager')}
-          >
-            특별 항목 관리
-          </button>
-        </div>
-
-        {isLoading ? (
-          <div className="loading-container">
-            <ClipLoader size={50} color="#4CAF50" />
-          </div>
-        ) : (
-          <>
-            {/* 특별항목 요약 */}
-            {Object.keys(specialItemsDept).length > 0 && (
-              <div className="special-items-summary">
-                <h2>특별 항목 현황</h2>
-                <div className="special-items-cards">
-                  {Object.entries(specialItemsDept).map(([dept, amount]) => (
-                    <div key={dept} className="special-item-card">
-                      <div className="dept-name">{dept}</div>
-                      <div className="amount">{amount.toLocaleString()}원</div>
-                    </div>
-                  ))}
+          {isLoading ? (
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                minHeight: '100vh',
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 9999,
+              }}
+            >
+              <ClipLoader color="#f88c6b" loading={isLoading} size={120} />
+            </div>
+          ) : (
+            <>
+              {/* 월별 카테고리 집계 */}
+              {closingData.length === 0 ? (
+                <div className="empty-state">
+                  <p>{year}년 경비 마감 데이터가 없습니다.</p>
                 </div>
-              </div>
-            )}
+              ) : (
+                <>
+                  <section className="expenseSummary-section">
+                    <h2 className="section-title">{year}년 경비 청구서</h2>
+                    <div className="expenseSummary-table-container yearly-table">
+                      <table className="yearly-summary-table">
+                        <thead>
+                          <tr>
+                            <th colSpan="2">비목</th>
+                            <th>1월</th>
+                            <th>2월</th>
+                            <th>3월</th>
+                            <th>4월</th>
+                            <th>5월</th>
+                            <th>6월</th>
+                            <th>7월</th>
+                            <th>8월</th>
+                            <th>9월</th>
+                            <th>10월</th>
+                            <th>11월</th>
+                            <th>12월</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(() => {
+                            const { categories, categoryOrder } =
+                              getMonthlyByCategoryData();
+                            const { categoryTotals, monthlyGrandTotal } =
+                              getCategoryMonthlyTotals();
+                            const rows = [];
 
-            {/* 마감 데이터 */}
-            {closingData.length === 0 ? (
-              <div className="no-data">
-                <p>{month}월에 마감된 경비가 없습니다.</p>
-              </div>
-            ) : (
-              <>
-                {/* 사용자별 상세 내역 */}
-                <div className="closing-details">
-                  <h2>사용자별 청구 내역</h2>
-                  <table className="closing-table">
-                    <thead>
-                      <tr>
-                        <th>사용자명</th>
-                        <th>부서</th>
-                        <th>일반경비</th>
-                        <th>유류비</th>
-                        <th>특별항목</th>
-                        <th>합계</th>
-                        <th>마감일시</th>
-                        <th>상태</th>
-                        <th>작업</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {closingData.map((item) => (
-                        <tr
-                          key={item.closingId}
-                          className={`status-${item.closingStatus}`}
-                        >
-                          <td className="user-name">{item.userName}</td>
-                          <td>{item.department}</td>
-                          <td className="amount">
-                            {item.totalExpense.toLocaleString()}
-                          </td>
-                          <td className="amount">
-                            {item.fuelExpense.toLocaleString()}
-                          </td>
-                          <td className="amount">
-                            {item.specialItemExpense.toLocaleString()}
-                          </td>
-                          <td className="amount total">
-                            {item.totalAmount.toLocaleString()}
-                          </td>
-                          <td className="date">{item.closedAt}</td>
-                          <td className={`status ${item.closingStatus}`}>
-                            {item.closingStatus === 'CLOSED'
-                              ? '마감'
-                              : '재개됨'}
-                          </td>
-                          <td className="actions">
-                            {item.closingStatus === 'CLOSED' ? (
-                              <button
-                                className="btn-reopen"
-                                onClick={() =>
-                                  handleReopenClosing(item.closingId)
-                                }
+                            // 각 카테고리별 처리
+                            Object.entries(categories)
+                              .sort(
+                                ([catA], [catB]) =>
+                                  categoryOrder[catA] - categoryOrder[catB]
+                              )
+                              .forEach(([category, subcategories]) => {
+                                const subItems = Object.entries(subcategories);
+                                const subItemCount = subItems.length;
+
+                                // 세목 행
+                                subItems.forEach(
+                                  ([subcategory, data], index) => {
+                                    rows.push(
+                                      <tr
+                                        key={`${category}-${subcategory}`}
+                                        className="data-row"
+                                      >
+                                        {index === 0 && (
+                                          <td
+                                            className="category"
+                                            rowSpan={subItemCount + 1}
+                                          >
+                                            {category}
+                                          </td>
+                                        )}
+                                        <td className="subcategory">
+                                          {subcategory}
+                                        </td>
+                                        {[
+                                          1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+                                        ].map((month) => (
+                                          <td
+                                            key={month}
+                                            className="monthly-amount"
+                                          >
+                                            {(
+                                              data.monthly[month] || 0
+                                            ).toLocaleString()}
+                                          </td>
+                                        ))}
+                                      </tr>
+                                    );
+                                  }
+                                );
+
+                                // 카테고리 소계 행
+                                rows.push(
+                                  <tr
+                                    key={`${category}-total`}
+                                    className="category-total-row"
+                                  >
+                                    <td className="category-total">
+                                      {category}합계
+                                    </td>
+                                    {[
+                                      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+                                    ].map((month) => (
+                                      <td
+                                        key={month}
+                                        className="category-total-amount"
+                                      >
+                                        {(
+                                          categoryTotals[category]?.monthly[
+                                            month
+                                          ] || 0
+                                        ).toLocaleString()}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                );
+                              });
+
+                            // 합계(경비입금) 행 - DINNER, LUNCH + 비식비 (특별항목 제외)
+                            const expenseDepositTotal =
+                              getExpenseDepositTotal();
+                            rows.push(
+                              <tr
+                                key="expense-deposit"
+                                className="category-total-row"
                               >
-                                재개
-                              </button>
-                            ) : (
-                              <span className="reopened-badge">재개됨</span>
+                                <td
+                                  colSpan="2"
+                                  className="category-total"
+                                  style={{
+                                    backgroundColor: '#FCE4D6',
+                                  }}
+                                >
+                                  합계(경비입금)
+                                </td>
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
+                                  (month) => (
+                                    <td
+                                      key={month}
+                                      className="category-total-amount"
+                                      style={{
+                                        backgroundColor: '#FCE4D6',
+                                      }}
+                                    >
+                                      {(
+                                        expenseDepositTotal[month] || 0
+                                      ).toLocaleString()}
+                                    </td>
+                                  )
+                                )}
+                              </tr>
+                            );
+
+                            // 전체 합계 행
+                            rows.push(
+                              <tr key="grand-total" className="grand-total-row">
+                                <td colSpan="2" className="grand-total">
+                                  총금액(소담, 세종 포함)
+                                </td>
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
+                                  (month) => (
+                                    <td
+                                      key={month}
+                                      className="grand-total-amount"
+                                    >
+                                      {(
+                                        monthlyGrandTotal[month] || 0
+                                      ).toLocaleString()}
+                                    </td>
+                                  )
+                                )}
+                              </tr>
+                            );
+
+                            return rows;
+                          })()}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+
+                  {/* 사용자별 집계 그리드 */}
+                  <section className="expenseSummary-section">
+                    {/* <h2 className="section-title">사용자별 집계</h2> */}
+                    <div className="expenseSummary-table-container yearly-table">
+                      <table className="yearly-summary-table">
+                        <thead>
+                          <tr>
+                            <th colSpan={2}>이름</th>
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
+                              (month) => (
+                                <th key={month}>{month}월</th>
+                              )
                             )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                            <th>개인 합계</th>
+                            <th>월 평균</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(() => {
+                            const entries = Object.entries(
+                              userMonthlyData
+                            ).sort(([aName, aData], [bName, bData]) => {
+                              const statusOrder = (s) =>
+                                s === '재직자' ? 0 : 1;
+                              const diff =
+                                statusOrder(aData.status) -
+                                statusOrder(bData.status);
+                              if (diff !== 0) return diff;
+                              return aName.localeCompare(bName);
+                            });
 
-                {/* 부서별 집계 */}
-                <div className="department-summary">
-                  <h2>부서별 집계</h2>
-                  <table className="summary-table">
-                    <thead>
-                      <tr>
-                        <th>부서</th>
-                        <th>인원</th>
-                        <th>일반경비</th>
-                        <th>유류비</th>
-                        <th>특별항목</th>
-                        <th>합계</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Object.entries(deptSummary).map(([dept, data]) => (
-                        <tr key={dept}>
-                          <td className="dept-name">{dept}</td>
-                          <td className="count">{data.count}명</td>
-                          <td className="amount">
-                            {data.totalExpense.toLocaleString()}
-                          </td>
-                          <td className="amount">
-                            {data.fuelExpense.toLocaleString()}
-                          </td>
-                          <td className="amount">
-                            {(specialItemsDept[dept] || 0).toLocaleString()}
-                          </td>
-                          <td className="amount total">
-                            {data.totalAmount.toLocaleString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                            const monthlyTotals = {};
+                            let overallTotal = 0;
+                            entries.forEach(([, data]) => {
+                              overallTotal += data.total;
+                              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].forEach(
+                                (m) => {
+                                  monthlyTotals[m] =
+                                    (monthlyTotals[m] || 0) +
+                                    (data.monthly[m] || 0);
+                                }
+                              );
+                            });
 
-                {/* 전체 합계 */}
-                <div className="grand-total">
-                  <h2>전체 합계</h2>
-                  <div className="total-grid">
-                    <div className="total-item">
-                      <span>일반경비</span>
-                      <strong>
-                        {grandTotal.totalExpense.toLocaleString()}원
-                      </strong>
+                            // 상태별 rowspan 계산
+                            const statusRowSpan = entries.reduce(
+                              (acc, [, data]) => {
+                                const key = data.status || '기타';
+                                acc[key] = (acc[key] || 0) + 1;
+                                return acc;
+                              },
+                              {}
+                            );
+
+                            let renderedStatusCount = {};
+                            const rows = entries.map(([name, data]) => {
+                              const statusKey = data.status || '기타';
+                              const shouldRenderStatus =
+                                !renderedStatusCount[statusKey];
+                              renderedStatusCount[statusKey] =
+                                (renderedStatusCount[statusKey] || 0) + 1;
+
+                              return (
+                                <tr key={name}>
+                                  {shouldRenderStatus && (
+                                    <td
+                                      className="category"
+                                      rowSpan={statusRowSpan[statusKey] || 1}
+                                    >
+                                      {statusKey}
+                                    </td>
+                                  )}
+                                  <td
+                                    className="subcategory"
+                                    style={{ textAlign: 'center' }}
+                                  >
+                                    {name}
+                                  </td>
+                                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
+                                    (month) => (
+                                      <td
+                                        key={month}
+                                        className="monthly-amount"
+                                      >
+                                        {(
+                                          data.monthly[month] || 0
+                                        ).toLocaleString()}
+                                      </td>
+                                    )
+                                  )}
+                                  <td
+                                    className="category-total-amount"
+                                    style={{ background: '#C0E6F5' }}
+                                  >
+                                    {data.total.toLocaleString()}
+                                  </td>
+                                  <td
+                                    className="category-total-amount"
+                                    style={{ background: '#C0E6F5' }}
+                                  >
+                                    {Math.round(data.avg).toLocaleString()}
+                                  </td>
+                                </tr>
+                              );
+                            });
+
+                            rows.push(
+                              <tr
+                                key="user-monthly-total"
+                                className="category-total-row"
+                              >
+                                <td className="category-total" colSpan="2">
+                                  총합계
+                                </td>
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
+                                  (month) => (
+                                    <td
+                                      key={month}
+                                      className="category-total-amount"
+                                    >
+                                      {(
+                                        monthlyTotals[month] || 0
+                                      ).toLocaleString()}
+                                    </td>
+                                  )
+                                )}
+                                <td className="category-total-amount">
+                                  {overallTotal.toLocaleString()}
+                                </td>
+                                <td className="category-total-amount">
+                                  {Math.round(
+                                    overallTotal / 12
+                                  ).toLocaleString()}
+                                </td>
+                              </tr>
+                            );
+
+                            return rows;
+                          })()}
+                        </tbody>
+                      </table>
                     </div>
-                    <div className="total-item">
-                      <span>유류비</span>
-                      <strong>
-                        {grandTotal.fuelExpense.toLocaleString()}원
-                      </strong>
-                    </div>
-                    <div className="total-item">
-                      <span>특별항목</span>
-                      <strong>
-                        {Object.values(specialItemsDept)
-                          .reduce((sum, amount) => sum + amount, 0)
-                          .toLocaleString()}
-                        원
-                      </strong>
-                    </div>
-                    <div className="total-item grand">
-                      <span>전체 청구액</span>
-                      <strong>
-                        {(
-                          grandTotal.totalAmount +
-                          Object.values(specialItemsDept).reduce(
-                            (sum, amount) => sum + amount,
-                            0
-                          )
-                        ).toLocaleString()}
-                        원
-                      </strong>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </>
-        )}
+                  </section>
+                </>
+              )}
+            </>
+          )}
+        </section>
       </div>
     </>
   );

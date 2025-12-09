@@ -11,6 +11,7 @@ const categories = [
   { code: 'PARTY', name: '회식비' },
   { code: 'MEETING', name: '회의비' },
   { code: 'UTILITY', name: '공공요금' },
+  { code: 'FUEL', name: '유류비' },
   { code: 'ETC', name: '기타' },
 ];
 
