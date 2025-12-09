@@ -1,200 +1,223 @@
+.special-items-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+}
+
 .special-items-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  box-sizing: border-box;
+  font-family: 'Noto Sans KR', sans-serif;
 }
 
-.special-items-container h1 {
-  font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 20px;
-  color: #333;
-}
-
-.special-items-controls {
+.management-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #f0f0f0;
+  position: relative;
   display: flex;
-  gap: 15px;
-  margin-bottom: 25px;
+  justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
 }
 
-.month-selector {
+.management-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.header-buttons {
   display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.month-selector label {
-  font-weight: 600;
-  color: #555;
-}
-
-.month-selector input {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
+  gap: 1rem;
 }
 
 .btn-add {
-  background-color: #4caf50;
+  padding: 0.5rem 1rem;
+  background: #10b981;
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
 }
 
 .btn-add:hover {
-  background-color: #45a049;
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
-/* 폼 스타일 */
-.special-items-form {
-  background: #f5f5f5;
-  padding: 20px;
+.btn-search {
+  padding: 0.5rem 1rem;
+  background: #667eea;
+  color: white;
+  border: none;
   border-radius: 8px;
-  margin-bottom: 25px;
-}
-
-.special-items-form h3 {
-  margin-top: 0;
-  color: #333;
-  font-size: 18px;
-  margin-bottom: 20px;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
+  cursor: pointer;
+  font-size: 0.9rem;
   font-weight: 600;
-  margin-bottom: 5px;
-  color: #555;
-  font-size: 14px;
+  transition: all 0.3s ease;
 }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
-  width: 100%;
-  padding: 10px;
+.btn-search:hover {
+  background: #5568d3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-back {
+  padding: 0.5rem 1rem;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+.filter-section {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.1) 0%,
+    rgba(118, 75, 162, 0.1) 100%
+  );
+  border-radius: 12px;
+  flex-wrap: wrap;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.month-selector,
+.status-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.month-selector label,
+.status-filter label {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.month-selector input,
+.status-filter select {
+  padding: 0.75rem;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background-color: white;
+  transition: all 0.3s ease;
   font-family: inherit;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
+.month-selector input:focus,
+.status-filter select:focus {
   outline: none;
-  border-color: #4caf50;
-  box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-}
-
-.form-buttons {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.btn-save,
-.btn-cancel {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
+.summary-info {
+  margin-left: auto;
   font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s;
+  color: #667eea;
+  font-size: 1.05rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
-.btn-save {
-  background-color: #4caf50;
-  color: white;
-  flex: 1;
-}
-
-.btn-save:hover {
-  background-color: #45a049;
-}
-
-.btn-cancel {
-  background-color: #ddd;
-  color: #333;
-  flex: 1;
-}
-
-.btn-cancel:hover {
-  background-color: #bbb;
-}
-
-/* 목록 스타일 */
 .special-items-list {
-  margin-top: 20px;
+  margin-top: 2rem;
 }
 
 .department-group {
-  margin-bottom: 30px;
+  margin-bottom: 2rem;
 }
 
 .department-group h3 {
-  background-color: #f0f0f0;
-  padding: 12px;
-  border-radius: 4px;
-  margin: 0 0 10px 0;
-  color: #333;
-  font-size: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
   font-weight: 600;
 }
 
 .department-group table {
   width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 10px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-collapse: separate;
+  border-spacing: 0;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .department-group thead {
-  background-color: #f9f9f9;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .department-group th {
-  text-align: left;
-  padding: 12px;
-  border-bottom: 2px solid #ddd;
+  padding: 1rem 0.75rem;
+  text-align: center;
   font-weight: 600;
-  color: #555;
-  font-size: 13px;
+  font-size: 0.9rem;
+  color: white;
+  border: none;
+  white-space: nowrap;
 }
 
-.department-group td {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
-  font-size: 13px;
+.department-group tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s;
 }
 
 .department-group tbody tr:hover {
-  background-color: #f5f5f5;
+  background-color: #f8f9fa;
 }
 
-.department-group .amount {
-  text-align: right;
+.department-group td {
+  padding: 0.75rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #495057;
+  vertical-align: middle;
+}
+
+.department-group td.amount {
   font-weight: 600;
-  color: #2196f3;
+  color: #28a745;
+  font-size: 0.95rem;
+  text-align: right;
+  padding-right: 1rem;
 }
 
 .department-group .actions {
@@ -204,32 +227,34 @@
 
 .btn-edit,
 .btn-delete {
-  padding: 6px 10px;
+  padding: 0.4rem 0.8rem;
   border: none;
-  border-radius: 3px;
-  font-size: 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  margin: 0 3px;
+  margin: 0 0.25rem;
   transition: all 0.3s;
 }
 
 .btn-edit {
-  background-color: #2196f3;
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
   color: white;
 }
 
 .btn-edit:hover {
-  background-color: #1976d2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
 }
 
 .btn-delete {
-  background-color: #f44336;
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
   color: white;
 }
 
 .btn-delete:hover {
-  background-color: #d32f2f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
 }
 
 .department-subtotal {
@@ -244,93 +269,187 @@
 
 /* 총합계 */
 .total-summary {
-  background-color: #e8f5e9;
-  padding: 20px;
-  border-radius: 8px;
+  background: linear-gradient(
+    135deg,
+    rgba(16, 185, 129, 0.1) 0%,
+    rgba(16, 185, 129, 0.05) 100%
+  );
+  padding: 1.5rem;
+  border-radius: 12px;
   text-align: right;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  margin-top: 2rem;
 }
 
 .total-summary h3 {
   margin: 0;
-  font-size: 18px;
-  color: #333;
-}
-
-.total-amount {
-  color: #4caf50;
-  font-size: 22px;
-  font-weight: 700;
-}
-
-/* 로딩 및 빈 상태 */
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 300px;
-}
-
-.no-data {
-  background-color: #f5f5f5;
-  padding: 40px;
-  text-align: center;
-  border-radius: 8px;
-  color: #999;
-  font-size: 14px;
-}
-
-.special-items-error {
-  padding: 40px;
-  text-align: center;
-  color: #f44336;
-}
-
-.special-items-error h2 {
-  margin: 0 0 10px 0;
-}
-
-.special-items-error button {
-  margin-top: 20px;
-  padding: 10px 20px;
-  background-color: #2196f3;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  font-size: 1.2rem;
+  color: #2c3e50;
   font-weight: 600;
 }
 
-.special-items-error button:hover {
-  background-color: #1976d2;
+.total-amount {
+  color: #10b981;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-left: 1rem;
 }
 
-/* 반응형 디자인 */
-@media (max-width: 768px) {
-  .special-items-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
+.empty-state {
+  padding: 4rem 2rem;
+  text-align: center;
+  color: #7f8c8d;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.05) 0%,
+    rgba(118, 75, 162, 0.05) 100%
+  );
+  border-radius: 12px;
+  border: 2px dashed #ddd;
+}
 
-  .btn-add {
-    width: 100%;
-  }
+.empty-state p {
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 500;
+}
 
-  .form-row {
-    grid-template-columns: 1fr;
+/* 반응형 */
+@media (max-width: 1024px) {
+  .special-items-container {
+    padding: 1.5rem;
   }
 
   .department-group table {
-    font-size: 12px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .special-items-wrapper {
+    padding: 1rem 0.5rem;
+  }
+
+  .special-items-container {
+    padding: 1.5rem 1rem;
+    border-radius: 8px;
+  }
+
+  .management-header {
+    padding-bottom: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .management-header h1 {
+    font-size: 1.5rem;
+    width: 100%;
+  }
+
+  .header-buttons {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .btn-add,
+  .btn-search,
+  .btn-back {
+    flex: 1;
+    min-width: 100px;
+  }
+
+  .filter-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .month-selector,
+  .status-filter {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .month-selector label,
+  .status-filter label {
+    text-align: left;
+  }
+
+  .summary-info {
+    margin-left: 0;
+    text-align: center;
+  }
+
+  .department-group table {
+    font-size: 0.8rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .department-group th,
   .department-group td {
-    padding: 8px;
+    padding: 0.6rem 0.5rem;
   }
 
   .btn-edit,
   .btn-delete {
-    padding: 4px 8px;
-    font-size: 11px;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .empty-state {
+    padding: 3rem 1.5rem;
+  }
+
+  .empty-state p {
+    font-size: 1rem;
+  }
+
+  .total-summary {
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .total-summary h3 {
+    font-size: 1rem;
+  }
+
+  .total-amount {
+    display: block;
+    font-size: 1.3rem;
+    margin-left: 0;
+    margin-top: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .special-items-wrapper {
+    padding: 0.5rem;
+  }
+
+  .special-items-container {
+    padding: 1rem;
+  }
+
+  .management-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .header-buttons {
+    gap: 0.5rem;
+  }
+
+  .filter-section {
+    padding: 0.75rem;
+  }
+
+  .empty-state {
+    padding: 2rem 1rem;
+  }
+
+  .empty-state p {
+    font-size: 0.9rem;
   }
 }

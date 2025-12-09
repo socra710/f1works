@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './SpecialItems.css';
 import { ClipLoader } from 'react-spinners';
 import { useToast, useDialog } from '../../common/Toast';
@@ -13,175 +13,126 @@ import { useToast, useDialog } from '../../common/Toast';
 export default function SpecialItems() {
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { showToast } = useToast();
   const { showDialog } = useDialog();
 
-  const [month, setMonth] = useState(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
-      2,
-      '0'
-    )}`;
-  });
-  const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isManagerMode, setIsManagerMode] = useState(
-    searchParams.get('mode') === 'manager'
-  );
-  const [factoryCode] = useState('F001'); // 예시, 실제로는 로그인 정보에서 가져옴
-  const [currentUser] = useState('ADMIN'); // 예시, 실제로는 로그인 정보에서 가져옴
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [specialItemsList, setSpecialItemsList] = useState([]);
+  const initializedRef = useRef(false);
 
-  // 폼 상태
-  const [formData, setFormData] = useState({
-    department: '',
-    itemName: '',
-    amount: '',
-    quantity: 1,
-    unitPrice: '',
-    memo: '',
-  });
-  const [editingId, setEditingId] = useState(null);
-  const [showForm, setShowForm] = useState(false);
+  // 권한 확인 및 초기화
+  useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
+    setTimeout(() => {
+      const sessionUser = window.sessionStorage.getItem('extensionLogin');
+      if (!sessionUser) {
+        showToast('로그인이 필요한 서비스입니다.', 'warning');
+        navigate('/works');
+        return;
+      }
+      checkManagerPermission(sessionUser);
+    }, 1000);
+    // eslint-disable-next-line
+  }, [navigate]);
+
+  // 관리자 권한 확인
+  const checkManagerPermission = async (userIdEncoded) => {
+    try {
+      const factoryCode =
+        window.sessionStorage.getItem('factoryCode') || '000001';
+
+      // 기본 월 설정 (현재 달)
+      const now = new Date();
+      const defaultMonth = `${now.getFullYear()}-${String(
+        now.getMonth() + 1
+      ).padStart(2, '0')}`;
+      setSelectedMonth(defaultMonth);
+
+      // 목록 조회
+      await fetchSpecialItemsList(factoryCode, defaultMonth);
+
+      setIsLoading(false);
+    } catch (error) {
+      console.error('초기화 오류:', error);
+      showToast('데이터를 불러오는 중 오류가 발생했습니다.', 'error');
+      setIsLoading(false);
+    }
+  };
 
   // 특별 항목 목록 조회
-  useEffect(() => {
-    loadSpecialItems();
-  }, [month]);
-
-  const loadSpecialItems = async () => {
+  const fetchSpecialItemsList = async (factoryCode, month) => {
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/special-items?factoryCode=${factoryCode}&monthYm=${month}`
-      );
-      const data = await response.json();
+      const formData = new FormData();
+      formData.append('factoryCode', factoryCode);
+      formData.append('monthYm', month);
 
-      if (data.success) {
-        setItems(data.data || []);
-      } else {
-        showToast(data.message || '특별 항목 조회에 실패했습니다.', 'error');
+      const response = await fetch(`${API_BASE_URL}/jvWorksGetSpecialItems`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        if (response.status === 403 || response.status === 401) {
+          showToast('해당 사용자는 접근할 수 없는 페이지입니다.', 'warning');
+          navigate('/works');
+          return;
+        }
+        throw new Error(`HTTP ${response.status}`);
       }
+
+      const contentType = response.headers.get('content-type') || '';
+      let data;
+      if (contentType.includes('application/json')) {
+        try {
+          data = await response.json();
+        } catch (e) {
+          const rawText = await response.text();
+          console.warn('JSON 파싱 실패, 원시 텍스트:', rawText);
+          data = null;
+        }
+      } else {
+        const rawText = await response.text();
+        console.warn('JSON 아님, 원시 텍스트 응답:', rawText);
+        data = null;
+      }
+
+      const list = data && Array.isArray(data.list) ? data.list : [];
+      setSpecialItemsList(list);
     } catch (error) {
-      console.error('Error:', error);
-      showToast('특별 항목 조회 중 오류가 발생했습니다.', 'error');
+      console.error('목록 조회 오류:', error);
+      showToast('목록을 불러오는 중 오류가 발생했습니다.', 'error');
+      setSpecialItemsList([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 폼 초기화
-  const resetForm = () => {
-    setFormData({
-      department: '',
-      itemName: '',
-      amount: '',
-      quantity: 1,
-      unitPrice: '',
-      memo: '',
-    });
-    setEditingId(null);
+  // 월 변경 핸들러
+  const handleMonthChange = (e) => {
+    const newMonth = e.target.value;
+    setSelectedMonth(newMonth);
   };
 
-  // 수정 시작
-  const handleEdit = (item) => {
-    setFormData({
-      department: item.department,
-      itemName: item.itemName,
-      amount: item.amount,
-      quantity: item.quantity,
-      unitPrice: item.unitPrice || '',
-      memo: item.memo || '',
-    });
-    setEditingId(item.specialItemId);
-    setShowForm(true);
+  // 검색 버튼 핸들러
+  const handleSearch = () => {
+    const factoryCode =
+      window.sessionStorage.getItem('factoryCode') || '000001';
+    fetchSpecialItemsList(factoryCode, selectedMonth);
   };
 
-  // 저장
-  const handleSave = async () => {
-    if (!formData.department || !formData.itemName || !formData.amount) {
-      showToast('필수 항목을 입력하세요.', 'error');
-      return;
-    }
-
-    const payload = {
-      factoryCode,
-      monthYm: month,
-      ...formData,
-      amount: parseFloat(formData.amount),
-      quantity: parseInt(formData.quantity),
-      unitPrice: formData.unitPrice ? parseFloat(formData.unitPrice) : 0,
-    };
-
-    if (editingId) {
-      payload.specialItemId = editingId;
-      payload.updatedBy = currentUser;
-    } else {
-      payload.createdBy = currentUser;
-    }
-
-    try {
-      const method = editingId ? 'PUT' : 'POST';
-      const response = await fetch(`${API_BASE_URL}/api/special-items`, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        showToast(data.message, 'success');
-        resetForm();
-        setShowForm(false);
-        loadSpecialItems();
-      } else {
-        showToast(data.message || '저장에 실패했습니다.', 'error');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      showToast('저장 중 오류가 발생했습니다.', 'error');
-    }
+  // 금액 포맷
+  const formatAmount = (amount) => {
+    return new Intl.NumberFormat('ko-KR').format(amount || 0);
   };
 
-  // 삭제
-  const handleDelete = async (itemId) => {
-    showDialog({
-      title: '삭제 확인',
-      message: '이 항목을 삭제하시겠습니까?',
-      buttons: [
-        {
-          text: '삭제',
-          onClick: async () => {
-            try {
-              const response = await fetch(
-                `${API_BASE_URL}/api/special-items?specialItemId=${itemId}`,
-                { method: 'DELETE' }
-              );
-
-              const data = await response.json();
-
-              if (data.success) {
-                showToast(data.message, 'success');
-                loadSpecialItems();
-              } else {
-                showToast(data.message || '삭제에 실패했습니다.', 'error');
-              }
-            } catch (error) {
-              console.error('Error:', error);
-              showToast('삭제 중 오류가 발생했습니다.', 'error');
-            }
-          },
-        },
-        { text: '취소' },
-      ],
-    });
-  };
-
-  // 부서별 집계
+  // 부서별 그룹화
   const getGroupedByDepartment = () => {
     const grouped = {};
-    items.forEach((item) => {
+    specialItemsList.forEach((item) => {
       if (!grouped[item.department]) {
         grouped[item.department] = [];
       }
@@ -192,228 +143,217 @@ export default function SpecialItems() {
 
   // 총 합계
   const getTotalAmount = () => {
-    return items.reduce((sum, item) => sum + item.amount, 0);
+    return specialItemsList.reduce((sum, item) => sum + (item.amount || 0), 0);
   };
 
-  if (!isManagerMode) {
+  // 항목 추가
+  const handleAddItem = () => {
+    navigate(`/works/special-items/edit?month=${selectedMonth}`);
+  };
+
+  // 항목 상세보기
+  const handleViewDetail = (specialItemId) => {
+    navigate(
+      `/works/special-items/edit/${specialItemId}?month=${selectedMonth}`
+    );
+  };
+
+  // 항목 삭제
+  const handleDeleteItem = (itemId, itemName) => {
+    showDialog({
+      title: '삭제 확인',
+      message: `'${itemName}' 항목을 삭제하시겠습니까?`,
+      buttons: [
+        {
+          text: '삭제',
+          onClick: async () => {
+            try {
+              const formData = new FormData();
+              formData.append('specialItemId', itemId);
+
+              const response = await fetch(
+                `${API_BASE_URL}/jvWorksDeleteSpecialItem`,
+                {
+                  method: 'POST',
+                  body: formData,
+                }
+              );
+
+              if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                  showToast('항목이 삭제되었습니다.', 'success');
+                  const factoryCode =
+                    window.sessionStorage.getItem('factoryCode') || '000001';
+                  fetchSpecialItemsList(factoryCode, selectedMonth);
+                } else {
+                  showToast(data.message || '삭제에 실패했습니다.', 'error');
+                }
+              }
+            } catch (error) {
+              console.error('삭제 오류:', error);
+              showToast('삭제 중 오류가 발생했습니다.', 'error');
+            }
+          },
+        },
+        { text: '취소' },
+      ],
+    });
+  };
+
+  if (isLoading) {
     return (
-      <div className="special-items-error">
-        <h2>접근 권한이 없습니다</h2>
-        <p>관리자만 접근할 수 있는 페이지입니다.</p>
-        <button onClick={() => navigate('/works')}>돌아가기</button>
+      <div className="special-items-wrapper">
+        <Helmet>
+          <title>특별 항목 관리 - F1Soft Works</title>
+        </Helmet>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '100vh',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
+          }}
+        >
+          <ClipLoader color="#f88c6b" loading={isLoading} size={120} />
+        </div>
       </div>
     );
   }
 
   return (
-    <>
+    <div className="special-items-wrapper">
       <Helmet>
-        <title>특별 항목 관리</title>
+        <title>특별 항목 관리 - F1Soft Works</title>
       </Helmet>
-
       <div className="special-items-container">
-        <h1>특별 항목 관리</h1>
+        <header className="management-header">
+          <h1>특별 항목 관리</h1>
+          <div className="header-buttons">
+            <button className="btn-add" onClick={handleAddItem}>
+              + 항목 추가
+            </button>
+            <button className="btn-search" onClick={handleSearch}>
+              🔍 검색
+            </button>
+            <button className="btn-back" onClick={() => navigate('/works')}>
+              뒤로가기
+            </button>
+          </div>
+        </header>
 
-        <div className="special-items-controls">
+        <div className="filter-section">
           <div className="month-selector">
             <label>대상 월:</label>
             <input
               type="month"
-              value={month}
-              onChange={(e) => setMonth(e.target.value)}
+              value={selectedMonth}
+              onChange={handleMonthChange}
+              max={`${new Date().getFullYear()}-${String(
+                new Date().getMonth() + 1
+              ).padStart(2, '0')}`}
             />
           </div>
-          <button
-            className="btn-add"
-            onClick={() => {
-              resetForm();
-              setShowForm(true);
-            }}
-          >
-            + 항목 추가
-          </button>
+
+          <div className="summary-info">
+            <span>총 {specialItemsList.length}건</span>
+          </div>
         </div>
 
-        {/* 폼 영역 */}
-        {showForm && (
-          <div className="special-items-form">
-            <h3>{editingId ? '항목 수정' : '항목 추가'}</h3>
-            <div className="form-group">
-              <label>부서명 *</label>
-              <select
-                value={formData.department}
-                onChange={(e) =>
-                  setFormData({ ...formData, department: e.target.value })
-                }
-              >
-                <option value="">선택</option>
-                <option value="소담">소담</option>
-                <option value="세종">세종</option>
-                <option value="기타">기타</option>
-              </select>
+        <div className="special-items-list">
+          {specialItemsList.length === 0 ? (
+            <div className="empty-state">
+              <p>등록된 특별 항목이 없습니다.</p>
             </div>
-
-            <div className="form-group">
-              <label>항목명 *</label>
-              <select
-                value={formData.itemName}
-                onChange={(e) =>
-                  setFormData({ ...formData, itemName: e.target.value })
-                }
-              >
-                <option value="">선택</option>
-                <option value="점심">점심</option>
-                <option value="저녁">저녁</option>
-                <option value="간식">간식</option>
-                <option value="기타">기타</option>
-              </select>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>수량</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={formData.quantity}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      quantity: parseInt(e.target.value),
-                    })
-                  }
-                />
-              </div>
-
-              <div className="form-group">
-                <label>단가 (원)</label>
-                <input
-                  type="number"
-                  value={formData.unitPrice}
-                  onChange={(e) =>
-                    setFormData({ ...formData, unitPrice: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>총액 (원) *</label>
-              <input
-                type="number"
-                value={formData.amount}
-                onChange={(e) =>
-                  setFormData({ ...formData, amount: e.target.value })
-                }
-              />
-            </div>
-
-            <div className="form-group">
-              <label>비고</label>
-              <textarea
-                value={formData.memo}
-                onChange={(e) =>
-                  setFormData({ ...formData, memo: e.target.value })
-                }
-                rows="2"
-              />
-            </div>
-
-            <div className="form-buttons">
-              <button className="btn-save" onClick={handleSave}>
-                저장
-              </button>
-              <button
-                className="btn-cancel"
-                onClick={() => {
-                  setShowForm(false);
-                  resetForm();
-                }}
-              >
-                취소
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* 목록 영역 */}
-        {isLoading ? (
-          <div className="loading-container">
-            <ClipLoader size={50} color="#4CAF50" />
-          </div>
-        ) : items.length === 0 ? (
-          <div className="no-data">
-            <p>{month}월에 등록된 특별 항목이 없습니다.</p>
-          </div>
-        ) : (
-          <div className="special-items-list">
-            {Object.entries(getGroupedByDepartment()).map(
-              ([department, deptItems]) => (
-                <div key={department} className="department-group">
-                  <h3>{department}</h3>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>항목명</th>
-                        <th>수량</th>
-                        <th>단가</th>
-                        <th>총액</th>
-                        <th>비고</th>
-                        <th>작업</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {deptItems.map((item) => (
-                        <tr key={item.specialItemId}>
-                          <td>{item.itemName}</td>
-                          <td>{item.quantity}</td>
-                          <td>{item.unitPrice.toLocaleString()}</td>
-                          <td className="amount">
-                            {item.amount.toLocaleString()}
-                          </td>
-                          <td>{item.memo}</td>
-                          <td className="actions">
-                            <button
-                              className="btn-edit"
-                              onClick={() => handleEdit(item)}
-                            >
-                              수정
-                            </button>
-                            <button
-                              className="btn-delete"
-                              onClick={() => handleDelete(item.specialItemId)}
-                            >
-                              삭제
-                            </button>
-                          </td>
+          ) : (
+            <>
+              {Object.entries(getGroupedByDepartment()).map(
+                ([department, deptItems]) => (
+                  <div key={department} className="department-group">
+                    <h3>{department}</h3>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>항목명</th>
+                          <th>수량</th>
+                          <th>단가</th>
+                          <th>총액</th>
+                          <th>비고</th>
+                          <th>작업</th>
                         </tr>
-                      ))}
-                      <tr className="department-subtotal">
-                        <td colSpan="3">소계</td>
-                        <td className="amount">
-                          {deptItems
-                            .reduce((sum, item) => sum + item.amount, 0)
-                            .toLocaleString()}
-                        </td>
-                        <td colSpan="2"></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              )
-            )}
+                      </thead>
+                      <tbody>
+                        {deptItems.map((item) => (
+                          <tr key={item.specialItemId}>
+                            <td>{item.itemName}</td>
+                            <td>{item.quantity}</td>
+                            <td className="amount">
+                              {formatAmount(item.unitPrice || 0)}원
+                            </td>
+                            <td className="amount">
+                              {formatAmount(item.amount || 0)}원
+                            </td>
+                            <td>{item.memo || '-'}</td>
+                            <td className="actions">
+                              <button
+                                className="btn-edit"
+                                onClick={() =>
+                                  handleViewDetail(item.specialItemId)
+                                }
+                              >
+                                수정
+                              </button>
+                              <button
+                                className="btn-delete"
+                                onClick={() =>
+                                  handleDeleteItem(
+                                    item.specialItemId,
+                                    item.itemName
+                                  )
+                                }
+                              >
+                                삭제
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                        <tr className="department-subtotal">
+                          <td colSpan="3">소계</td>
+                          <td className="amount">
+                            {formatAmount(
+                              deptItems.reduce(
+                                (sum, item) => sum + (item.amount || 0),
+                                0
+                              )
+                            )}
+                            원
+                          </td>
+                          <td colSpan="2"></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                )
+              )}
 
-            <div className="total-summary">
-              <h3>
-                총합계:{' '}
-                <span className="total-amount">
-                  {getTotalAmount().toLocaleString()}원
-                </span>
-              </h3>
-            </div>
-          </div>
-        )}
+              <div className="total-summary">
+                <h3>
+                  총합계:{' '}
+                  <span className="total-amount">
+                    {formatAmount(getTotalAmount())}원
+                  </span>
+                </h3>
+              </div>
+            </>
+          )}
+        </div>
       </div>
-    </>
+    </div>
   );
 }

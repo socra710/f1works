@@ -15,7 +15,7 @@ import ExpenseManagement from './works/expense/ExpenseManagement';
 import SpecialItems from './works/expense/SpecialItems';
 import ExpenseSummary from './works/expense/ExpenseSummary';
 import Wordle from './games/wordle/Wordle';
-import Tetris from './games/tetris/Tetris';
+// import Tetris from './games/tetris/Tetris';
 import Feed from './feed/index';
 import Calendar from './works/Calendar';
 
