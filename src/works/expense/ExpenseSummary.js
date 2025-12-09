@@ -262,12 +262,16 @@ export default function ExpenseSummary() {
           subCategory = categoryMapping[itemCategory].sub;
         } else if (itemCategory === 'LUNCH') {
           subCategory = '점심';
-        } else if (itemCategory === 'LUNCH_SODAM') {
-          subCategory = '점심(소담)';
         } else if (itemCategory === 'DINNER') {
           subCategory = '저녁';
+        } else if (itemCategory === 'LUNCH_SODAM') {
+          subCategory = '점심(소담)';
         } else if (itemCategory === 'DINNER_SODAM') {
-          subCategory = '저녁';
+          subCategory = '저녁(소담)';
+        } else if (itemCategory === 'LUNCH_SEJONG') {
+          subCategory = '점심(세종)';
+        } else if (itemCategory === 'DINNER_SEJONG') {
+          subCategory = '저녁(세종)';
         } else {
           // 그 외 매핑에 없는 카테고리도 식비로
           subCategory = itemCategory;
