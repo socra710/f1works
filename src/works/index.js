@@ -63,7 +63,7 @@ export default function Works() {
       category: '메뉴',
     },
     {
-      title: '피드',
+      title: '뉴스 피드',
       description: 'Works 사용자를 위한 뉴스 피드',
       icon: '📰',
       path: '/feed',

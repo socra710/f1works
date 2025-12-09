@@ -19,6 +19,13 @@ export default function SpecialItems() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState('');
   const [specialItemsList, setSpecialItemsList] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({
+    preset: 'LUNCH_SODAM',
+    quantity: 1,
+    amount: '',
+    memo: '',
+  });
   const initializedRef = useRef(false);
 
   // 권한 확인 및 초기화
@@ -26,15 +33,13 @@ export default function SpecialItems() {
     if (initializedRef.current) return;
     initializedRef.current = true;
 
-    setTimeout(() => {
-      const sessionUser = window.sessionStorage.getItem('extensionLogin');
-      if (!sessionUser) {
-        showToast('로그인이 필요한 서비스입니다.', 'warning');
-        navigate('/works');
-        return;
-      }
-      checkManagerPermission(sessionUser);
-    }, 1000);
+    const sessionUser = window.sessionStorage.getItem('extensionLogin');
+    if (!sessionUser) {
+      showToast('로그인이 필요한 서비스입니다.', 'warning');
+      navigate('/works');
+      return;
+    }
+    checkManagerPermission(sessionUser);
     // eslint-disable-next-line
   }, [navigate]);
 
@@ -44,10 +49,11 @@ export default function SpecialItems() {
       const factoryCode =
         window.sessionStorage.getItem('factoryCode') || '000001';
 
-      // 기본 월 설정 (현재 달)
+      // 기본 월 설정 (전월)
       const now = new Date();
-      const defaultMonth = `${now.getFullYear()}-${String(
-        now.getMonth() + 1
+      const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const defaultMonth = `${prev.getFullYear()}-${String(
+        prev.getMonth() + 1
       ).padStart(2, '0')}`;
       setSelectedMonth(defaultMonth);
 
@@ -66,13 +72,10 @@ export default function SpecialItems() {
   const fetchSpecialItemsList = async (factoryCode, month) => {
     setIsLoading(true);
     try {
-      const formData = new FormData();
-      formData.append('factoryCode', factoryCode);
-      formData.append('monthYm', month);
-
       const response = await fetch(`${API_BASE_URL}/jvWorksGetSpecialItems`, {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ factoryCode, monthYm: month }),
       });
 
       if (!response.ok) {
@@ -84,23 +87,9 @@ export default function SpecialItems() {
         throw new Error(`HTTP ${response.status}`);
       }
 
-      const contentType = response.headers.get('content-type') || '';
-      let data;
-      if (contentType.includes('application/json')) {
-        try {
-          data = await response.json();
-        } catch (e) {
-          const rawText = await response.text();
-          console.warn('JSON 파싱 실패, 원시 텍스트:', rawText);
-          data = null;
-        }
-      } else {
-        const rawText = await response.text();
-        console.warn('JSON 아님, 원시 텍스트 응답:', rawText);
-        data = null;
-      }
-
-      const list = data && Array.isArray(data.list) ? data.list : [];
+      const data = await response.json();
+      const list =
+        data && Array.isArray(data.list) ? data.list : data.data || [];
       setSpecialItemsList(list);
     } catch (error) {
       console.error('목록 조회 오류:', error);
@@ -146,58 +135,56 @@ export default function SpecialItems() {
     return specialItemsList.reduce((sum, item) => sum + (item.amount || 0), 0);
   };
 
-  // 항목 추가
+  // 항목 추가 (모달 열기)
   const handleAddItem = () => {
-    navigate(`/works/special-items/edit?month=${selectedMonth}`);
-  };
-
-  // 항목 상세보기
-  const handleViewDetail = (specialItemId) => {
-    navigate(
-      `/works/special-items/edit/${specialItemId}?month=${selectedMonth}`
-    );
+    setForm({ preset: 'LUNCH_SODAM', quantity: 1, amount: '', memo: '' });
+    setShowModal(true);
   };
 
   // 항목 삭제
   const handleDeleteItem = (itemId, itemName) => {
+    console.log('삭제 버튼 클릭:', itemId, itemName);
     showDialog({
       title: '삭제 확인',
       message: `'${itemName}' 항목을 삭제하시겠습니까?`,
-      buttons: [
-        {
-          text: '삭제',
-          onClick: async () => {
-            try {
-              const formData = new FormData();
-              formData.append('specialItemId', itemId);
-
-              const response = await fetch(
-                `${API_BASE_URL}/jvWorksDeleteSpecialItem`,
-                {
-                  method: 'POST',
-                  body: formData,
-                }
-              );
-
-              if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                  showToast('항목이 삭제되었습니다.', 'success');
-                  const factoryCode =
-                    window.sessionStorage.getItem('factoryCode') || '000001';
-                  fetchSpecialItemsList(factoryCode, selectedMonth);
-                } else {
-                  showToast(data.message || '삭제에 실패했습니다.', 'error');
-                }
-              }
-            } catch (error) {
-              console.error('삭제 오류:', error);
-              showToast('삭제 중 오류가 발생했습니다.', 'error');
+      okText: '삭제',
+      cancelText: '취소',
+      type: 'confirm',
+      onOk: async () => {
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/jvWorksSetSpecialItems`,
+            {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ specialItemId: itemId }),
             }
-          },
-        },
-        { text: '취소' },
-      ],
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const data = await response.json();
+          if (data.success || data.success === true) {
+            showToast('항목이 삭제되었습니다.', 'success');
+            const factoryCode =
+              window.sessionStorage.getItem('factoryCode') || '000001';
+            fetchSpecialItemsList(factoryCode, selectedMonth);
+          } else {
+            showToast(data.message || '삭제에 실패했습니다.', 'error');
+          }
+        } catch (error) {
+          console.error('삭제 오류:', error);
+          showToast(
+            `삭제 중 오류: ${error.message || '알 수 없는 오류'}`,
+            'error'
+          );
+        }
+      },
+      onCancel: () => {
+        console.log('삭제 취소');
+      },
     });
   };
 
@@ -242,7 +229,10 @@ export default function SpecialItems() {
             <button className="btn-search" onClick={handleSearch}>
               🔍 검색
             </button>
-            <button className="btn-back" onClick={() => navigate('/works')}>
+            <button
+              className="btn-back"
+              onClick={() => navigate('/works/expense-summary')}
+            >
               뒤로가기
             </button>
           </div>
@@ -302,14 +292,6 @@ export default function SpecialItems() {
                             <td>{item.memo || '-'}</td>
                             <td className="actions">
                               <button
-                                className="btn-edit"
-                                onClick={() =>
-                                  handleViewDetail(item.specialItemId)
-                                }
-                              >
-                                수정
-                              </button>
-                              <button
                                 className="btn-delete"
                                 onClick={() =>
                                   handleDeleteItem(
@@ -353,6 +335,166 @@ export default function SpecialItems() {
             </>
           )}
         </div>
+
+        {showModal && (
+          <div className="modal-backdrop" onClick={() => setShowModal(false)}>
+            <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+              <h3>특별 항목 추가</h3>
+              <div className="modal-field">
+                <label>항목 선택</label>
+                <select
+                  value={form.preset}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, preset: e.target.value }))
+                  }
+                >
+                  <option value="LUNCH_SODAM">점심(소담)</option>
+                  <option value="DINNER_SODAM">저녘(소담)</option>
+                  <option value="LUNCH_SEJONG">점심(세종)</option>
+                  <option value="DINNER_SEJONG">저녘(세종)</option>
+                </select>
+              </div>
+              <div className="modal-grid">
+                <div className="modal-field">
+                  <label>수량</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={form.quantity}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        quantity: Number(e.target.value) || 1,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="modal-field">
+                  <label>금액</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={form.amount}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, amount: e.target.value }))
+                    }
+                  />
+                </div>
+              </div>
+              <div className="modal-field">
+                <label>비고 (선택)</label>
+                <textarea
+                  rows="2"
+                  value={form.memo}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, memo: e.target.value }))
+                  }
+                  placeholder="비고를 입력하세요"
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  className="btn-primary"
+                  onClick={async () => {
+                    const factoryCode =
+                      window.sessionStorage.getItem('factoryCode') || '000001';
+                    const userIdEncoded =
+                      window.sessionStorage.getItem('extensionLogin') || '';
+                    if (!form.amount) {
+                      showToast('금액을 입력하세요.', 'warning');
+                      return;
+                    }
+
+                    try {
+                      const codeMap = {
+                        LUNCH_SODAM: {
+                          dept: '소담',
+                          label: '점심(소담)',
+                          code: 'LUNCH_SODAM',
+                        },
+                        DINNER_SODAM: {
+                          dept: '소담',
+                          label: '저녘(소담)',
+                          code: 'DINNER_SODAM',
+                        },
+                        LUNCH_SEJONG: {
+                          dept: '세종',
+                          label: '점심(세종)',
+                          code: 'LUNCH_SEJONG',
+                        },
+                        DINNER_SEJONG: {
+                          dept: '세종',
+                          label: '저녘(세종)',
+                          code: 'DINNER_SEJONG',
+                        },
+                      };
+                      const info = codeMap[form.preset] || {
+                        dept: '',
+                        label: form.preset,
+                        code: form.preset,
+                      };
+                      const quantity = Number(form.quantity) || 1;
+                      const amountNum = Number(form.amount);
+                      const unitPrice = quantity
+                        ? amountNum / quantity
+                        : amountNum;
+
+                      const payload = {
+                        factoryCode,
+                        monthYm: selectedMonth,
+                        department: info.dept,
+                        itemName: info.label,
+                        itemCode: info.code,
+                        amount: amountNum,
+                        quantity,
+                        unitPrice,
+                        memo: form.memo,
+                        createdBy: atob(userIdEncoded),
+                      };
+
+                      const response = await fetch(
+                        `${API_BASE_URL}/jvWorksSetSpecialItems`,
+                        {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(payload),
+                        }
+                      );
+
+                      if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                      }
+
+                      const data = await response.json();
+                      if (data.success) {
+                        showToast('항목이 추가되었습니다.', 'success');
+                        setShowModal(false);
+                        fetchSpecialItemsList(factoryCode, selectedMonth);
+                      } else {
+                        showToast(
+                          data.message || '등록에 실패했습니다.',
+                          'error'
+                        );
+                      }
+                    } catch (err) {
+                      console.error('등록 오류:', err);
+                      showToast('등록 중 오류가 발생했습니다.', 'error');
+                    }
+                  }}
+                >
+                  저장
+                </button>
+                <button
+                  className="btn-cancel"
+                  onClick={() => setShowModal(false)}
+                >
+                  취소
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
