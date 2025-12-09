@@ -1,0 +1,16 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Patch Expense.js for fuel code",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$ErrorActionPreference = 'Stop'; $path = 'd:\\f1soft\\dev\\react\\codefeat.store\\src\\works\\Expense.js'; $c = Get-Content $path -Raw; $c = $c -replace \"category: '유류비'\",\"category: 'FUEL'\"; $c = $c -replace \"category: row.category \\|\\| ''\",\"category: (row.category -eq '유류비') ? 'FUEL' : (row.category || '')\"; Set-Content $path $c -Encoding UTF8; Write-Host 'Patched.'"
+			],
+			"group": "build"
+		}
+	]
+}

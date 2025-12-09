@@ -28,6 +28,27 @@ export default function Works() {
       category: '업무',
     },
     {
+      title: '경비 청구(베타)',
+      description: '월별 경비를 청구하고 승인 현황을 확인하세요',
+      icon: '💰',
+      path: '/works/expense',
+      category: '업무',
+    },
+    {
+      title: '경비 청구 관리',
+      description: '직원들의 경비 청구 내역을 확인하고 승인하세요',
+      icon: '📊',
+      path: '/works/expense-management',
+      category: '관리',
+    },
+    {
+      title: '경비 청구 집계',
+      description: '월별 마감된 경비 데이터를 집계하여 조회하세요',
+      icon: '📈',
+      path: '/works/expense-summary?mode=manager',
+      category: '관리',
+    },
+    {
       title: 'Wordle 게임',
       description: '영어 단어 퍼즐 게임으로 짧은 휴식을 즐겨보세요',
       icon: '🎮',
@@ -36,7 +57,7 @@ export default function Works() {
     },
     {
       title: '오늘의 메뉴',
-      description: '식당의 오늘 메뉴를 확인하세요',
+      description: '소담뷔페 오늘의 메뉴를 확인하세요',
       icon: '🍽️',
       path: 'https://watbab.com',
       category: '메뉴',
@@ -51,6 +72,12 @@ export default function Works() {
   ];
 
   const updates = [
+    {
+      date: '2025.12.04',
+      title: '경비 청구(베타) 기능 출시',
+      description:
+        '월별 경비 청구 및 승인 현황을 확인할 수 있는 기능이 추가되었습니다',
+    },
     {
       date: '2025.12.03',
       title: '메인 페이지 개편',
