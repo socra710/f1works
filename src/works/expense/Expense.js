@@ -70,9 +70,9 @@ export default function Expense() {
     if (authCheckRef.current) return;
     authCheckRef.current = true;
 
-    const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(
-      navigator.userAgent
-    );
+    // const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(
+    //   navigator.userAgent
+    // );
     setTimeout(() => {
       const sessionUser = window.sessionStorage.getItem('extensionLogin');
       if (!sessionUser) {

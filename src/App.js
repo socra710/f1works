@@ -46,6 +46,10 @@ function App() {
             path="/works/expense-summary"
             element={<ExpenseSummary />}
           ></Route>
+          <Route
+            path="/works/expense-summary/:encodedYear"
+            element={<ExpenseSummary />}
+          ></Route>
           {/* <Route path="/works/dispatch/:id" element={<Dispatch />}></Route> */}
           <Route path="/games/wordle" element={<Wordle />}></Route>
           {/* <Route path="/games/tetris" element={<Tetris />}></Route> */}

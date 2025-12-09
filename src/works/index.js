@@ -45,7 +45,7 @@ export default function Works() {
       title: '경비 청구 집계',
       description: '월별 마감된 경비 데이터를 집계하여 조회하세요',
       icon: '📈',
-      path: '/works/expense-summary?mode=manager',
+      path: '/works/expense-summary',
       category: '관리',
     },
     {
