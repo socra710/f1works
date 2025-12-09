@@ -570,7 +570,7 @@ export default function ExpenseSummary() {
                   className="btn-special-items"
                   onClick={() => navigate('/works/special-items')}
                 >
-                  비목 항목 관리
+                  특별 항목 관리
                 </button>
               )}
             </div>
