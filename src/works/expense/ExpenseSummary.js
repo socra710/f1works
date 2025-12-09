@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import './ExpenseSummary.css';
 import { ClipLoader } from 'react-spinners';
-import { useToast, useDialog } from '../../common/Toast';
+import { useToast } from '../../common/Toast';
 import {
   getExpenseAggregationByYear,
   getExpenseAggregationByUser,
-  getSpecialItems,
+  // getSpecialItems,
 } from './expenseAPI';
 
 /**
@@ -16,11 +16,90 @@ import {
  * 관리자만 접근 가능
  */
 export default function ExpenseSummary() {
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+  // const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const { encodedYear } = useParams();
+  // const [searchParams] = useSearchParams();
   const { showToast } = useToast();
-  const { showDialog } = useDialog();
+  // const { showDialog } = useDialog();
+
+  // URL에서 인코딩된 년도가 있는지 확인 및 유효성 검증
+  const isSharedLink = !!encodedYear;
+  let initialYear = '';
+  let isValidYear = true;
+
+  const SECRET_KEY = 'f1soft@611';
+
+  const decodeWithKey = (encoded) => {
+    try {
+      const decoded = atob(encoded);
+      const key = SECRET_KEY;
+      let result = '';
+
+      for (let i = 0; i < decoded.length; i++) {
+        const charCode = decoded.charCodeAt(i);
+        const keyCharCode = key.charCodeAt(i % key.length);
+        result += String.fromCharCode(charCode ^ keyCharCode);
+      }
+
+      return atob(result);
+    } catch (e) {
+      return null;
+    }
+  };
+
+  if (isSharedLink) {
+    try {
+      initialYear = decodeWithKey(encodedYear);
+      if (!initialYear) {
+        isValidYear = false;
+        initialYear = new Date().getFullYear().toString();
+      } else {
+        // 디코딩된 값이 숫자이고 2020~2099 범위인지 확인
+        const yearNum = parseInt(initialYear, 10);
+        if (isNaN(yearNum) || yearNum < 2020 || yearNum > 2099) {
+          isValidYear = false;
+          initialYear = new Date().getFullYear().toString();
+        }
+      }
+    } catch (e) {
+      isValidYear = false;
+      initialYear = new Date().getFullYear().toString();
+    }
+  } else {
+    initialYear = new Date().getFullYear().toString();
+  }
+
+  // 키를 섞는 함수
+  const encodeWithKey = (text) => {
+    const base64 = btoa(text);
+    const key = SECRET_KEY;
+    let result = '';
+
+    for (let i = 0; i < base64.length; i++) {
+      const charCode = base64.charCodeAt(i);
+      const keyCharCode = key.charCodeAt(i % key.length);
+      result += String.fromCharCode(charCode ^ keyCharCode);
+    }
+
+    return btoa(result);
+  };
+
+  // 링크 생성 함수
+  const handleCreateLink = () => {
+    const encodedYear = encodeWithKey(year);
+    const link = `/works/expense-summary/${encodedYear}`;
+
+    // 클립보드에 복사
+    navigator.clipboard
+      .writeText(`${window.location.origin}${link}`)
+      .then(() => {
+        showToast('링크가 클립보드에 복사되었습니다.', 'success');
+      })
+      .catch(() => {
+        showToast('링크 복사에 실패했습니다.', 'error');
+      });
+  };
 
   // 카테고리 매핑 (category -> {mainCategory, subCategory})
   const categoryMapping = {
@@ -43,19 +122,26 @@ export default function ExpenseSummary() {
     기타: { main: '비식비', sub: '기타' },
   };
 
-  const [year, setYear] = useState(() => {
-    const now = new Date();
-    return now.getFullYear().toString();
-  });
+  const [year, setYear] = useState(() => initialYear);
   const [closingData, setClosingData] = useState([]);
   const [userMonthlyData, setUserMonthlyData] = useState({});
-  const [specialItems] = useState([]);
+  // const [specialItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isManagerMode] = useState(searchParams.get('mode') === 'manager');
+  // const [isManagerMode] = useState(searchParams.get('mode') === 'manager');
   const [factoryCode] = useState('000001'); // 예시, 실제로는 로그인 정보에서 가져옴
   const [userId] = useState(
     window.sessionStorage.getItem('extensionLogin') || ''
   );
+
+  // 사용 가능한 연도 목록 생성 (2020 ~ 현재년도)
+  const getYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let y = currentYear; y >= 2020; y--) {
+      years.push(y.toString());
+    }
+    return years;
+  };
 
   // 마감 데이터 및 특별항목 조회
   const didFetch = useRef(false);
@@ -68,6 +154,13 @@ export default function ExpenseSummary() {
     initializedRef.current = true;
 
     setTimeout(() => {
+      // 공유 링크인데 유효하지 않은 경우 처리
+      if (isSharedLink && !isValidYear) {
+        showToast('유효하지 않은 링크입니다.', 'error');
+        navigate('/works');
+        return;
+      }
+
       const sessionUser = window.sessionStorage.getItem('extensionLogin');
       if (!sessionUser) {
         showToast('로그인이 필요한 서비스입니다.', 'warning');
@@ -75,11 +168,11 @@ export default function ExpenseSummary() {
         return;
       }
 
-      if (!isManagerMode) {
-        showToast('관리자만 접근할 수 있는 페이지입니다.', 'warning');
-        navigate('/works');
-        return;
-      }
+      // if (!isManagerMode) {
+      //   showToast('관리자만 접근할 수 있는 페이지입니다.', 'warning');
+      //   navigate('/works');
+      //   return;
+      // }
 
       if (!didFetch.current) {
         loadSummaryData();
@@ -93,6 +186,8 @@ export default function ExpenseSummary() {
     if (!didFetch.current) {
       return;
     }
+    // year가 변경되면 데이터 다시 로드
+    loadSummaryData();
   }, [year]);
 
   const loadSummaryData = async () => {
@@ -201,26 +296,26 @@ export default function ExpenseSummary() {
   };
 
   // 부서별 합계 계산
-  const getDepartmentSummary = () => {
-    const summary = {};
-    closingData.forEach((item) => {
-      if (!summary[item.department]) {
-        summary[item.department] = {
-          totalExpense: 0,
-          fuelExpense: 0,
-          specialItemExpense: 0,
-          totalAmount: 0,
-          count: 0,
-        };
-      }
-      summary[item.department].totalExpense += item.totalExpense;
-      summary[item.department].fuelExpense += item.fuelExpense;
-      summary[item.department].specialItemExpense += item.specialItemExpense;
-      summary[item.department].totalAmount += item.totalAmount;
-      summary[item.department].count += 1;
-    });
-    return summary;
-  };
+  // const getDepartmentSummary = () => {
+  //   const summary = {};
+  //   closingData.forEach((item) => {
+  //     if (!summary[item.department]) {
+  //       summary[item.department] = {
+  //         totalExpense: 0,
+  //         fuelExpense: 0,
+  //         specialItemExpense: 0,
+  //         totalAmount: 0,
+  //         count: 0,
+  //       };
+  //     }
+  //     summary[item.department].totalExpense += item.totalExpense;
+  //     summary[item.department].fuelExpense += item.fuelExpense;
+  //     summary[item.department].specialItemExpense += item.specialItemExpense;
+  //     summary[item.department].totalAmount += item.totalAmount;
+  //     summary[item.department].count += 1;
+  //   });
+  //   return summary;
+  // };
 
   // 월별 카테고리 데이터 집계 (이미지 형식)
   const getMonthlyByCategoryData = () => {
@@ -262,12 +357,16 @@ export default function ExpenseSummary() {
           subCategory = categoryMapping[itemCategory].sub;
         } else if (itemCategory === 'LUNCH') {
           subCategory = '점심';
-        } else if (itemCategory === 'LUNCH_SODAM') {
-          subCategory = '점심(소담)';
         } else if (itemCategory === 'DINNER') {
           subCategory = '저녁';
+        } else if (itemCategory === 'LUNCH_SODAM') {
+          subCategory = '점심(소담)';
         } else if (itemCategory === 'DINNER_SODAM') {
-          subCategory = '저녁';
+          subCategory = '저녁(소담)';
+        } else if (itemCategory === 'LUNCH_SEJONG') {
+          subCategory = '점심(세종)';
+        } else if (itemCategory === 'DINNER_SEJONG') {
+          subCategory = '저녁(세종)';
         } else {
           // 그 외 매핑에 없는 카테고리도 식비로
           subCategory = itemCategory;
@@ -372,42 +471,42 @@ export default function ExpenseSummary() {
   };
 
   // 전체 합계
-  const getGrandTotal = () => {
-    return {
-      totalExpense: closingData.reduce(
-        (sum, item) => sum + item.totalExpense,
-        0
-      ),
-      fuelExpense: closingData.reduce((sum, item) => sum + item.fuelExpense, 0),
-      specialItemExpense: closingData.reduce(
-        (sum, item) => sum + item.specialItemExpense,
-        0
-      ),
-      totalAmount: closingData.reduce((sum, item) => sum + item.totalAmount, 0),
-    };
-  };
+  // const getGrandTotal = () => {
+  //   return {
+  //     totalExpense: closingData.reduce(
+  //       (sum, item) => sum + item.totalExpense,
+  //       0
+  //     ),
+  //     fuelExpense: closingData.reduce((sum, item) => sum + item.fuelExpense, 0),
+  //     specialItemExpense: closingData.reduce(
+  //       (sum, item) => sum + item.specialItemExpense,
+  //       0
+  //     ),
+  //     totalAmount: closingData.reduce((sum, item) => sum + item.totalAmount, 0),
+  //   };
+  // };
 
   // 특별항목 부서별 합계
-  const getSpecialItemsByDepartment = () => {
-    const grouped = {};
-    specialItems.forEach((item) => {
-      if (!grouped[item.department]) {
-        grouped[item.department] = 0;
-      }
-      grouped[item.department] += item.amount;
-    });
-    return grouped;
-  };
+  // const getSpecialItemsByDepartment = () => {
+  //   const grouped = {};
+  //   specialItems.forEach((item) => {
+  //     if (!grouped[item.department]) {
+  //       grouped[item.department] = 0;
+  //     }
+  //     grouped[item.department] += item.amount;
+  //   });
+  //   return grouped;
+  // };
 
-  if (!isManagerMode) {
-    return (
-      <div className="summary-error">
-        <h2>접근 권한이 없습니다</h2>
-        <p>관리자만 접근할 수 있는 페이지입니다.</p>
-        <button onClick={() => navigate('/works')}>돌아가기</button>
-      </div>
-    );
-  }
+  // if (!isManagerMode) {
+  //   return (
+  //     <div className="summary-error">
+  //       <h2>접근 권한이 없습니다</h2>
+  //       <p>관리자만 접근할 수 있는 페이지입니다.</p>
+  //       <button onClick={() => navigate('/works')}>돌아가기</button>
+  //     </div>
+  //   );
+  // }
 
   // const deptSummary = getDepartmentSummary();
   // const grandTotal = getGrandTotal();
@@ -453,21 +552,27 @@ export default function ExpenseSummary() {
             </div>
             <div className="header-right">
               <div className="year-selector">
-                <label>조회년도:</label>
-                <input
-                  type="number"
+                {/* <label>조회년도:</label> */}
+                <select
                   value={year}
                   onChange={(e) => setYear(e.target.value)}
-                  min="2020"
-                  max="2099"
-                />
+                  disabled={isSharedLink}
+                >
+                  {getYearOptions().map((y) => (
+                    <option key={y} value={y}>
+                      {y}년
+                    </option>
+                  ))}
+                </select>
               </div>
-              <button
-                className="btn-special-items"
-                onClick={() => navigate('/works/special-items?mode=manager')}
-              >
-                특별 항목 관리
-              </button>
+              {!isSharedLink && (
+                <button
+                  className="btn-special-items"
+                  onClick={() => navigate('/works/special-items')}
+                >
+                  비목 항목 관리
+                </button>
+              )}
             </div>
           </header>
 
@@ -493,12 +598,36 @@ export default function ExpenseSummary() {
               {/* 월별 카테고리 집계 */}
               {closingData.length === 0 ? (
                 <div className="empty-state">
-                  <p>{year}년 경비 마감 데이터가 없습니다.</p>
+                  <p>{year}년 경비 청구 데이터가 없습니다.</p>
                 </div>
               ) : (
                 <>
                   <section className="expenseSummary-section">
-                    <h2 className="section-title">{year}년 경비 청구서</h2>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <h2 className="section-title">{year}년 경비 청구서</h2>
+                      <button
+                        className="btn-create-link"
+                        onClick={handleCreateLink}
+                        style={{
+                          padding: '8px 16px',
+                          backgroundColor: '#f88c6b',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        공유하기
+                      </button>
+                    </div>
                     <div className="expenseSummary-table-container yearly-table">
                       <table className="yearly-summary-table">
                         <thead>
