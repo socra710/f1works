@@ -614,22 +614,25 @@ export default function ExpenseSummary() {
                       }}
                     >
                       <h2 className="section-title">{year}년 경비 청구서</h2>
-                      <button
-                        className="btn-create-link"
-                        onClick={handleCreateLink}
-                        style={{
-                          padding: '8px 16px',
-                          backgroundColor: '#f88c6b',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '14px',
-                          fontWeight: 'bold',
-                        }}
-                      >
-                        공유하기
-                      </button>
+
+                      {!isSharedLink && (
+                        <button
+                          className="btn-create-link"
+                          onClick={handleCreateLink}
+                          style={{
+                            padding: '8px 16px',
+                            backgroundColor: '#f88c6b',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          공유하기
+                        </button>
+                      )}
                     </div>
                     <div className="expenseSummary-table-container yearly-table">
                       <table className="yearly-summary-table">
