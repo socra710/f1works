@@ -1,9 +1,41 @@
 import './index.css';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { checkAdminStatus } from './expense/expenseAPI';
 
 export default function Works() {
   const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // 페이지 진입시 관리자 권한 확인
+    const checkAdmin = async () => {
+      try {
+        // localStorage에서 userId 가져오기 (로그인 시 저장된 정보)
+        const userId =
+          localStorage.getItem('extensionLogin') ||
+          sessionStorage.getItem('extensionLogin');
+
+        if (userId) {
+          const adminStatus = await checkAdminStatus(atob(userId));
+          setIsAdmin(adminStatus);
+          console.log(`[Works] userId: ${userId}, isAdmin: ${adminStatus}`);
+        } else {
+          console.log('[Works] userId not found in storage');
+          setIsAdmin(false);
+        }
+      } catch (error) {
+        console.error('[Works] Admin check failed:', error);
+        setIsAdmin(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAdmin();
+  }, []);
 
   const features = [
     {
@@ -33,6 +65,7 @@ export default function Works() {
       icon: '💰',
       path: '/works/expense',
       category: '업무',
+      requiresAdmin: false,
     },
     {
       title: '경비 청구 관리',
@@ -40,6 +73,7 @@ export default function Works() {
       icon: '📊',
       path: '/works/expense-management',
       category: '관리',
+      requiresAdmin: true,
     },
     {
       title: '경비 청구 집계',
@@ -47,6 +81,7 @@ export default function Works() {
       icon: '📈',
       path: '/works/expense-summary',
       category: '관리',
+      requiresAdmin: true,
     },
     {
       title: 'Wordle 게임',
@@ -70,6 +105,14 @@ export default function Works() {
       category: '뉴스',
     },
   ];
+
+  // 관리자 권한에 따라 features 필터링
+  const filteredFeatures = features.filter((feature) => {
+    if (feature.requiresAdmin) {
+      return isAdmin;
+    }
+    return true;
+  });
 
   const updates = [
     {
@@ -149,7 +192,7 @@ export default function Works() {
         </div>
 
         <div className="features-grid">
-          {features.map((feature, index) => (
+          {filteredFeatures.map((feature, index) => (
             <div
               key={index}
               className="feature-card"
