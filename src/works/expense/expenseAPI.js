@@ -332,3 +332,37 @@ export const deleteSpecialItem = async (specialItemId) => {
     throw error;
   }
 };
+
+/**
+ * 사용자의 관리자 권한 확인
+ * @param {string} userId - 사용자 ID
+ * @returns {Promise<boolean>} 관리자 여부
+ */
+export const checkAdminStatus = async (userId) => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/jvWorksCheckAdmin?userId=${userId}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.success === 'false' || data.success === false) {
+      throw new Error(data.message || '관리자 확인에 실패했습니다.');
+    }
+
+    return data.isAdmin || false;
+  } catch (error) {
+    console.error('checkAdminStatus Error:', error);
+    throw error;
+  }
+};

@@ -153,32 +153,30 @@ export default function ExpenseSummary() {
     if (initializedRef.current) return;
     initializedRef.current = true;
 
-    setTimeout(() => {
-      // 공유 링크인데 유효하지 않은 경우 처리
-      if (isSharedLink && !isValidYear) {
-        showToast('유효하지 않은 링크입니다.', 'error');
-        navigate('/works');
-        return;
-      }
+    // 공유 링크인데 유효하지 않은 경우 처리
+    if (isSharedLink && !isValidYear) {
+      showToast('유효하지 않은 링크입니다.', 'error');
+      navigate('/works');
+      return;
+    }
 
-      const sessionUser = window.sessionStorage.getItem('extensionLogin');
-      if (!sessionUser) {
-        showToast('로그인이 필요한 서비스입니다.', 'warning');
-        navigate('/works');
-        return;
-      }
+    const sessionUser = window.sessionStorage.getItem('extensionLogin');
+    if (!sessionUser) {
+      showToast('로그인이 필요한 서비스입니다.', 'warning');
+      navigate('/works');
+      return;
+    }
 
-      // if (!isManagerMode) {
-      //   showToast('관리자만 접근할 수 있는 페이지입니다.', 'warning');
-      //   navigate('/works');
-      //   return;
-      // }
+    // if (!isManagerMode) {
+    //   showToast('관리자만 접근할 수 있는 페이지입니다.', 'warning');
+    //   navigate('/works');
+    //   return;
+    // }
 
-      if (!didFetch.current) {
-        loadSummaryData();
-        didFetch.current = true;
-      }
-    }, 1000);
+    if (!didFetch.current) {
+      loadSummaryData();
+      didFetch.current = true;
+    }
     // eslint-disable-next-line
   }, [navigate]);
 
@@ -567,12 +565,15 @@ export default function ExpenseSummary() {
               </div>
               {!isSharedLink && (
                 <button
-                  className="btn-special-items"
+                  className="btn-fuel-settings"
                   onClick={() => navigate('/works/special-items')}
                 >
                   특별 항목 관리
                 </button>
               )}
+              <button className="btn-back" onClick={() => navigate('/works')}>
+                뒤로가기
+              </button>
             </div>
           </header>
 

@@ -35,15 +35,13 @@ export default function ExpenseManagement() {
     const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(
       navigator.userAgent
     );
-    setTimeout(() => {
-      const sessionUser = window.sessionStorage.getItem('extensionLogin');
-      if (!sessionUser) {
-        showToast('로그인이 필요한 서비스입니다.', 'warning');
-        navigate('/works');
-        return;
-      }
-      checkManagerPermission(sessionUser);
-    }, 1000);
+    const sessionUser = window.sessionStorage.getItem('extensionLogin');
+    if (!sessionUser) {
+      showToast('로그인이 필요한 서비스입니다.', 'warning');
+      navigate('/works');
+      return;
+    }
+    checkManagerPermission(sessionUser);
     // eslint-disable-next-line
   }, [navigate]);
 
