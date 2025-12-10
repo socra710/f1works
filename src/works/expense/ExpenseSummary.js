@@ -160,12 +160,14 @@ export default function ExpenseSummary() {
       return;
     }
 
-    const sessionUser = window.sessionStorage.getItem('extensionLogin');
-    if (!sessionUser) {
-      showToast('로그인이 필요한 서비스입니다.', 'warning');
-      navigate('/works');
-      return;
-    }
+    setTimeout(() => {
+      const sessionUser = window.sessionStorage.getItem('extensionLogin');
+      if (!sessionUser) {
+        showToast('로그인이 필요한 서비스입니다.', 'warning');
+        navigate('/works');
+        return;
+      }
+    }, 500);
 
     // if (!isManagerMode) {
     //   showToast('관리자만 접근할 수 있는 페이지입니다.', 'warning');

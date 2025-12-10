@@ -1,118 +1,149 @@
 import './index.css';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { checkAdminStatus } from './expense/expenseAPI';
 
 export default function Works() {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [checked, setChecked] = useState(false); // 관리자 확인 완료 여부
 
   useEffect(() => {
     // 페이지 진입시 관리자 권한 확인
-    const checkAdmin = async () => {
+    // localStorage 저장이 지연될 수 있으므로 500ms 대기
+    const timer = setTimeout(async () => {
       try {
         // localStorage에서 userId 가져오기 (로그인 시 저장된 정보)
-        const userId =
+        let userId = null;
+
+        // 다양한 형식으로 저장된 userId 시도
+        const extensionLogin =
           localStorage.getItem('extensionLogin') ||
           sessionStorage.getItem('extensionLogin');
 
-        if (userId) {
-          const adminStatus = await checkAdminStatus(atob(userId));
-          setIsAdmin(adminStatus);
-          console.log(`[Works] userId: ${userId}, isAdmin: ${adminStatus}`);
+        if (extensionLogin) {
+          try {
+            // Base64 디코딩 시도
+            userId = atob(extensionLogin);
+          } catch (e) {
+            // 디코딩 실패시 원본 사용
+            userId = extensionLogin;
+          }
+        }
+
+        // 다른 저장소 확인
+        if (!userId) {
+          userId =
+            localStorage.getItem('userId') || sessionStorage.getItem('userId');
+        }
+
+        if (userId && userId.trim()) {
+          try {
+            const adminStatus = await checkAdminStatus(userId.trim());
+            setIsAdmin(adminStatus);
+          } catch (apiError) {
+            console.error('[Works] API 호출 실패:', apiError);
+            setIsAdmin(false);
+          }
         } else {
-          console.log('[Works] userId not found in storage');
+          console.log('[Works] userId를 찾을 수 없습니다');
           setIsAdmin(false);
         }
       } catch (error) {
         console.error('[Works] Admin check failed:', error);
         setIsAdmin(false);
       } finally {
-        setLoading(false);
+        setChecked(true); // 관리자 확인 완료
       }
-    };
+    }, 500);
 
-    checkAdmin();
+    return () => clearTimeout(timer);
   }, []);
 
-  const features = [
-    {
-      title: '배차 신청',
-      description: '차량 배차를 쉽고 빠르게 신청하고 현황을 확인하세요',
-      icon: '🚗',
-      path: '/works/dispatch/car',
-      category: '업무',
-    },
-    {
-      title: '모니터 신청',
-      description: '모니터 대여 신청 및 사용 현황을 관리하세요',
-      icon: '🖥️',
-      path: '/works/dispatch/monitor',
-      category: '업무',
-    },
-    {
-      title: '일정 관리',
-      description: '개인 및 팀 일정을 한눈에 확인하고 관리하세요',
-      icon: '📅',
-      path: '/works/calendar',
-      category: '업무',
-    },
-    {
-      title: '경비 청구(베타)',
-      description: '월별 경비를 청구하고 승인 현황을 확인하세요',
-      icon: '💰',
-      path: '/works/expense',
-      category: '업무',
-      requiresAdmin: false,
-    },
-    {
-      title: '경비 청구 관리',
-      description: '직원들의 경비 청구 내역을 확인하고 승인하세요',
-      icon: '📊',
-      path: '/works/expense-management',
-      category: '관리',
-      requiresAdmin: true,
-    },
-    {
-      title: '경비 청구 집계',
-      description: '월별 마감된 경비 데이터를 집계하여 조회하세요',
-      icon: '📈',
-      path: '/works/expense-summary',
-      category: '관리',
-      requiresAdmin: true,
-    },
-    {
-      title: 'Wordle 게임',
-      description: '영어 단어 퍼즐 게임으로 짧은 휴식을 즐겨보세요',
-      icon: '🎮',
-      path: '/games/wordle',
-      category: '게임',
-    },
-    {
-      title: '오늘의 메뉴',
-      description: '소담뷔페 오늘의 메뉴를 확인하세요',
-      icon: '🍽️',
-      path: 'https://watbab.com',
-      category: '메뉴',
-    },
-    {
-      title: '뉴스 피드',
-      description: 'Works 사용자를 위한 뉴스 피드',
-      icon: '📰',
-      path: '/feed',
-      category: '뉴스',
-    },
-  ];
+  const allFeatures = useMemo(
+    () => [
+      {
+        title: '배차 신청',
+        description: '차량 배차를 쉽고 빠르게 신청하고 현황을 확인하세요',
+        icon: '🚗',
+        path: '/works/dispatch/car',
+        category: '업무',
+      },
+      {
+        title: '모니터 신청',
+        description: '모니터 대여 신청 및 사용 현황을 관리하세요',
+        icon: '🖥️',
+        path: '/works/dispatch/monitor',
+        category: '업무',
+      },
+      {
+        title: '일정 관리',
+        description: '개인 및 팀 일정을 한눈에 확인하고 관리하세요',
+        icon: '📅',
+        path: '/works/calendar',
+        category: '업무',
+      },
+      {
+        title: '경비 청구(베타)',
+        description: '월별 경비를 청구하고 승인 현황을 확인하세요',
+        icon: '💰',
+        path: '/works/expense',
+        category: '업무',
+        requiresAdmin: false,
+      },
+      {
+        title: '경비 청구 관리',
+        description: '직원들의 경비 청구 내역을 확인하고 승인하세요',
+        icon: '📊',
+        path: '/works/expense-management',
+        category: '관리',
+        requiresAdmin: true,
+      },
+      {
+        title: '경비 청구 집계',
+        description: '월별 마감된 경비 데이터를 집계하여 조회하세요',
+        icon: '📈',
+        path: '/works/expense-summary',
+        category: '관리',
+        requiresAdmin: true,
+      },
+      {
+        title: 'Wordle 게임',
+        description: '영어 단어 퍼즐 게임으로 짧은 휴식을 즐겨보세요',
+        icon: '🎮',
+        path: '/games/wordle',
+        category: '게임',
+      },
+      {
+        title: '오늘의 메뉴',
+        description: '소담뷔페 오늘의 메뉴를 확인하세요',
+        icon: '🍽️',
+        path: 'https://watbab.com',
+        category: '메뉴',
+      },
+      {
+        title: '뉴스 피드',
+        description: 'Works 사용자를 위한 뉴스 피드',
+        icon: '📰',
+        path: '/feed',
+        category: '뉴스',
+      },
+    ],
+    []
+  );
 
   // 관리자 권한에 따라 features 필터링
-  const filteredFeatures = features.filter((feature) => {
-    if (feature.requiresAdmin) {
-      return isAdmin;
-    }
-    return true;
-  });
+  const filteredFeatures = useMemo(
+    () =>
+      allFeatures.filter((feature) => {
+        if (feature.requiresAdmin) {
+          return isAdmin;
+        }
+        return true;
+      }),
+    [allFeatures, isAdmin]
+  );
 
   const updates = [
     {
@@ -191,20 +222,28 @@ export default function Works() {
           <p>필요한 기능을 선택하여 바로 이동하세요</p>
         </div>
 
-        <div className="features-grid">
-          {filteredFeatures.map((feature, index) => (
-            <div
-              key={index}
-              className="feature-card"
-              onClick={() => handleNavigate(feature.path)}
-            >
-              <div className="feature-category">{feature.category}</div>
-              <h3 className="feature-title">{feature.title}</h3>
-              <p className="feature-description">{feature.description}</p>
-              <div className="feature-arrow">→</div>
-            </div>
-          ))}
-        </div>
+        {checked ? (
+          <div className="features-grid">
+            {filteredFeatures.map((feature, index) => (
+              <div
+                key={index}
+                className="feature-card"
+                onClick={() => handleNavigate(feature.path)}
+              >
+                <div className="feature-category">{feature.category}</div>
+                <h3 className="feature-title">{feature.title}</h3>
+                <p className="feature-description">{feature.description}</p>
+                <div className="feature-arrow">→</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="skeleton-grid">
+            {[...Array(9)].map((_, index) => (
+              <div key={index} className="skeleton-card" />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Updates and Notices */}
