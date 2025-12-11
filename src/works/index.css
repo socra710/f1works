@@ -281,6 +281,17 @@
   align-items: stretch;
 }
 
+.king-no-data {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  font-size: 1.1rem;
+  color: #718096;
+  font-weight: 500;
+  text-align: center;
+}
+
 .king-first {
   flex: 1;
   max-width: 150px;

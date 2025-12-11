@@ -203,6 +203,12 @@ export default function Works() {
 
   const updates = [
     {
+      date: '2025.12.11',
+      title: '재미로 보는 인사이트',
+      description:
+        '직원들의 근태·배차 데이터를 바탕으로 실시간 랭킹을 보여드립니다.',
+    },
+    {
       date: '2025.12.04',
       title: '경비 청구(베타) 기능 출시',
       description:
@@ -226,6 +232,13 @@ export default function Works() {
   ];
 
   const notices = [
+    {
+      date: '2025.12.11',
+      title: 'F1Works 확장 프로그램 다운로드',
+      content: 'F1Works 확장 프로그램을 설치하여 더 편리하게 사용하세요',
+      link: 'https://chromewebstore.google.com/detail/f1works-extensions/ljpcdbbmboicadbkkkobjpnfgdaickjj?authuser=0&hl=ko',
+      isLink: true,
+    },
     {
       date: '2025.12.01',
       title: '주유 카드 위치 안내',
@@ -333,51 +346,63 @@ export default function Works() {
                   </div>
                 </div>
               ) : (
-                <div className="king-ranking">
-                  {/* 1위 - 왼쪽 큰 영역 */}
-                  <div className="king-first">
-                    <div className="king-rank-number">1위</div>
-                    {insights.attendance[0]?.name !==
-                      '데이터가 존재하지 않습니다' && (
-                      <div className="king-avatar-circle">
-                        {(insights.attendance[0]?.name || '집계')[1] +
-                          (insights.attendance[0]?.name || '집계')[2]}
-                      </div>
-                    )}
-                    <div className="king-name">
-                      {insights.attendance[0]?.name || '집계 중...'}
+                <>
+                  {insights.attendance.every(
+                    (user) => user.name === '데이터가 존재하지 않습니다'
+                  ) ? (
+                    <div className="king-no-data">
+                      데이터가 존재하지 않습니다
                     </div>
-                    <div className="king-department">
-                      {insights.attendance[0]?.department || ''}
-                    </div>
-                  </div>
-
-                  {/* 2-5위 - 오른쪽 세로 목록 */}
-                  <div className="king-others">
-                    {insights.attendance.slice(1, 5).map((user, index) => (
-                      <div key={index} className="king-other-item">
-                        <div className="king-other-badge">{user.rank}</div>
-                        {user.rank <= 3 &&
-                        user.name !== '데이터가 존재하지 않습니다' ? (
-                          <>
-                            <div className="king-other-avatar">
-                              {(user.name || '데이터')[1] +
-                                (user.name || '데이터')[2]}
-                            </div>
-                            <div className="king-other-info">
-                              <div className="king-other-name">{user.name}</div>
-                              <div className="king-other-department">
-                                {user.department}
-                              </div>
-                            </div>
-                          </>
-                        ) : (
-                          <div className="king-other-name">{user.name}</div>
+                  ) : (
+                    <div className="king-ranking">
+                      {/* 1위 - 왼쪽 큰 영역 */}
+                      <div className="king-first">
+                        <div className="king-rank-number">1위</div>
+                        {insights.attendance[0]?.name !==
+                          '데이터가 존재하지 않습니다' && (
+                          <div className="king-avatar-circle">
+                            {(insights.attendance[0]?.name || '집계')[1] +
+                              (insights.attendance[0]?.name || '집계')[2]}
+                          </div>
                         )}
+                        <div className="king-name">
+                          {insights.attendance[0]?.name || '집계 중...'}
+                        </div>
+                        <div className="king-department">
+                          {insights.attendance[0]?.department || ''}
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
+
+                      {/* 2-5위 - 오른쪽 세로 목록 */}
+                      <div className="king-others">
+                        {insights.attendance.slice(1, 5).map((user, index) => (
+                          <div key={index} className="king-other-item">
+                            <div className="king-other-badge">{user.rank}</div>
+                            {user.rank <= 3 &&
+                            user.name !== '데이터가 존재하지 않습니다' ? (
+                              <>
+                                <div className="king-other-avatar">
+                                  {(user.name || '데이터')[1] +
+                                    (user.name || '데이터')[2]}
+                                </div>
+                                <div className="king-other-info">
+                                  <div className="king-other-name">
+                                    {user.name}
+                                  </div>
+                                  <div className="king-other-department">
+                                    {user.department}
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="king-other-name">{user.name}</div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -407,51 +432,63 @@ export default function Works() {
                   </div>
                 </div>
               ) : (
-                <div className="king-ranking">
-                  {/* 1위 - 왼쪽 큰 영역 */}
-                  <div className="king-first">
-                    <div className="king-rank-number">1위</div>
-                    {insights.dispatch[0]?.name !==
-                      '데이터가 존재하지 않습니다' && (
-                      <div className="king-avatar-circle">
-                        {(insights.dispatch[0]?.name || '집계')[1] +
-                          (insights.dispatch[0]?.name || '집계')[2]}
-                      </div>
-                    )}
-                    <div className="king-name">
-                      {insights.dispatch[0]?.name || '집계 중...'}
+                <>
+                  {insights.dispatch.every(
+                    (user) => user.name === '데이터가 존재하지 않습니다'
+                  ) ? (
+                    <div className="king-no-data">
+                      데이터가 존재하지 않습니다
                     </div>
-                    <div className="king-department">
-                      {insights.dispatch[0]?.department || ''}
-                    </div>
-                  </div>
-
-                  {/* 2-5위 - 오른쪽 세로 목록 */}
-                  <div className="king-others">
-                    {insights.dispatch.slice(1, 5).map((user, index) => (
-                      <div key={index} className="king-other-item">
-                        <div className="king-other-badge">{user.rank}</div>
-                        {user.rank <= 3 &&
-                        user.name !== '데이터가 존재하지 않습니다' ? (
-                          <>
-                            <div className="king-other-avatar">
-                              {(user.name || '데이터')[1] +
-                                (user.name || '데이터')[2]}
-                            </div>
-                            <div className="king-other-info">
-                              <div className="king-other-name">{user.name}</div>
-                              <div className="king-other-department">
-                                {user.department}
-                              </div>
-                            </div>
-                          </>
-                        ) : (
-                          <div className="king-other-name">{user.name}</div>
+                  ) : (
+                    <div className="king-ranking">
+                      {/* 1위 - 왼쪽 큰 영역 */}
+                      <div className="king-first">
+                        <div className="king-rank-number">1위</div>
+                        {insights.dispatch[0]?.name !==
+                          '데이터가 존재하지 않습니다' && (
+                          <div className="king-avatar-circle">
+                            {(insights.dispatch[0]?.name || '집계')[1] +
+                              (insights.dispatch[0]?.name || '집계')[2]}
+                          </div>
                         )}
+                        <div className="king-name">
+                          {insights.dispatch[0]?.name || '집계 중...'}
+                        </div>
+                        <div className="king-department">
+                          {insights.dispatch[0]?.department || ''}
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
+
+                      {/* 2-5위 - 오른쪽 세로 목록 */}
+                      <div className="king-others">
+                        {insights.dispatch.slice(1, 5).map((user, index) => (
+                          <div key={index} className="king-other-item">
+                            <div className="king-other-badge">{user.rank}</div>
+                            {user.rank <= 3 &&
+                            user.name !== '데이터가 존재하지 않습니다' ? (
+                              <>
+                                <div className="king-other-avatar">
+                                  {(user.name || '데이터')[1] +
+                                    (user.name || '데이터')[2]}
+                                </div>
+                                <div className="king-other-info">
+                                  <div className="king-other-name">
+                                    {user.name}
+                                  </div>
+                                  <div className="king-other-department">
+                                    {user.department}
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="king-other-name">{user.name}</div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -483,7 +520,16 @@ export default function Works() {
             </div>
             <div className="info-card-body">
               {notices.map((notice, index) => (
-                <div key={index} className="info-item">
+                <div
+                  key={index}
+                  className="info-item"
+                  onClick={() =>
+                    notice.isLink && window.open(notice.link, '_blank')
+                  }
+                  style={{
+                    cursor: notice.isLink ? 'pointer' : 'default',
+                  }}
+                >
                   <div className="info-date">{notice.date}</div>
                   <div className="info-content">
                     <h4>{notice.title}</h4>
