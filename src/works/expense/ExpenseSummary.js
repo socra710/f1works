@@ -7,6 +7,7 @@ import { useToast } from '../../common/Toast';
 import {
   getExpenseAggregationByYear,
   getExpenseAggregationByUser,
+  getMonthlyWorkStatistics,
   // getSpecialItems,
 } from './expenseAPI';
 
@@ -125,6 +126,7 @@ export default function ExpenseSummary() {
   const [year, setYear] = useState(() => initialYear);
   const [closingData, setClosingData] = useState([]);
   const [userMonthlyData, setUserMonthlyData] = useState({});
+  const [monthlyWorkStats, setMonthlyWorkStats] = useState({});
   // const [specialItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   // const [isManagerMode] = useState(searchParams.get('mode') === 'manager');
@@ -270,6 +272,27 @@ export default function ExpenseSummary() {
       });
 
       setUserMonthlyData(userAggregated);
+
+      // 월별 근무 통계 데이터 조회
+      const workStatsData = await getMonthlyWorkStatistics(
+        factoryCode,
+        year,
+        atob(userId)
+      );
+
+      // 근무 통계 데이터를 월별로 정렬 (현재는 배열이면 맵으로 변환, 객체면 그대로 사용)
+      let workStatsMap = {};
+      if (Array.isArray(workStatsData)) {
+        workStatsData.forEach((stat) => {
+          const month = stat.month;
+          if (month) {
+            workStatsMap[month] = stat;
+          }
+        });
+      } else {
+        workStatsMap = workStatsData;
+      }
+      setMonthlyWorkStats(workStatsMap);
 
       // 특별 항목 조회 (현재 월)
       // const now = new Date();
@@ -605,7 +628,7 @@ export default function ExpenseSummary() {
                 </div>
               ) : (
                 <>
-                  <section className="expenseSummary-section">
+                  <div className="expenseSummary-section">
                     <div
                       style={{
                         display: 'flex',
@@ -613,7 +636,7 @@ export default function ExpenseSummary() {
                         alignItems: 'center',
                       }}
                     >
-                      <h2 className="section-title">{year}년 경비 청구서</h2>
+                      <h2 className="section-title">{year}년 집계</h2>
 
                       {!isSharedLink && (
                         <button
@@ -795,11 +818,8 @@ export default function ExpenseSummary() {
                         </tbody>
                       </table>
                     </div>
-                  </section>
 
-                  {/* 사용자별 집계 그리드 */}
-                  <section className="expenseSummary-section">
-                    {/* <h2 className="section-title">사용자별 집계</h2> */}
+                    {/* 사용자별 집계 그리드 */}
                     <div className="expenseSummary-table-container yearly-table">
                       <table className="yearly-summary-table">
                         <thead>
@@ -939,7 +959,325 @@ export default function ExpenseSummary() {
                         </tbody>
                       </table>
                     </div>
-                  </section>
+
+                    {/* 월별 근무 통계 집계 */}
+                    <div className="expenseSummary-table-container yearly-table">
+                      <table className="yearly-summary-table">
+                        <thead>
+                          <tr>
+                            <th colSpan="2">구분</th>
+                            <th>1월</th>
+                            <th>2월</th>
+                            <th>3월</th>
+                            <th>4월</th>
+                            <th>5월</th>
+                            <th>6월</th>
+                            <th>7월</th>
+                            <th>8월</th>
+                            <th>9월</th>
+                            <th>10월</th>
+                            <th>11월</th>
+                            <th>12월</th>
+                            <th>전체 평균</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(() => {
+                            const rows = [];
+
+                            // 임직원수 행
+                            rows.push(
+                              <tr key="employee-count" className="data-row">
+                                <td colSpan="2" className="category">
+                                  임직원수
+                                </td>
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
+                                  (month) => (
+                                    <td
+                                      key={month}
+                                      className="monthly-amount"
+                                      style={{ textAlign: 'center' }}
+                                    >
+                                      {monthlyWorkStats[month]?.employeeCount ||
+                                        monthlyWorkStats[month]?.count ||
+                                        '-'}
+                                    </td>
+                                  )
+                                )}
+                                <td
+                                  className="category-total-amount"
+                                  style={{ textAlign: 'center' }}
+                                >
+                                  {(() => {
+                                    const counts = [
+                                      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+                                    ]
+                                      .map(
+                                        (m) =>
+                                          monthlyWorkStats[m]?.employeeCount ||
+                                          monthlyWorkStats[m]?.count ||
+                                          0
+                                      )
+                                      .filter((c) => c && c !== 0);
+                                    return counts.length > 0
+                                      ? Math.round(
+                                          counts.reduce((a, b) => a + b, 0) /
+                                            counts.length
+                                        )
+                                      : '-';
+                                  })()}
+                                </td>
+                              </tr>
+                            );
+
+                            // 총 출근일수 행
+                            rows.push(
+                              <tr key="total-workdays" className="data-row">
+                                <td colSpan="2" className="category">
+                                  총 출근일수
+                                </td>
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
+                                  (month) => (
+                                    <td
+                                      key={month}
+                                      className="monthly-amount"
+                                      style={{ textAlign: 'center' }}
+                                    >
+                                      {monthlyWorkStats[month]?.totalWorkdays ||
+                                        monthlyWorkStats[month]?.workdays ||
+                                        '-'}
+                                    </td>
+                                  )
+                                )}
+                                <td
+                                  className="category-total-amount"
+                                  style={{ textAlign: 'center' }}
+                                >
+                                  {(() => {
+                                    const workdays = [
+                                      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+                                    ]
+                                      .map(
+                                        (m) =>
+                                          monthlyWorkStats[m]?.totalWorkdays ||
+                                          monthlyWorkStats[m]?.workdays ||
+                                          0
+                                      )
+                                      .filter((w) => w && w !== 0);
+                                    return workdays.length > 0
+                                      ? Math.round(
+                                          workdays.reduce((a, b) => a + b, 0) /
+                                            workdays.length
+                                        )
+                                      : '-';
+                                  })()}
+                                </td>
+                              </tr>
+                            );
+
+                            // 총경비 - 일평균단가
+                            rows.push(
+                              <tr
+                                key="total-expense-daily-rate"
+                                className="category-total-row"
+                              >
+                                <td className="category">총경비</td>
+                                <td className="subcategory">일평균단가</td>
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
+                                  (month) => (
+                                    <td
+                                      key={month}
+                                      className="monthly-amount"
+                                      style={{ textAlign: 'right' }}
+                                    >
+                                      {monthlyWorkStats[month]?.expenseDailyRate
+                                        ? monthlyWorkStats[
+                                            month
+                                          ].expenseDailyRate.toLocaleString()
+                                        : '-'}
+                                    </td>
+                                  )
+                                )}
+                                <td
+                                  className="category-total-amount"
+                                  style={{ textAlign: 'right' }}
+                                >
+                                  {(() => {
+                                    const rates = [
+                                      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+                                    ]
+                                      .map(
+                                        (m) =>
+                                          monthlyWorkStats[m]
+                                            ?.expenseDailyRate || 0
+                                      )
+                                      .filter((r) => r && r !== 0);
+                                    return rates.length > 0
+                                      ? Math.round(
+                                          rates.reduce((a, b) => a + b, 0) /
+                                            rates.length
+                                        ).toLocaleString()
+                                      : '-';
+                                  })()}
+                                </td>
+                              </tr>
+                            );
+
+                            // 총경비 - %
+                            rows.push(
+                              <tr
+                                key="total-expense-percentage"
+                                className="data-row"
+                              >
+                                <td className="category"></td>
+                                <td className="subcategory">%</td>
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
+                                  (month) => {
+                                    const percentage =
+                                      monthlyWorkStats[month]
+                                        ?.expensePercentage;
+                                    return (
+                                      <td
+                                        key={month}
+                                        className="monthly-amount"
+                                        style={{ textAlign: 'center' }}
+                                      >
+                                        {percentage || '-'}
+                                      </td>
+                                    );
+                                  }
+                                )}
+                                <td className="category-total-amount">
+                                  {(() => {
+                                    const percentages = [
+                                      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+                                    ]
+                                      .map((m) => {
+                                        const p =
+                                          monthlyWorkStats[m]
+                                            ?.expensePercentage;
+                                        if (!p) return 0;
+                                        // 백분율 문자열에서 숫자 추출
+                                        const num = parseInt(p.toString());
+                                        return num || 0;
+                                      })
+                                      .filter((p) => p && p !== 0);
+                                    return percentages.length > 0
+                                      ? Math.round(
+                                          percentages.reduce(
+                                            (a, b) => a + b,
+                                            0
+                                          ) / percentages.length
+                                        ) + '%'
+                                      : '-';
+                                  })()}
+                                </td>
+                              </tr>
+                            );
+
+                            // 총식사비 - 일평균단가
+                            rows.push(
+                              <tr
+                                key="total-meal-daily-rate"
+                                className="category-total-row"
+                              >
+                                <td className="category">총식사비</td>
+                                <td className="subcategory">일평균단가</td>
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
+                                  (month) => (
+                                    <td
+                                      key={month}
+                                      className="monthly-amount"
+                                      style={{ textAlign: 'right' }}
+                                    >
+                                      {monthlyWorkStats[month]?.mealDailyRate
+                                        ? monthlyWorkStats[
+                                            month
+                                          ].mealDailyRate.toLocaleString()
+                                        : '-'}
+                                    </td>
+                                  )
+                                )}
+                                <td
+                                  className="category-total-amount"
+                                  style={{ textAlign: 'right' }}
+                                >
+                                  {(() => {
+                                    const rates = [
+                                      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+                                    ]
+                                      .map(
+                                        (m) =>
+                                          monthlyWorkStats[m]?.mealDailyRate ||
+                                          0
+                                      )
+                                      .filter((r) => r && r !== 0);
+                                    return rates.length > 0
+                                      ? Math.round(
+                                          rates.reduce((a, b) => a + b, 0) /
+                                            rates.length
+                                        ).toLocaleString()
+                                      : '-';
+                                  })()}
+                                </td>
+                              </tr>
+                            );
+
+                            // 총식사비 - %
+                            rows.push(
+                              <tr
+                                key="total-meal-percentage"
+                                className="data-row"
+                              >
+                                <td className="category"></td>
+                                <td className="subcategory">%</td>
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
+                                  (month) => {
+                                    const percentage =
+                                      monthlyWorkStats[month]?.mealPercentage;
+                                    return (
+                                      <td
+                                        key={month}
+                                        className="monthly-amount"
+                                        style={{ textAlign: 'center' }}
+                                      >
+                                        {percentage || '-'}
+                                      </td>
+                                    );
+                                  }
+                                )}
+                                <td className="category-total-amount">
+                                  {(() => {
+                                    const percentages = [
+                                      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+                                    ]
+                                      .map((m) => {
+                                        const p =
+                                          monthlyWorkStats[m]?.mealPercentage;
+                                        if (!p) return 0;
+                                        // 백분율 문자열에서 숫자 추출
+                                        const num = parseInt(p.toString());
+                                        return num || 0;
+                                      })
+                                      .filter((p) => p && p !== 0);
+                                    return percentages.length > 0
+                                      ? Math.round(
+                                          percentages.reduce(
+                                            (a, b) => a + b,
+                                            0
+                                          ) / percentages.length
+                                        ) + '%'
+                                      : '-';
+                                  })()}
+                                </td>
+                              </tr>
+                            );
+                            return rows;
+                          })()}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </>
               )}
             </>

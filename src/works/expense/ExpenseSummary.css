@@ -114,6 +114,17 @@
   padding-bottom: 0.5rem;
   border-bottom: 2px solid #667eea;
 }
+.subsection-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+.subsection-wrapper {
+  margin-bottom: 2rem;
+}
 .expenseSummary-table-container {
   overflow-x: auto;
   margin-bottom: 1rem;
