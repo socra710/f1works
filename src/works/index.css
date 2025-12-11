@@ -298,13 +298,14 @@
 .king-rank-number {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #5d4a1f;
-  background: linear-gradient(135deg, #d4af37 0%, #e4c664 100%);
+  color: white;
+  background: linear-gradient(135deg, #e4c55a 0%, #f2e4a0 100%);
   padding: 4px 12px;
   border-radius: 12px;
   margin-bottom: 12px;
-  border: 1px solid #c19a2e;
+  border: 1px solid #e4c55a;
   box-shadow: 0 2px 6px rgba(212, 175, 55, 0.3);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .king-avatar-circle {
