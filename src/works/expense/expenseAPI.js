@@ -6,6 +6,82 @@
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 /**
+ * 근태왕 랭킹 조회 (경비청구 건수 기준 TOP 5)
+ * @param {string} factoryCode - 공장 코드
+ * @param {string} monthYm - 조회 년월 (YYYY-MM, 옵션)
+ * @returns {Promise<Array>} 랭킹 데이터 리스트
+ */
+export const getAttendanceRanking = async (factoryCode, monthYm = null) => {
+  try {
+    let url = `${API_BASE_URL}/jvWorksGetAttendanceRanking?factoryCode=${factoryCode}`;
+    if (monthYm) {
+      url += `&monthYm=${monthYm}`;
+    }
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('근태왕 랭킹 조회에 실패했습니다.');
+    }
+
+    const data = await response.json();
+
+    console.log(data);
+
+    if (data.success === false) {
+      throw new Error(data.message || '근태왕 랭킹 조회에 실패했습니다.');
+    }
+
+    return data.data || [];
+  } catch (error) {
+    console.error('getAttendanceRanking Error:', error);
+    throw error;
+  }
+};
+
+/**
+ * 배차왕 랭킹 조회 (배차 건수 기준 TOP 5)
+ * @param {string} factoryCode - 공장 코드
+ * @param {string} monthYm - 조회 년월 (YYYY-MM, 옵션)
+ * @returns {Promise<Array>} 랭킹 데이터 리스트
+ */
+export const getDispatchRanking = async (factoryCode, monthYm = null) => {
+  try {
+    let url = `${API_BASE_URL}/jvWorksGetDispatchRanking?factoryCode=${factoryCode}`;
+    if (monthYm) {
+      url += `&monthYm=${monthYm}`;
+    }
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('배차왕 랭킹 조회에 실패했습니다.');
+    }
+
+    const data = await response.json();
+
+    if (data.success === false) {
+      throw new Error(data.message || '배차왕 랭킹 조회에 실패했습니다.');
+    }
+
+    return data.data || [];
+  } catch (error) {
+    console.error('getDispatchRanking Error:', error);
+    throw error;
+  }
+};
+
+/**
  * 승인된 경비 데이터를 카테고리별로 집계 (연도별)
  * @param {string} factoryCode - 공장 코드
  * @param {string} year - 조회 년도 (YYYY)

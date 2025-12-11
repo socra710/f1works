@@ -30,7 +30,6 @@ export default function Expense() {
   const isIdBasedQuery = !!expenseId;
 
   const [month, setMonth] = useState('');
-  const [pendingMonth, setPendingMonth] = useState(null); // 변경 확인 대기 중인 월
   const [userId, setUserId] = useState('');
   const [userName, setUserName] = useState('');
   const [memo, setMemo] = useState('');
