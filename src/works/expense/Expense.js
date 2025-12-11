@@ -30,6 +30,7 @@ export default function Expense() {
   const isIdBasedQuery = !!expenseId;
 
   const [month, setMonth] = useState('');
+  const [pendingMonth, setPendingMonth] = useState(null); // 변경 확인 대기 중인 월
   const [userId, setUserId] = useState('');
   const [userName, setUserName] = useState('');
   const [memo, setMemo] = useState('');
@@ -45,6 +46,7 @@ export default function Expense() {
     { name: 'LPG', price: 999, efficiency: 12.8 },
   ]);
   const [maintenanceRate, setMaintenanceRate] = useState(1.2);
+  const monthInputRef = useRef(null);
   const [rows, setRows] = useState([
     {
       rowId: null, // 서버에서 받은 행 ID
@@ -238,7 +240,7 @@ export default function Expense() {
     } else {
       // 월 기준 조회: 이전 월을 기본값으로 설정 (경비는 지난달 기준)
       const now = new Date();
-      now.setMonth(now.getMonth() - 1); // 한 달 이전으로 설정
+      now.setMonth(now.getMonth()); // 한 달 이전으로 설정
       const year = now.getFullYear();
       const monthValue = String(now.getMonth() + 1).padStart(2, '0');
       const targetMonth = `${year}${monthValue}`;
@@ -269,7 +271,40 @@ export default function Expense() {
     return num ? parseInt(num, 10) : 0;
   };
 
-  // 사용자 차량 연비 변경 핸들러 (기준연비는 차량연비 × 0.85로 계산, 소수점 한자리)
+  // 최근 12개월 옵션 생성 (현재 월 포함)
+  const generateMonthOptions = () => {
+    const options = [];
+    const now = new Date();
+
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const value = `${year}-${month}`;
+      const label = `${year}년 ${month}월`;
+      options.push({ value, label });
+    }
+
+    return options;
+  };
+
+  // 청구월 변경 핸들러
+  const handleMonthChange = async (e) => {
+    const newMonth = e.target.value;
+
+    // 같은 월이면 무시
+    if (newMonth === month) return;
+
+    // 청구월 변경 및 데이터 조회
+    setMonth(newMonth);
+    setIsLoading(true);
+
+    // 유류비 설정 불러오기
+    await fetchFuelSettings(newMonth, userId);
+
+    // 경비 데이터 조회
+    await fetchExpenseData(newMonth, userId, null);
+  }; // 사용자 차량 연비 변경 핸들러 (기준연비는 차량연비 × 0.85로 계산, 소수점 한자리)
   const handleEfficiencyChange = (e) => {
     const inputValue = e.target.value;
 
@@ -1045,14 +1080,25 @@ export default function Expense() {
             )}
             <div className="form-group">
               <label htmlFor="month">청구 월</label>
-              <input
+              <select
+                ref={monthInputRef}
                 id="month"
-                type="text"
                 value={month}
-                className="input-field"
-                disabled
-                style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
-              />
+                onChange={handleMonthChange}
+                className="select-field"
+                disabled={isIdBasedQuery}
+                style={
+                  isIdBasedQuery
+                    ? { backgroundColor: '#f5f5f5', cursor: 'not-allowed' }
+                    : {}
+                }
+              >
+                {generateMonthOptions().map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="form-group">
               <label htmlFor="userEfficiency">
