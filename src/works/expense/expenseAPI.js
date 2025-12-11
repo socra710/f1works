@@ -366,3 +366,38 @@ export const checkAdminStatus = async (userId) => {
     throw error;
   }
 };
+
+/**
+ * 월별 근무 통계 데이터 조회
+ * @param {string} factoryCode - 공장 코드
+ * @param {string} year - 조회 년도 (YYYY)
+ * @returns {Promise<Array>} 월별 근무 통계 데이터
+ */
+export const getMonthlyWorkStatistics = async (factoryCode, year, userId) => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/jvWorksGetExpenseAggregation?factoryCode=${factoryCode}&year=${year}&type=workstats&userId=${userId}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.success === 'false' || data.success === false) {
+      throw new Error(data.message || '근무 통계 조회에 실패했습니다.');
+    }
+
+    return data.data || [];
+  } catch (error) {
+    console.error('getMonthlyWorkStatistics Error:', error);
+    throw error;
+  }
+};

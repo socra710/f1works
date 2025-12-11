@@ -1430,19 +1430,26 @@ export default function Expense() {
                       {(status === 'DRAFT' || status === 'REJECTED') &&
                         !managerChecked && (
                           <button
-                            type="button"
+                            className="btn-delete"
                             onClick={() => deleteRow(idx)}
-                            className="btn-icon btn-delete"
-                            title="삭제"
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              height: '100%',
-                            }}
                           >
-                            🗑️
+                            삭제
                           </button>
+
+                          // <button
+                          //   type="button"
+                          //   onClick={() => deleteRow(idx)}
+                          //   className="btn-icon btn-delete"
+                          //   title="삭제"
+                          //   style={{
+                          //     display: 'inline-flex',
+                          //     alignItems: 'center',
+                          //     justifyContent: 'center',
+                          //     height: '100%',
+                          //   }}
+                          // >
+                          //   🗑️
+                          // </button>
                         )}
                     </td>
                   </tr>
