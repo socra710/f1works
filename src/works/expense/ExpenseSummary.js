@@ -674,15 +674,19 @@ export default function ExpenseSummary() {
                             <th>10월</th>
                             <th>11월</th>
                             <th>12월</th>
+                            <th></th>
+                            <th></th>
                           </tr>
                         </thead>
                         <tbody>
                           {(() => {
+                            const allRows = [];
+
+                            // ========== 1. 년별 집계 섹션 ==========
                             const { categories, categoryOrder } =
                               getMonthlyByCategoryData();
                             const { categoryTotals, monthlyGrandTotal } =
                               getCategoryMonthlyTotals();
-                            const rows = [];
 
                             // 각 카테고리별 처리
                             Object.entries(categories)
@@ -697,7 +701,7 @@ export default function ExpenseSummary() {
                                 // 세목 행
                                 subItems.forEach(
                                   ([subcategory, data], index) => {
-                                    rows.push(
+                                    allRows.push(
                                       <tr
                                         key={`${category}-${subcategory}`}
                                         className="data-row"
@@ -725,13 +729,19 @@ export default function ExpenseSummary() {
                                             ).toLocaleString()}
                                           </td>
                                         ))}
+                                        <td
+                                          style={{ backgroundColor: '#f9f9f9' }}
+                                        />
+                                        <td
+                                          style={{ backgroundColor: '#f9f9f9' }}
+                                        />
                                       </tr>
                                     );
                                   }
                                 );
 
                                 // 카테고리 소계 행
-                                rows.push(
+                                allRows.push(
                                   <tr
                                     key={`${category}-total`}
                                     className="category-total-row"
@@ -753,14 +763,20 @@ export default function ExpenseSummary() {
                                         ).toLocaleString()}
                                       </td>
                                     ))}
+                                    <td
+                                      style={{ backgroundColor: '#f9f9f9' }}
+                                    />
+                                    <td
+                                      style={{ backgroundColor: '#f9f9f9' }}
+                                    />
                                   </tr>
                                 );
                               });
 
-                            // 합계(경비입금) 행 - DINNER, LUNCH + 비식비 (특별항목 제외)
+                            // 합계(경비입금) 행
                             const expenseDepositTotal =
                               getExpenseDepositTotal();
-                            rows.push(
+                            allRows.push(
                               <tr
                                 key="expense-deposit"
                                 className="category-total-row"
@@ -789,11 +805,13 @@ export default function ExpenseSummary() {
                                     </td>
                                   )
                                 )}
+                                <td style={{ backgroundColor: '#FCE4D6' }} />
+                                <td style={{ backgroundColor: '#FCE4D6' }} />
                               </tr>
                             );
 
                             // 전체 합계 행
-                            rows.push(
+                            allRows.push(
                               <tr key="grand-total" className="grand-total-row">
                                 <td colSpan="2" className="grand-total">
                                   총금액(소담, 세종 포함)
@@ -810,32 +828,200 @@ export default function ExpenseSummary() {
                                     </td>
                                   )
                                 )}
+                                <td style={{ backgroundColor: '#f9f9f9' }} />
+                                <td style={{ backgroundColor: '#f9f9f9' }} />
                               </tr>
                             );
 
-                            return rows;
-                          })()}
-                        </tbody>
-                      </table>
-                    </div>
+                            // 섹션 구분 빈 행
+                            allRows.push(
+                              <tr key="separator-1" style={{ height: '8px' }}>
+                                <td
+                                  colSpan="16"
+                                  style={{ backgroundColor: '#e0e0e0' }}
+                                />
+                              </tr>
+                            );
 
-                    {/* 사용자별 집계 그리드 */}
-                    <div className="expenseSummary-table-container yearly-table">
-                      <table className="yearly-summary-table">
-                        <thead>
-                          <tr>
-                            <th colSpan={2}>이름</th>
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
-                              (month) => (
-                                <th key={month}>{month}월</th>
-                              )
-                            )}
-                            <th>개인 합계</th>
-                            <th>월 평균</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {(() => {
+                            // 사용자별 집계 헤더
+                            allRows.push(
+                              <tr
+                                key="user-aggregation-header"
+                                style={{
+                                  background:
+                                    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                  fontWeight: 'bold',
+                                  borderBottom: '2px solid #ddd',
+                                }}
+                              >
+                                <td
+                                  colSpan="2"
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  이름
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  1월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  2월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  3월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  4월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  5월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  6월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  7월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  8월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  9월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  10월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  11월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  12월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  개인 합계
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    color: 'white',
+                                  }}
+                                >
+                                  월 평균
+                                </td>
+                              </tr>
+                            );
+
+                            // ========== 2. 사용자별 집계 섹션 ==========
                             const entries = Object.entries(
                               userMonthlyData
                             ).sort(([aName, aData], [bName, bData]) => {
@@ -872,14 +1058,14 @@ export default function ExpenseSummary() {
                             );
 
                             let renderedStatusCount = {};
-                            const rows = entries.map(([name, data]) => {
+                            entries.forEach(([name, data]) => {
                               const statusKey = data.status || '기타';
                               const shouldRenderStatus =
                                 !renderedStatusCount[statusKey];
                               renderedStatusCount[statusKey] =
                                 (renderedStatusCount[statusKey] || 0) + 1;
 
-                              return (
+                              allRows.push(
                                 <tr key={name}>
                                   {shouldRenderStatus && (
                                     <td
@@ -923,7 +1109,7 @@ export default function ExpenseSummary() {
                               );
                             });
 
-                            rows.push(
+                            allRows.push(
                               <tr
                                 key="user-monthly-total"
                                 className="category-total-row"
@@ -954,39 +1140,190 @@ export default function ExpenseSummary() {
                               </tr>
                             );
 
-                            return rows;
-                          })()}
-                        </tbody>
-                      </table>
-                    </div>
+                            // 섹션 구분 빈 행
+                            allRows.push(
+                              <tr key="separator-2" style={{ height: '8px' }}>
+                                <td
+                                  colSpan="16"
+                                  style={{ backgroundColor: '#e0e0e0' }}
+                                />
+                              </tr>
+                            );
 
-                    {/* 월별 근무 통계 집계 */}
-                    <div className="expenseSummary-table-container yearly-table">
-                      <table className="yearly-summary-table">
-                        <thead>
-                          <tr>
-                            <th colSpan="2">구분</th>
-                            <th>1월</th>
-                            <th>2월</th>
-                            <th>3월</th>
-                            <th>4월</th>
-                            <th>5월</th>
-                            <th>6월</th>
-                            <th>7월</th>
-                            <th>8월</th>
-                            <th>9월</th>
-                            <th>10월</th>
-                            <th>11월</th>
-                            <th>12월</th>
-                            <th>전체 평균</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {(() => {
-                            const rows = [];
+                            // 근무 통계 헤더
+                            allRows.push(
+                              <tr
+                                key="work-stats-header"
+                                style={{
+                                  background:
+                                    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                  fontWeight: 'bold',
+                                  borderBottom: '2px solid #ddd',
+                                }}
+                              >
+                                <td
+                                  colSpan="2"
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  구분
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  1월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  2월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  3월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  4월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  5월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  6월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  7월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  8월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  9월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  10월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  11월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  12월
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '10px',
+                                    textAlign: 'center',
+                                    borderRight:
+                                      '1px solid rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                  }}
+                                >
+                                  전체 평균
+                                </td>
+                                <td></td>
+                              </tr>
+                            );
+
+                            // ========== 3. 근무 통계 섹션 ==========
 
                             // 임직원수 행
-                            rows.push(
+                            allRows.push(
                               <tr key="employee-count" className="data-row">
                                 <td colSpan="2" className="category">
                                   임직원수
@@ -1006,7 +1343,10 @@ export default function ExpenseSummary() {
                                 )}
                                 <td
                                   className="category-total-amount"
-                                  style={{ textAlign: 'center' }}
+                                  style={{
+                                    textAlign: 'center',
+                                    fontWeight: 'bold',
+                                  }}
                                 >
                                   {(() => {
                                     const counts = [
@@ -1031,7 +1371,7 @@ export default function ExpenseSummary() {
                             );
 
                             // 총 출근일수 행
-                            rows.push(
+                            allRows.push(
                               <tr key="total-workdays" className="data-row">
                                 <td colSpan="2" className="category">
                                   총 출근일수
@@ -1051,7 +1391,10 @@ export default function ExpenseSummary() {
                                 )}
                                 <td
                                   className="category-total-amount"
-                                  style={{ textAlign: 'center' }}
+                                  style={{
+                                    textAlign: 'center',
+                                    fontWeight: 'bold',
+                                  }}
                                 >
                                   {(() => {
                                     const workdays = [
@@ -1076,7 +1419,7 @@ export default function ExpenseSummary() {
                             );
 
                             // 총경비 - 일평균단가
-                            rows.push(
+                            allRows.push(
                               <tr
                                 key="total-expense-daily-rate"
                                 className="category-total-row"
@@ -1100,7 +1443,10 @@ export default function ExpenseSummary() {
                                 )}
                                 <td
                                   className="category-total-amount"
-                                  style={{ textAlign: 'right' }}
+                                  style={{
+                                    textAlign: 'right',
+                                    fontWeight: 'bold',
+                                  }}
                                 >
                                   {(() => {
                                     const rates = [
@@ -1124,7 +1470,7 @@ export default function ExpenseSummary() {
                             );
 
                             // 총경비 - %
-                            rows.push(
+                            allRows.push(
                               <tr
                                 key="total-expense-percentage"
                                 className="data-row"
@@ -1136,11 +1482,20 @@ export default function ExpenseSummary() {
                                     const percentage =
                                       monthlyWorkStats[month]
                                         ?.expensePercentage;
+                                    const percentageNum = percentage
+                                      ? parseInt(percentage.toString())
+                                      : 0;
                                     return (
                                       <td
                                         key={month}
                                         className="monthly-amount"
-                                        style={{ textAlign: 'center' }}
+                                        style={{
+                                          textAlign: 'center',
+                                          color:
+                                            percentageNum > 100
+                                              ? 'red'
+                                              : 'inherit',
+                                        }}
                                       >
                                         {percentage || '-'}
                                       </td>
@@ -1162,21 +1517,37 @@ export default function ExpenseSummary() {
                                         return num || 0;
                                       })
                                       .filter((p) => p && p !== 0);
-                                    return percentages.length > 0
-                                      ? Math.round(
-                                          percentages.reduce(
-                                            (a, b) => a + b,
-                                            0
-                                          ) / percentages.length
-                                        ) + '%'
-                                      : '-';
+                                    const avgPercentage =
+                                      percentages.length > 0
+                                        ? Math.round(
+                                            percentages.reduce(
+                                              (a, b) => a + b,
+                                              0
+                                            ) / percentages.length
+                                          )
+                                        : 0;
+                                    return (
+                                      <span
+                                        style={{
+                                          fontWeight: 'bold',
+                                          color:
+                                            avgPercentage > 100
+                                              ? 'red'
+                                              : 'inherit',
+                                        }}
+                                      >
+                                        {percentages.length > 0
+                                          ? avgPercentage + '%'
+                                          : '-'}
+                                      </span>
+                                    );
                                   })()}
                                 </td>
                               </tr>
                             );
 
                             // 총식사비 - 일평균단가
-                            rows.push(
+                            allRows.push(
                               <tr
                                 key="total-meal-daily-rate"
                                 className="category-total-row"
@@ -1200,7 +1571,10 @@ export default function ExpenseSummary() {
                                 )}
                                 <td
                                   className="category-total-amount"
-                                  style={{ textAlign: 'right' }}
+                                  style={{
+                                    textAlign: 'right',
+                                    fontWeight: 'bold',
+                                  }}
                                 >
                                   {(() => {
                                     const rates = [
@@ -1224,7 +1598,7 @@ export default function ExpenseSummary() {
                             );
 
                             // 총식사비 - %
-                            rows.push(
+                            allRows.push(
                               <tr
                                 key="total-meal-percentage"
                                 className="data-row"
@@ -1235,11 +1609,20 @@ export default function ExpenseSummary() {
                                   (month) => {
                                     const percentage =
                                       monthlyWorkStats[month]?.mealPercentage;
+                                    const percentageNum = percentage
+                                      ? parseInt(percentage.toString())
+                                      : 0;
                                     return (
                                       <td
                                         key={month}
                                         className="monthly-amount"
-                                        style={{ textAlign: 'center' }}
+                                        style={{
+                                          textAlign: 'center',
+                                          color:
+                                            percentageNum > 100
+                                              ? 'red'
+                                              : 'inherit',
+                                        }}
                                       >
                                         {percentage || '-'}
                                       </td>
@@ -1260,19 +1643,35 @@ export default function ExpenseSummary() {
                                         return num || 0;
                                       })
                                       .filter((p) => p && p !== 0);
-                                    return percentages.length > 0
-                                      ? Math.round(
-                                          percentages.reduce(
-                                            (a, b) => a + b,
-                                            0
-                                          ) / percentages.length
-                                        ) + '%'
-                                      : '-';
+                                    const avgPercentage =
+                                      percentages.length > 0
+                                        ? Math.round(
+                                            percentages.reduce(
+                                              (a, b) => a + b,
+                                              0
+                                            ) / percentages.length
+                                          )
+                                        : 0;
+                                    return (
+                                      <span
+                                        style={{
+                                          fontWeight: 'bold',
+                                          color:
+                                            avgPercentage > 100
+                                              ? 'red'
+                                              : 'inherit',
+                                        }}
+                                      >
+                                        {percentages.length > 0
+                                          ? avgPercentage + '%'
+                                          : '-'}
+                                      </span>
+                                    );
                                   })()}
                                 </td>
                               </tr>
                             );
-                            return rows;
+                            return allRows;
                           })()}
                         </tbody>
                       </table>

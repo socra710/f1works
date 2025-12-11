@@ -869,7 +869,7 @@
 
 .yearly-summary-table td.monthly-amount {
   color: #2196f3;
-  font-weight: 500;
+  /* font-weight: 500; */
 }
 
 .yearly-summary-table td.budget-amount {
