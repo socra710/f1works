@@ -304,9 +304,9 @@ export default function Works() {
 
       {/* Updates and Notices */}
       <section className="info-section">
-        <div className="section-header">
+        {/* <div className="section-header">
           <h2>🎉 재미로 보는 인사이트</h2>
-        </div>
+        </div> */}
         <div className="info-grid info-grid-main">
           {/* Fun Insights */}
           <div className="info-card insights-card">
