@@ -322,6 +322,10 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.dispatch-card .king-avatar-circle {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
 .king-name {
   font-size: 1.25rem;
   font-weight: 700;
@@ -400,6 +404,10 @@
   font-size: 1.1rem;
   font-weight: 700;
   flex-shrink: 0;
+}
+
+.dispatch-card .king-other-avatar {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
 
 .king-other-info {
