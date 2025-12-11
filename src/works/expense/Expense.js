@@ -789,6 +789,20 @@ export default function Expense() {
       return;
     }
 
+    // 헤더 청구월과 그리드 항목 날짜의 월이 다르면 저장 불가
+    const headerMonth = month; // 'YYYY-MM' 형식
+    const hasMismatchMonth = rows.some((row) => {
+      if (!row.date) return false; // 날짜가 없으면 위에서 이미 체크됨
+      // date 형식: 'YYYY-MM-DD'
+      const rowMonth = row.date.substring(0, 7); // 'YYYY-MM'
+      return rowMonth !== headerMonth;
+    });
+
+    if (hasMismatchMonth) {
+      showToast('모든 경비 항목의 월이 청구월과 동일해야 합니다.', 'warning');
+      return;
+    }
+
     // 제출 확인 다이얼로그
     showDialog({
       title: '제출 확인',
