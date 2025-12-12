@@ -563,6 +563,108 @@ export default function Expense() {
     return result;
   };
 
+  // 최근 내역 가져오기: 지난달 데이터를 불러와 현재 선택 월로 변환 후 추가
+  const importLastMonthRows = async () => {
+    if (!userId) {
+      showToast('사용자 정보가 없습니다.', 'warning');
+      return;
+    }
+    if (!month) {
+      showToast('청구 월 정보가 없습니다.', 'warning');
+      return;
+    }
+
+    try {
+      // 현재 선택 월의 지난달 계산 (month: 'YYYY-MM')
+      const [yStr, mStr] = month.split('-');
+      const y = parseInt(yStr, 10);
+      const m = parseInt(mStr, 10);
+      const prevDate = new Date(y, m - 2, 1); // JS month index 기반
+      const prevY = prevDate.getFullYear();
+      const prevM = String(prevDate.getMonth() + 1).padStart(2, '0');
+      const prevMonth = `${prevY}-${prevM}`;
+
+      // 지난달 데이터 조회 (월 기준)
+      const url =
+        `${API_BASE_URL}/jvWorksGetExpense?factoryCode=000001&month=${prevMonth}&userId=${atob(
+          userId
+        )}` + (isManagerMode ? '&manager=true' : '');
+      const response = await fetch(url);
+      if (!response.ok) {
+        showToast('지난달 내역 조회에 실패했습니다.', 'error');
+        return;
+      }
+      const result = await response.json();
+      if (
+        !(
+          result &&
+          result.success === 'true' &&
+          result.data &&
+          result.data.rows
+        )
+      ) {
+        showToast('지난달 내역이 없습니다.', 'info');
+        return;
+      }
+
+      const prevRows = result.data.rows;
+
+      // 날짜를 현재 선택 월로 변환하며 행 생성
+      const transformed = prevRows.map((row) => {
+        // 기존 날짜의 일(day)만 유지하고 선택 월로 변경
+        let day = '01';
+        if (row.date && row.date.length >= 10) {
+          day = row.date.substring(8, 10);
+        }
+        const newDate = `${month}-${day}`;
+
+        const isFuel =
+          (row.type && row.type === 'fuel') ||
+          row.category === '유류비' ||
+          row.category === 'FUEL';
+
+        // 유류비와 일반 경비를 명확히 분리하여 객체 생성
+        if (isFuel) {
+          return {
+            rowId: null,
+            type: 'fuel',
+            category: 'FUEL',
+            date: newDate,
+            description: row.description || '',
+            fuelType: row.fuelType || '휘발유',
+            distance: row.distance || '',
+            tollFee: row.tollFee ? formatWithCommas(row.tollFee) : '',
+            file: null,
+            fileName: '',
+            dirty: true,
+            managerConfirmed: false,
+          };
+        } else {
+          return {
+            rowId: null,
+            type: 'expense',
+            category: row.category || '',
+            date: newDate,
+            description: row.description || '',
+            amount: row.amount ? formatWithCommas(row.amount) : '',
+            people: row.people || 1,
+            file: null,
+            fileName: '',
+            dirty: true,
+            managerConfirmed: false,
+          };
+        }
+      });
+
+      // 기존 행 뒤에 추가
+      setRows((cur) => [...cur, ...transformed]);
+      showToast('지난달 내역을 현재 월로 불러왔습니다.', 'success');
+    } catch (e) {
+      console.error('importLastMonthRows error:', e);
+      showToast('지난달 내역 가져오기 중 오류가 발생했습니다.', 'error');
+    }
+  };
+
   // 지급액 합계
   const calculateTotalPay = () => {
     return rows.reduce((sum, row) => sum + calcPay(row), 0);
@@ -1540,6 +1642,15 @@ export default function Expense() {
                 style={{ background: '#007bff' }}
               >
                 ⛽ 유류비 항목 추가
+              </button>
+              <button
+                type="button"
+                onClick={importLastMonthRows}
+                className="btn-add-row"
+                style={{ background: '#28a745' }}
+                title="지난달 내역을 불러와 현재 월로 변환하여 추가"
+              >
+                🕘 최근 내역 가져오기
               </button>
             </div>
           )}
