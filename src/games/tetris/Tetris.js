@@ -1,6 +1,9 @@
 import './Tetris.css';
 import React, { useState, useEffect, useRef } from 'react';
 
+// expense와 동일한 방식의 API 베이스 URL 사용
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 const Tetris = () => {
   const canvasRef = useRef(null);
   const [gameStarted, setGameStarted] = useState(false);
@@ -9,6 +12,10 @@ const Tetris = () => {
   const [timeLeft, setTimeLeft] = useState(300); // 5분 = 300초
   const [level, setLevel] = useState(1);
   const [highScores, setHighScores] = useState([]);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [playerName, setPlayerName] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [userId, setUserId] = useState(''); // 사용자 ID (sessionStorage에서 받음)
   const gameStateRef = useRef({
     board: [],
     currentPiece: null,
@@ -219,35 +226,109 @@ const Tetris = () => {
     },
   ];
 
-  // 순위 데이터 로드
-  useEffect(() => {
+  // 순위 데이터 로드 (expense와 동일 패턴: API_BASE_URL 사용)
+  const fetchHighScores = async () => {
     try {
-      const saved = JSON.parse(
-        localStorage.getItem('tetris_highscores') || '[]'
-      );
-      if (Array.isArray(saved)) setHighScores(saved);
+      const url = `${API_BASE_URL}/jvWorksGetTetrisScores?limit=7`;
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!res.ok) throw new Error('순위 조회 API 호출 실패');
+      const json = await res.json();
+      if (json && (json.success === true || json.success === 'true')) {
+        const scores = Array.isArray(json.data) ? json.data : [];
+        setHighScores(
+          scores.map((s) => ({
+            name: s.name,
+            score: s.score,
+            date: s.date,
+          }))
+        );
+      } else {
+        setHighScores([]);
+      }
     } catch (e) {
-      // ignore malformed data
+      console.error('순위 조회 실패:', e);
       setHighScores([]);
     }
+  };
+
+  useEffect(() => {
+    fetchHighScores();
+    // 저장된 닉네임 불러오기
+    const savedName = localStorage.getItem('tetrisPlayerName');
+    if (savedName) {
+      setPlayerName(savedName);
+    }
+
+    setTimeout(() => {
+      // sessionStorage에서 userId 받아오기
+      const sessionUser = window.sessionStorage.getItem('extensionLogin');
+      if (sessionUser) {
+        setUserId(atob(sessionUser));
+      }
+    }, 500);
   }, []);
 
-  // 게임 종료 시 점수 저장
+  // 게임 종료 시 닉네임 모달 표시
   useEffect(() => {
-    if (!gameOver) return;
-    if (score <= 0) return;
-    setHighScores((prev) => {
-      const next = [...prev, { score, date: Date.now() }]
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 10);
-      try {
-        localStorage.setItem('tetris_highscores', JSON.stringify(next));
-      } catch (e) {
-        // ignore storage error
-      }
-      return next;
-    });
+    if (!gameOver || score <= 0) {
+      console.log('모달 표시 안함:', { gameOver, score });
+      return;
+    }
+    console.log('모달 표시:', { gameOver, score });
+    setShowNameModal(true);
   }, [gameOver, score]);
+
+  // 서버에 점수 저장 (expense와 동일 패턴: API_BASE_URL 사용, userId 포함)
+  const saveScoreToServer = async (name) => {
+    setIsSaving(true);
+    try {
+      const url = `${API_BASE_URL}/jvWorksSetTetrisScore`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name || '',
+          score: score,
+          date: new Date().toISOString(),
+          userId: userId || '', // userId 포함
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`점수 저장 API 오류: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data && (data.success === true || data.success === 'true')) {
+        // 닉네임을 localStorage에 저장
+        localStorage.setItem('tetrisPlayerName', name);
+        await fetchHighScores();
+      } else {
+        console.error('점수 저장 실패:', data && data.message);
+      }
+    } catch (error) {
+      console.error('API 호출 오류:', error);
+    } finally {
+      setIsSaving(false);
+      // 저장 완료 후 모달 닫기
+      setShowNameModal(false);
+      setPlayerName('');
+    }
+  };
+
+  const handleSaveName = () => {
+    const name = playerName.trim() || '';
+    saveScoreToServer(name);
+  };
+
+  const handleCancelModal = () => {
+    setShowNameModal(false);
+    setPlayerName('');
+  };
+
+  // 게임 종료 시 자동 저장 없음 (모달에서 API로 저장)
 
   const formatDate = (ts) => {
     const d = new Date(ts);
@@ -431,6 +512,7 @@ const Tetris = () => {
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
+    ctx.className = 'Tetris-canvas';
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -677,7 +759,10 @@ const Tetris = () => {
               <div className="msg">
                 <h3>{gameOver ? '게임 오버!' : '테트리스'}</h3>
                 {gameOver && (
-                  <p style={{ color: '#a01b1b' }}>최종 점수: {score}</p>
+                  <>
+                    <p style={{ color: '#a01b1b' }}>최종 점수: {score}</p>
+                    <p style={{ color: '#888', fontSize: '0.9rem' }}></p>
+                  </>
                 )}
                 <button onClick={startGame}>게임 시작</button>
               </div>
@@ -697,6 +782,9 @@ const Tetris = () => {
                       className="score-row"
                     >
                       <span className="rank">{idx + 1}</span>
+                      <span className="name" style={{ textAlign: 'left' }}>
+                        {s.name}
+                      </span>
                       <span className="pts">{s.score}</span>
                       <span className="dt">{formatDate(s.date)}</span>
                     </li>
@@ -725,6 +813,52 @@ const Tetris = () => {
             ←→: 이동 | ↑/Z: 회전 | ↓: 빠르게 내리기 | SPACE: 즉시 하강
           </p>
         </section> */}
+
+        {/* 닉네임 저장 모달 - 최상단에 렌더링 */}
+        {showNameModal && gameOver && (
+          <div className="tetris-modal-overlay">
+            <div className="tetris-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="tetris-modal-content">
+                {/* <h2>🎉 나의 위대함 알리기!</h2> */}
+                <p className="tetris-modal-score">
+                  당신의 점수: <strong>{score}</strong>
+                </p>
+                <div className="tetris-modal-form">
+                  <input
+                    type="text"
+                    placeholder="닉네임을 입력하세요"
+                    value={playerName}
+                    onChange={(e) => setPlayerName(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && !isSaving) {
+                        handleSaveName();
+                      }
+                    }}
+                    maxLength={20}
+                    disabled={isSaving}
+                    className="tetris-modal-input"
+                  />
+                </div>
+                <div className="tetris-modal-buttons">
+                  <button
+                    onClick={handleSaveName}
+                    disabled={isSaving}
+                    className="tetris-btn-save"
+                  >
+                    {isSaving ? '저장 중...' : '점수 저장 및 공유'}
+                  </button>
+                  <button
+                    onClick={handleCancelModal}
+                    disabled={isSaving}
+                    className="tetris-btn-cancel"
+                  >
+                    취소
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
