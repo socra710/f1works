@@ -31,8 +31,6 @@ export const getAttendanceRanking = async (factoryCode, monthYm = null) => {
 
     const data = await response.json();
 
-    console.log(data);
-
     if (data.success === false) {
       throw new Error(data.message || '근태왕 랭킹 조회에 실패했습니다.');
     }

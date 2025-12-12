@@ -183,7 +183,7 @@
   }
 
   .bottom-div-kakao-calendar {
-    display: none;
+    display: block;
   }
 
   .fc .fc-toolbar-title {

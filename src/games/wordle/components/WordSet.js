@@ -1,15 +1,15 @@
 // WordSet.js
 
-import React, { useState, useRef, useEffect } from "react";
-import JSConfetti from "js-confetti";
-import axios from "axios";
+import React, { useState, useRef, useEffect } from 'react';
+import JSConfetti from 'js-confetti';
+import axios from 'axios';
 // import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import { toast } from 'react-toastify';
 import Inko from 'inko';
-import ClipLoader from "react-spinners/ClipLoader"; //설치한 cliploader을 import한다
-import ModalOk from "./ModalOk";
-import ModalNo from "./ModalNo";
-import KeyBoard from "./KeyBoard";
+import ClipLoader from 'react-spinners/ClipLoader'; //설치한 cliploader을 import한다
+import ModalOk from './ModalOk';
+import ModalNo from './ModalNo';
+import KeyBoard from './KeyBoard';
 
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -22,7 +22,7 @@ const defaultStats = {
   totalGames: 0,
   successRate: 0,
   todayIdx: 99,
-}
+};
 const getRandomIndex = (max) => Math.floor(Math.random() * max);
 
 const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
@@ -36,7 +36,8 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
   const [allSetsSubmitted, setAllSetsSubmitted] = useState(false);
   const [isSubmittedSets, setIsSubmittedSets] = useState(Array(6).fill(false));
   const [remainingTimeSets, setRemainingTimeSets] = useState(0);
-  const [isCorrectAnswerSubmitted, setIsCorrectAnswerSubmitted] = useState(false);
+  const [isCorrectAnswerSubmitted, setIsCorrectAnswerSubmitted] =
+    useState(false);
   const [activeSet, setActiveSet] = useState(0);
   const [activeInputSet, setActiveInputSet] = useState(0);
   const [fetchedData, setFetchedData] = useState([]);
@@ -45,6 +46,13 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
   const [submitFlag, setSubmitFlag] = useState(false);
   const [loading, setLoading] = useState(true);
   const [gameStats, setGameStats] = useState(null);
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
 
   useEffect(() => {
     // Load stats from local storage on component mount
@@ -78,7 +86,6 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
   }, []);
 
   useEffect(() => {
-
     if (isCorrectAnswerSubmitted) {
       setTimeout(() => {
         document.querySelector('#btn-ok').click();
@@ -92,17 +99,6 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
   }, [activeSet, isCorrectAnswerSubmitted]);
 
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://t1.daumcdn.net/kas/static/ba.min.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
-  useEffect(() => {
     if (
       inputRefsSets.current[activeSet] &&
       inputRefsSets.current[activeSet][activeInputSet] &&
@@ -113,70 +109,79 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
   }, [activeSet, activeInputSet, inputRefsSets.current]);
 
   useEffect(() => {
-
     const options = {
       method: 'GET',
       url: 'https://f1lab.co.kr/com/api/games/jvWordle',
       params: {
         factoryCode: '000001',
-        userId: visitorId
-      }
+        userId: visitorId,
+      },
     };
 
-    axios.request(options).then(function (response) {
+    axios
+      .request(options)
+      .then(function (response) {
+        if (response.data.success === 'false') {
+          alert(
+            '시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' +
+              response.data.message
+          );
+          return;
+        }
 
-      if (response.data.success === "false") {
-        alert('시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' + response.data.message);
-        return;
-      }
+        setWordNo(response.data.wordNo);
+        updateTodayWordNo(response.data.wordNo);
 
-      setWordNo(response.data.wordNo);
-      updateTodayWordNo(response.data.wordNo);
+        const storedGuessNo = window.localStorage.getItem('guessNo');
+        if (storedGuessNo) {
+          if (response.data.wordNo !== storedGuessNo) {
+            if (window.localStorage.getItem('guessData')) {
+              window.localStorage.removeItem('guessData');
+            }
+          }
+        } else {
+          window.localStorage.removeItem('guessData');
+        }
 
-      const storedGuessNo = window.localStorage.getItem('guessNo');
-      if (storedGuessNo) {
-        if (response.data.wordNo !== storedGuessNo) {
-          if (window.localStorage.getItem('guessData')) {
-            window.localStorage.removeItem('guessData');
+        let item = response.data.todayWord[0];
+        let todaysWord = item.word.toUpperCase();
+
+        const quizData = [{ question: todaysWord, answer: todaysWord }];
+        setQuizData(quizData);
+
+        if (quizData.length > 0) {
+          const currentQuizIndex = getRandomIndex(quizData.length);
+
+          if (quizData.length > 0 && currentQuizIndex !== null) {
+            const quizItem = quizData[currentQuizIndex];
+            const { question: quizQuestion, answer: realQuizAnswer } = quizItem;
+
+            setQuizQuestion(quizQuestion);
+            setRealQuizAnswer(realQuizAnswer);
+
+            setAnswersSets(Array(6).fill(Array(quizQuestion.length).fill('')));
+            inputRefsSets.current = Array(6)
+              .fill(null)
+              .map(() =>
+                Array(quizQuestion.length)
+                  .fill(null)
+                  .map(() => React.createRef())
+              );
+
+            // 로컬 스토리지에서 데이터 가져오기
+            const storedGuessString = window.localStorage.getItem('guessData');
+            if (storedGuessString) {
+              const storedGuess = JSON.parse(storedGuessString);
+              setFetchedData(storedGuess);
+            }
+
+            setLoading(false);
           }
         }
-      } else {
-        window.localStorage.removeItem('guessData');
-      }
-
-      let item = response.data.todayWord[0];
-      let todaysWord = item.word.toUpperCase();
-
-      const quizData = [{ question: todaysWord, answer: todaysWord }];
-      setQuizData(quizData);
-
-      if (quizData.length > 0) {
-        const currentQuizIndex = getRandomIndex(quizData.length);
-
-        if (quizData.length > 0 && currentQuizIndex !== null) {
-          const quizItem = quizData[currentQuizIndex];
-          const { question: quizQuestion, answer: realQuizAnswer } = quizItem;
-
-          setQuizQuestion(quizQuestion);
-          setRealQuizAnswer(realQuizAnswer);
-
-          setAnswersSets(Array(6).fill(Array(quizQuestion.length).fill("")));
-          inputRefsSets.current = Array(6).fill(null).map(() => Array(quizQuestion.length).fill(null).map(() => React.createRef()));
-
-          // 로컬 스토리지에서 데이터 가져오기
-          const storedGuessString = window.localStorage.getItem('guessData');
-          if (storedGuessString) {
-            const storedGuess = JSON.parse(storedGuessString);
-            setFetchedData(storedGuess);
-          }
-
-          setLoading(false);
-        }
-      }
-
-    }).catch(function (error) {
-      console.error(error);
-    });
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
   }, []);
 
   // useEffect(() => {
@@ -250,11 +255,10 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
 
   useEffect(() => {
     if (quizData.length > 0 && fetchedData[activeSet] && !loading) {
-
       if (answersSets[activeSet]) {
         setAnswersSets((prevSets) => {
           const newSets = [...prevSets];
-          newSets[activeSet] = fetchedData[activeSet].userAnswer.split("");
+          newSets[activeSet] = fetchedData[activeSet].userAnswer.split('');
           return newSets;
         });
       }
@@ -278,14 +282,13 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
         });
       }
 
-
       // updateCssFulll(activeSet, fetchedData[activeSet].userAnswer);
     }
   }, [activeSet, fetchedData, loading]);
 
   const isCorrectAnswerSets = (setIndex) => {
     if (answersSets[setIndex]) {
-      return answersSets[setIndex].join("") === realQuizAnswer;
+      return answersSets[setIndex].join('') === realQuizAnswer;
     } else {
       return false;
     }
@@ -302,7 +305,6 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
   };
 
   const handleInputChangeSetsProps = (targetValue) => {
-
     let inko = new Inko();
     // Validate input to allow only uppercase letters
     const isOnlyUppercaseLetters = /^[A-Z]*$/;
@@ -321,7 +323,7 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
         const newAnswers = [...newSets[activeSet]];
         newAnswers[activeInputSet] = targetValue;
 
-        if (targetValue !== "" && activeInputSet < newAnswers.length - 1) {
+        if (targetValue !== '' && activeInputSet < newAnswers.length - 1) {
           inputRefsSets.current[activeSet][activeInputSet + 1].current.focus();
           setActiveInputSet(activeInputSet + 1);
         }
@@ -332,7 +334,6 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
   };
 
   const handleInputChangeSets = (setIndex, index, event) => {
-
     let inko = new Inko();
     // Validate input to allow only uppercase letters
     const isOnlyUppercaseLetters = /^[A-Z]*$/;
@@ -340,18 +341,14 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
     var value = inko.ko2en(event.target.value);
     value = value.toUpperCase();
 
-    if (
-      !isSubmittedSets[setIndex] &&
-      isOnlyUppercaseLetters.test(value)
-    ) {
-
+    if (!isSubmittedSets[setIndex] && isOnlyUppercaseLetters.test(value)) {
       event.target.value = '';
       setAnswersSets((prevSets) => {
         const newSets = [...prevSets];
         const newAnswers = [...newSets[setIndex]];
         newAnswers[index] = value;
 
-        if (value !== "" && index < newAnswers.length - 1) {
+        if (value !== '' && index < newAnswers.length - 1) {
           inputRefsSets.current[setIndex][index + 1].current.focus();
           setActiveInputSet(index + 1);
         }
@@ -362,16 +359,13 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
   };
 
   const handleInputKeyPressProps = (event) => {
-
-    if (
-      isSubmittedSets[activeSet] ||
-      activeSet === 6
-    ) {
+    if (isSubmittedSets[activeSet] || activeSet === 6) {
       return;
     }
 
     if (event === 'Enter') {
-      const value = inputRefsSets.current[activeSet][activeInputSet].current.value;
+      const value =
+        inputRefsSets.current[activeSet][activeInputSet].current.value;
       if (value !== '' && activeInputSet < quizQuestion.length - 1) {
         inputRefsSets.current[activeSet][activeInputSet + 1].current.focus();
         setActiveInputSet(activeInputSet + 1);
@@ -395,7 +389,6 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
   };
 
   const handleInputKeyPress = (setIndex, index, event) => {
-
     if (event.key === 'Enter') {
       event.preventDefault();
       if (event.target.value !== '' && index < quizQuestion.length - 1) {
@@ -421,12 +414,11 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
     } else if (event.key === 'Tab') {
       event.preventDefault();
       setSubmitFlag(false);
-    }
-    else {
+    } else {
       if (event.nativeEvent.code !== 'Enter') {
         setSubmitFlag(false);
         event.target.value = '';
-        if ("KeyA" <= event.code && event.code <= "KeyZ") {
+        if ('KeyA' <= event.code && event.code <= 'KeyZ') {
           // event.preventDefault();
           // setAnswersSets((prevSets) => {
           //   const newSets = [...prevSets];
@@ -441,23 +433,23 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
   };
 
   const handleSubmitSets = (setIndex) => {
-    const userAnswer = answersSets[setIndex].join("");
+    const userAnswer = answersSets[setIndex].join('');
 
     let isThere = false;
     inputRefsSets.current[setIndex].forEach((inputRef, index) => {
-      if (answersSets[setIndex][index].trim() === "") {
+      if (answersSets[setIndex][index].trim() === '') {
         isThere = true;
-        inputRef.current.classList.add("empty-input");
+        inputRef.current.classList.add('empty-input');
         setTimeout(() => {
-          inputRef.current.classList.remove("empty-input");
+          inputRef.current.classList.remove('empty-input');
         }, 500);
       }
 
       if (answersSets[setIndex][index].trim().length > 1) {
         isThere = true;
-        inputRef.current.classList.add("empty-input");
+        inputRef.current.classList.add('empty-input');
         setTimeout(() => {
-          inputRef.current.classList.remove("empty-input");
+          inputRef.current.classList.remove('empty-input');
         }, 500);
       }
     });
@@ -476,126 +468,134 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
       params: { letterPattern: `^${userAnswer.toLowerCase()}$` },
       headers: {
         'x-rapidapi-host': 'wordsapiv1.p.rapidapi.com',
-        'x-rapidapi-key': '7062598bb2msh8a616fc8ed0b1ffp142e61jsn5ac113667ab4'
-      }
+        'x-rapidapi-key': '7062598bb2msh8a616fc8ed0b1ffp142e61jsn5ac113667ab4',
+      },
     };
 
-    axios.request(options).then(function (response) {
-      // if the word exist in the dictionary
-      if (response.data.results.total === 1) {
+    axios
+      .request(options)
+      .then(function (response) {
+        // if the word exist in the dictionary
+        if (response.data.results.total === 1) {
+          const apiEndpoint = 'https://f1lab.co.kr/com/api/games/jvSetWordle'; // Replace with your actual API endpoint
 
-        const apiEndpoint = 'https://f1lab.co.kr/com/api/games/jvSetWordle'; // Replace with your actual API endpoint
+          const requestBody = {
+            factoryCode: '000001',
+            wordNo: wordNo,
+            userId: visitorId,
+            setIndex: setIndex,
+            userAnswer: userAnswer,
+          };
 
-        const requestBody = {
-          factoryCode: '000001',
-          wordNo: wordNo,
-          userId: visitorId,
-          setIndex: setIndex,
-          userAnswer: userAnswer
-        };
-
-        axios.post(apiEndpoint, requestBody)
-          .then(function (response) {
-            // Handle success
-            if (response.data.success === "false") {
-              alert('시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' + response.data.message);
-              return;
-            }
-
-            setIsSubmittedSets((prevSets) => {
-              const newSets = [...prevSets];
-              newSets[setIndex] = true;
-              return newSets;
-            });
-
-            // updateCssFulll(setIndex, userAnswer);
-
-            if (userAnswer === realQuizAnswer) {
-              jsConfetti.addConfetti();
-              setIsCorrectAnswerSubmitted(true);
-
-              let stats = { ...gameStats };
-              stats.winDistribution[activeSet] += 1
-              stats.currentStreak += 1
-
-              if (stats.bestStreak < stats.currentStreak) {
-                stats.bestStreak = stats.currentStreak
+          axios
+            .post(apiEndpoint, requestBody)
+            .then(function (response) {
+              // Handle success
+              if (response.data.success === 'false') {
+                alert(
+                  '시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' +
+                    response.data.message
+                );
+                return;
               }
-              stats.totalGames += 1;
-              stats.successRate = getSuccessRate(stats)
 
-              setGameStats((prevStats) => ({
-                ...prevStats,
-                winDistribution: stats.winDistribution,
-                gamesFailed: stats.gamesFailed,
-                currentStreak: stats.currentStreak,
-                bestStreak: stats.bestStreak,
-                totalGames: stats.totalGames,
-                successRate: stats.successRate,
-                todayIdx: setIndex
-              }))
-            } else {
-              activateNextSet();
-              setActiveInputSet(0);
+              setIsSubmittedSets((prevSets) => {
+                const newSets = [...prevSets];
+                newSets[setIndex] = true;
+                return newSets;
+              });
 
-              if (activeSet === 5) {
+              // updateCssFulll(setIndex, userAnswer);
+
+              if (userAnswer === realQuizAnswer) {
+                jsConfetti.addConfetti();
+                setIsCorrectAnswerSubmitted(true);
+
                 let stats = { ...gameStats };
-                stats.currentStreak = 0
-                stats.gamesFailed += 1
+                stats.winDistribution[activeSet] += 1;
+                stats.currentStreak += 1;
+
+                if (stats.bestStreak < stats.currentStreak) {
+                  stats.bestStreak = stats.currentStreak;
+                }
                 stats.totalGames += 1;
-                stats.successRate = getSuccessRate(stats)
+                stats.successRate = getSuccessRate(stats);
 
                 setGameStats((prevStats) => ({
                   ...prevStats,
+                  winDistribution: stats.winDistribution,
                   gamesFailed: stats.gamesFailed,
                   currentStreak: stats.currentStreak,
+                  bestStreak: stats.bestStreak,
                   totalGames: stats.totalGames,
-                  successRate: getSuccessRate(stats),
-                  todayIdx: 99
-                }))
-              }
-            }
+                  successRate: stats.successRate,
+                  todayIdx: setIndex,
+                }));
+              } else {
+                activateNextSet();
+                setActiveInputSet(0);
 
-            let guess = {};
-            answersSets.map((answerSet, setIndex) => {
-              if (answersSets[setIndex].join("") !== '') {
-                guess[setIndex] = { userAnswer: answersSets[setIndex].join("") };
+                if (activeSet === 5) {
+                  let stats = { ...gameStats };
+                  stats.currentStreak = 0;
+                  stats.gamesFailed += 1;
+                  stats.totalGames += 1;
+                  stats.successRate = getSuccessRate(stats);
+
+                  setGameStats((prevStats) => ({
+                    ...prevStats,
+                    gamesFailed: stats.gamesFailed,
+                    currentStreak: stats.currentStreak,
+                    totalGames: stats.totalGames,
+                    successRate: getSuccessRate(stats),
+                    todayIdx: 99,
+                  }));
+                }
               }
+
+              let guess = {};
+              answersSets.map((answerSet, setIndex) => {
+                if (answersSets[setIndex].join('') !== '') {
+                  guess[setIndex] = {
+                    userAnswer: answersSets[setIndex].join(''),
+                  };
+                }
+              });
+
+              // guess 배열을 문자열로 변환
+              const guessString = JSON.stringify(guess);
+              window.localStorage.setItem('guessData', guessString);
+              window.localStorage.setItem('guessNo', wordNo);
+            })
+            .catch(function (error) {
+              // Handle error
+              console.error(error);
             });
+        } else {
+          setSubmitFlag(true);
 
-            // guess 배열을 문자열로 변환
-            const guessString = JSON.stringify(guess);
-            window.localStorage.setItem('guessData', guessString);
-            window.localStorage.setItem('guessNo', wordNo);
-          })
-          .catch(function (error) {
-            // Handle error
-            console.error(error);
+          inputRefsSets.current[setIndex].forEach((inputRef, index) => {
+            inputRef.current.classList.add('empty-input');
+            setTimeout(() => {
+              inputRef.current.classList.remove('empty-input');
+            }, 500);
           });
-      } else {
-        setSubmitFlag(true);
 
-        inputRefsSets.current[setIndex].forEach((inputRef, index) => {
-          inputRef.current.classList.add("empty-input");
-          setTimeout(() => {
-            inputRef.current.classList.remove("empty-input");
-          }, 500);
-        });
-
-        toast.warn("단어사전에 없는 단어입니다.", {
-          position: "bottom-center",
-          autoClose: 500,
-          hideProgressBar: false,
-          closeOnClick: false,
-          pauseOnHover: false,
-          draggable: false,
-          progress: undefined,
-          theme: "dark",
-        });
-      }
-    }).catch(function (error) {
-      console.error(error);
-    });
+          toast.warn('단어사전에 없는 단어입니다.', {
+            position: 'bottom-center',
+            autoClose: 500,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: false,
+            draggable: false,
+            progress: undefined,
+            theme: 'dark',
+          });
+        }
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
   };
 
   const updateCss = async (setIndex, answer) => {
@@ -608,19 +608,22 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
 
       // is it in the right position?
       if (originWord[c] === letter) {
-        currTile.classList.add("correct-answer");
+        currTile.classList.add('correct-answer');
       } else {
         // is it in the word?
         if (originWord.includes(letter)) {
           let index = originWord.indexOf(letter);
           // check if it's not already marked as correct
-          if (originWord[index] !== answer[index] && !Array.from(answer).slice(0, c).includes(letter)) {
-            currTile.classList.add("yellow-answer");
+          if (
+            originWord[index] !== answer[index] &&
+            !Array.from(answer).slice(0, c).includes(letter)
+          ) {
+            currTile.classList.add('yellow-answer');
           } else {
-            currTile.classList.add("normal-answer");
+            currTile.classList.add('normal-answer');
           }
         } else {
-          currTile.classList.add("normal-answer");
+          currTile.classList.add('normal-answer');
         }
       }
       await sleep(500); // 각 타일에 순차적으로 애니메이션을 적용하기 위한 딜레이
@@ -643,10 +646,13 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
       if (originWord[c] === letter) {
         css += ' correct-answer';
       } else {
-        if ((originWord.includes(letter))) {
+        if (originWord.includes(letter)) {
           let index = originWord.indexOf(letter);
           // check if it's not already marked as correct
-          if (originWord[index] !== answer[index] && !answer.slice(0, c).includes(letter)) {
+          if (
+            originWord[index] !== answer[index] &&
+            !answer.slice(0, c).includes(letter)
+          ) {
             css += ' yellow-answer';
           } else {
             css += ' normal-answer';
@@ -662,13 +668,14 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
 
   const getSuccessRate = (gameStats) => {
     return Math.round(
-      (100 * (gameStats.totalGames - gameStats.gamesFailed)) / Math.max(gameStats.totalGames, 1)
-    )
-  }
+      (100 * (gameStats.totalGames - gameStats.gamesFailed)) /
+        Math.max(gameStats.totalGames, 1)
+    );
+  };
 
   // 딜레이 함수
   function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   const renderInputsSets = (setIndex) => {
@@ -686,7 +693,7 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
           readOnly={setIndex !== activeSet}
           disabled={isSubmittedSets[setIndex]}
           inputMode="none"
-        // style={{ transition: isSubmittedSets[setIndex] && realQuizAnswer[index] === answer ? 'all 1s ease' : 'none' }}
+          // style={{ transition: isSubmittedSets[setIndex] && realQuizAnswer[index] === answer ? 'all 1s ease' : 'none' }}
         />
       </div>
     ));
@@ -699,7 +706,11 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
     let buttonText;
 
     if (setIndex === activeSet) {
-      buttonText = isSetSubmitted ? (isAnswerCorrect ? '정답' : '오답') : '제출';
+      buttonText = isSetSubmitted
+        ? isAnswerCorrect
+          ? '정답'
+          : '오답'
+        : '제출';
     } else {
       buttonText = '제출';
     }
@@ -708,9 +719,7 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
       <button
         key={setIndex}
         onClick={() => handleSubmitSets(setIndex)}
-        className={
-          isSetSubmitted && isAnswerCorrect ? 'active' : ''
-        }
+        className={isSetSubmitted && isAnswerCorrect ? 'active' : ''}
         disabled={setIndex !== activeSet || isSubmittedSets[setIndex]}
         style={{ display: 'none' }}
       >
@@ -721,11 +730,10 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
 
   return (
     <div className="horizontal-container">
-
       {loading ? (
-        <div className='container'>
+        <div className="container">
           <ClipLoader
-            color='#f88c6b'
+            color="#f88c6b"
             loading={loading} //useState로 관리
             size={150}
           />
@@ -738,9 +746,25 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
               {renderSubmitButton(setIndex)}
             </div>
           ))}
-          <KeyBoard answersSets={answersSets} handleInputChangeSetsProps={handleInputChangeSetsProps} handleInputKeyPressProps={handleInputKeyPressProps} isSubmittedSets={isSubmittedSets} realQuizAnswer={realQuizAnswer} />
-          <ModalOk answersSets={answersSets} isSubmittedSets={isSubmittedSets} realQuizAnswer={realQuizAnswer} gameStats={gameStats} />
-          <ModalNo answersSets={answersSets} isSubmittedSets={isSubmittedSets} realQuizAnswer={realQuizAnswer} gameStats={gameStats} />
+          <KeyBoard
+            answersSets={answersSets}
+            handleInputChangeSetsProps={handleInputChangeSetsProps}
+            handleInputKeyPressProps={handleInputKeyPressProps}
+            isSubmittedSets={isSubmittedSets}
+            realQuizAnswer={realQuizAnswer}
+          />
+          <ModalOk
+            answersSets={answersSets}
+            isSubmittedSets={isSubmittedSets}
+            realQuizAnswer={realQuizAnswer}
+            gameStats={gameStats}
+          />
+          <ModalNo
+            answersSets={answersSets}
+            isSubmittedSets={isSubmittedSets}
+            realQuizAnswer={realQuizAnswer}
+            gameStats={gameStats}
+          />
         </>
       )}
     </div>

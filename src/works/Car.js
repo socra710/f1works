@@ -37,18 +37,18 @@ export default function Car() {
         setAuthUser(window.sessionStorage.getItem('extensionLogin'));
       }
       setLoading(false);
-    }, 1000);
+
+      const script = document.createElement('script');
+      script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }, 500);
   }, [isMobile]);
 
   useEffect(() => {
     if (!authUser) {
       return;
     }
-
-    const script = document.createElement('script');
-    script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
-    script.async = true;
-    document.body.appendChild(script);
 
     var openDispatch = document.querySelector('#openDispatch');
     openDispatch.addEventListener('click', function (event) {
@@ -577,7 +577,7 @@ export default function Car() {
               >
                 <ins
                   className="kakao_ad_area"
-                  data-ad-unit="DAN-pZmlN1MItQ7KYhKe"
+                  data-ad-unit="DAN-0oWzN1iMfbRwhBwd"
                   data-ad-width="728"
                   data-ad-height="90"
                 ></ins>
@@ -597,7 +597,7 @@ export default function Car() {
               >
                 <ins
                   className="kakao_ad_area"
-                  data-ad-unit="DAN-SbkOGtj1vmVCDoVX"
+                  data-ad-unit="DAN-oggtfE3ed1r7kKEV"
                   data-ad-width="320"
                   data-ad-height="50"
                 ></ins>

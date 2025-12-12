@@ -185,9 +185,9 @@
   padding: 18px 8px 18px 8px;
 }
 
-.section-header {
+/* .section-header {
   display: none;
-}
+} */
 
 .section-header h2 {
   margin: 0 0 14px 0;
@@ -875,6 +875,53 @@
   text-align: center;
   background-color: #f2f2f2;
   box-shadow: none;
+}
+
+/* Responsive Kakao Ad */
+.kakao-ad-container {
+  text-align: center;
+  margin: 0 auto 20px auto;
+  max-width: 728px;
+  width: 100%;
+  padding: 0 8px;
+  box-sizing: border-box;
+}
+
+.kakao_ad_area {
+  display: block;
+  margin: 0 auto;
+}
+
+/* Desktop ad - 기본적으로 보임 */
+.kakao-ad-desktop {
+  display: block;
+}
+
+/* Mobile ad - 기본적으로 숨김 */
+.kakao-ad-mobile {
+  display: none;
+}
+
+/* 768px 이하: Desktop 숨기고 Mobile 표시 */
+@media (max-width: 768px) {
+  .kakao-ad-container {
+    max-width: 100%;
+    margin: 0 auto 16px auto;
+  }
+
+  .kakao-ad-desktop {
+    display: none;
+  }
+
+  .kakao-ad-mobile {
+    display: block;
+  }
+}
+
+@media (max-width: 480px) {
+  .kakao-ad-container {
+    margin: 0 auto 12px auto;
+  }
 }
 
 footer {

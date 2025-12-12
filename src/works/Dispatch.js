@@ -7,8 +7,13 @@ export default function Dispatch() {
   const navigate = useNavigate();
 
   const [isMobile, setIsMobile] = useState(false);
-  const [authUser, setAuthUser] = useState(false);
-  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
 
   useEffect(() => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -21,29 +26,16 @@ export default function Dispatch() {
     setTimeout(() => {
       // 처음 컴포넌트가 마운트될 때 체크
       if (isMobile) {
-        setAuthUser('m');
+        // mobile 환경
       } else {
         if (!window.sessionStorage.getItem('extensionLogin')) {
           alert('로그인이 필요한 서비스입니다.');
           navigate('/works');
           return;
         }
-        setAuthUser(window.sessionStorage.getItem('extensionLogin'));
       }
-      setLoading(false);
     }, 1000);
-  }, [isMobile]);
-
-  useEffect(() => {
-    if (!authUser) {
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
-    script.async = true;
-    document.body.appendChild(script);
-  });
+  }, [isMobile, navigate]);
 
   const onMoveMonitor = () => {
     // alert('서비스 준비중..\n조금만 기다려주세요.');
@@ -180,6 +172,7 @@ export default function Dispatch() {
         </section>
         <section>
           <iframe
+            title="Coupang Ads"
             src="https://ads-partners.coupang.com/widgets.html?id=750727&template=carousel&trackingCode=AF6973392&subId=&width=380&height=50&tsource="
             width="650"
             height="100"
@@ -198,15 +191,7 @@ export default function Dispatch() {
             zIndex: 1000, // 다른 요소 위에 배치
             backgroundColor: '#fff', // 배경색 (필요에 따라 설정)
           }}
-        >
-          <ins
-            className="kakao_ad_area"
-            style={{ display: 'none' }}
-            data-ad-unit="DAN-a0gNzc8RTnvzuTRI"
-            data-ad-width="320"
-            data-ad-height="100"
-          ></ins>
-        </section>
+        ></section>
       </main>
     </>
   );
