@@ -203,7 +203,7 @@ export default function Calendar() {
                 <button className="btnCreateSch" onClick={onCreateSch}>
                   일정 만들기
                 </button>
-                <div
+                {/* <div
                   className="bottom-div-kakao-mobile"
                   style={{ justifyContent: 'center', margin: '0 auto' }}
                 >
@@ -213,7 +213,7 @@ export default function Calendar() {
                     data-ad-width="320"
                     data-ad-height="50"
                   ></ins>
-                </div>
+                </div> */}
                 <article>
                   <aside>
                     <p>캘린더구분</p>
@@ -273,7 +273,7 @@ export default function Calendar() {
                   <ins
                     className="kakao_ad_area"
                     style={{ display: 'none', height: '100%' }}
-                    data-ad-unit="DAN-KFAgVR67t4pdc1WC"
+                    data-ad-unit="DAN-vDPJxStOywYqmdm0"
                     data-ad-width="160"
                     data-ad-height="600"
                   ></ins>
