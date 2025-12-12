@@ -15,7 +15,7 @@ import ExpenseManagement from './works/expense/ExpenseManagement';
 import SpecialItems from './works/expense/SpecialItems';
 import ExpenseSummary from './works/expense/ExpenseSummary';
 import Wordle from './games/wordle/Wordle';
-// import Tetris from './games/tetris/Tetris';
+import Tetris from './games/tetris/Tetris';
 import Feed from './feed/index';
 import Calendar from './works/Calendar';
 
@@ -52,7 +52,7 @@ function App() {
           ></Route>
           {/* <Route path="/works/dispatch/:id" element={<Dispatch />}></Route> */}
           <Route path="/games/wordle" element={<Wordle />}></Route>
-          {/* <Route path="/games/tetris" element={<Tetris />}></Route> */}
+          <Route path="/games/tetris" element={<Tetris />}></Route>
           <Route path="/feed" element={<Feed />}></Route>
         </Routes>
       </BrowserRouter>
