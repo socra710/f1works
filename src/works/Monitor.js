@@ -37,7 +37,12 @@ export default function Monitor() {
         setAuthUser(window.sessionStorage.getItem('extensionLogin'));
       }
       setLoading(false);
-    }, 1000);
+
+      const script = document.createElement('script');
+      script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }, 500);
   }, [isMobile, navigate]);
 
   // 아래 함수 선언 이후에 이벤트 바인딩 useEffect를 배치하여
@@ -275,7 +280,7 @@ export default function Monitor() {
           })
         );
       });
-  }, [authUser, API_BASE_URL, onModifyForm]);
+  }, [authUser, API_BASE_URL]);
 
   const [useDateFrom, setUseDateFrom] = useState('');
   const [useDateTo, setUseDateTo] = useState('');
@@ -294,11 +299,6 @@ export default function Monitor() {
     if (!authUser) {
       return;
     }
-
-    const script = document.createElement('script');
-    script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
-    script.async = true;
-    document.body.appendChild(script);
 
     var openDispatch = document.querySelector('#openDispatch');
     openDispatch.addEventListener('click', function (event) {
@@ -553,7 +553,7 @@ export default function Monitor() {
     });
 
     onViewDispatch();
-  }, [authUser, API_BASE_URL, onSetDefault, onViewDispatch]);
+  }, [authUser, API_BASE_URL]);
 
   return (
     <>
@@ -600,7 +600,7 @@ export default function Monitor() {
               >
                 <ins
                   className="kakao_ad_area"
-                  data-ad-unit="DAN-pZmlN1MItQ7KYhKe"
+                  data-ad-unit="DAN-rcLaDXdMxv9mHsky"
                   data-ad-width="728"
                   data-ad-height="90"
                 ></ins>
@@ -620,7 +620,7 @@ export default function Monitor() {
               >
                 <ins
                   className="kakao_ad_area"
-                  data-ad-unit="DAN-SbkOGtj1vmVCDoVX"
+                  data-ad-unit="DAN-F48lGg5Zh7muOpDY"
                   data-ad-width="320"
                   data-ad-height="50"
                 ></ins>

@@ -1,4 +1,4 @@
-﻿import './index.css';
+import './index.css';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -31,6 +31,13 @@ export default function Works() {
   });
   const fetchedInsightsRef = useRef(false); // React.StrictMode 중복 호출 방지
   const adminCheckRef = useRef(false); // React.StrictMode 중복 호출 방지
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
 
   useEffect(() => {
     if (fetchedInsightsRef.current) return; // React.StrictMode 중복 호출 방지
@@ -233,6 +240,12 @@ export default function Works() {
 
   const notices = [
     {
+      date: '2025.12.12',
+      title: '카카오 광고 게재 안내',
+      content:
+        '포털과 콘텐츠에 카카오 광고가 게재됩니다.\n수익은 거의 없으니 불편하게 보지 말아주세요 😅\n운영자 개인 실험용이며, 요청 시 수익 현황 투명하게 공개 가능합니다.\n(커피값도 안 나와요 ㅠㅠ)',
+    },
+    {
       date: '2025.12.11',
       title: 'F1Works 확장 프로그램 다운로드',
       content: 'F1Works 확장 프로그램을 설치하여 더 편리하게 사용하세요',
@@ -287,8 +300,15 @@ export default function Works() {
       {/* Features Grid */}
       <section className="features-section">
         <div className="section-header">
-          <h2>모든 서비스</h2>
-          <p>필요한 기능을 선택하여 바로 이동하세요</p>
+          {/* Mobile Ad (320x50) */}
+          <div className="kakao-ad-mobile">
+            <ins
+              className="kakao_ad_area"
+              data-ad-unit="DAN-7QuGrRryqcxW0vSl"
+              data-ad-width="320"
+              data-ad-height="50"
+            ></ins>
+          </div>
         </div>
 
         {checked ? (
@@ -317,6 +337,19 @@ export default function Works() {
 
       {/* Updates and Notices */}
       <section className="info-section">
+        {/* Kakao Ad */}
+        <div className="kakao-ad-container">
+          {/* Desktop Ad (728x90) */}
+          <div className="kakao-ad-desktop">
+            <ins
+              className="kakao_ad_area"
+              data-ad-unit="DAN-lEKg1XIxGnp97OrH"
+              data-ad-width="728"
+              data-ad-height="90"
+            ></ins>
+          </div>
+        </div>
+
         {/* <div className="section-header">
           <h2>🎉 재미로 보는 인사이트</h2>
         </div> */}
@@ -533,7 +566,7 @@ export default function Works() {
                   <div className="info-date">{notice.date}</div>
                   <div className="info-content">
                     <h4>{notice.title}</h4>
-                    <p>{notice.content}</p>
+                    <p style={{ whiteSpace: 'pre-line' }}>{notice.content}</p>
                   </div>
                 </div>
               ))}
