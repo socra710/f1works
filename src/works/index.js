@@ -11,7 +11,7 @@ import {
 export default function Works() {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [checked, setChecked] = useState(false); // 관리자 확인 완료 여부
+  const [checked, setChecked] = useState(false);
   const [loadingInsights, setLoadingInsights] = useState(true);
   const [insights, setInsights] = useState({
     attendance: [
@@ -29,8 +29,10 @@ export default function Works() {
       { rank: 5, name: '데이터가 존재하지 않습니다', department: '', count: 0 },
     ],
   });
-  const fetchedInsightsRef = useRef(false); // React.StrictMode 중복 호출 방지
-  const adminCheckRef = useRef(false); // React.StrictMode 중복 호출 방지
+  const fetchedInsightsRef = useRef(false);
+  const adminCheckRef = useRef(false);
+  const [expandedCategories, setExpandedCategories] = useState({});
+  const [selectedTab, setSelectedTab] = useState('업무');
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -40,25 +42,16 @@ export default function Works() {
   }, []);
 
   useEffect(() => {
-    if (fetchedInsightsRef.current) return; // React.StrictMode 중복 호출 방지
+    if (fetchedInsightsRef.current) return;
     fetchedInsightsRef.current = true;
 
-    // 인사이트 데이터 가져오기
     const fetchInsights = async () => {
       setLoadingInsights(true);
       try {
         const factoryCode = '000001';
-
-        // 근태왕 데이터 가져오기
         const attendanceData = await getAttendanceRanking(factoryCode);
-
-        // 배차왕 데이터 가져오기
         const dispatchData = await getDispatchRanking(factoryCode);
-
-        setInsights({
-          attendance: attendanceData,
-          dispatch: dispatchData,
-        });
+        setInsights({ attendance: attendanceData, dispatch: dispatchData });
       } catch (error) {
         console.error('인사이트 데이터 로드 실패:', error);
       } finally {
@@ -70,32 +63,24 @@ export default function Works() {
   }, []);
 
   useEffect(() => {
-    // 페이지 진입시 관리자 권한 확인
-    // StrictMode에서도 한 번만 API 호출되도록 타이머 내부에서 가드
     const timer = setTimeout(async () => {
       if (adminCheckRef.current) return;
       adminCheckRef.current = true;
 
       try {
-        // localStorage에서 userId 가져오기 (로그인 시 저장된 정보)
         let userId = null;
-
-        // 다양한 형식으로 저장된 userId 시도
         const extensionLogin =
           localStorage.getItem('extensionLogin') ||
           sessionStorage.getItem('extensionLogin');
 
         if (extensionLogin) {
           try {
-            // Base64 디코딩 시도
             userId = atob(extensionLogin);
           } catch (e) {
-            // 디코딩 실패시 원본 사용
             userId = extensionLogin;
           }
         }
 
-        // 다른 저장소 확인
         if (!userId) {
           userId =
             localStorage.getItem('userId') || sessionStorage.getItem('userId');
@@ -110,19 +95,23 @@ export default function Works() {
             setIsAdmin(false);
           }
         } else {
-          console.log('[Works] userId를 찾을 수 없습니다');
           setIsAdmin(false);
         }
       } catch (error) {
         console.error('[Works] Admin check failed:', error);
         setIsAdmin(false);
       } finally {
-        setChecked(true); // 관리자 확인 완료
+        setChecked(true);
       }
     }, 500);
 
     return () => clearTimeout(timer);
   }, []);
+
+  const categoryOrder = useMemo(
+    () => ['업무', '관리', '게임', '메뉴', '뉴스'],
+    []
+  );
 
   const allFeatures = useMemo(
     () => [
@@ -179,6 +168,13 @@ export default function Works() {
         category: '게임',
       },
       {
+        title: '테트리스',
+        description: '블록을 쌓아 라인을 지우는 클래식 게임',
+        icon: '🎮',
+        path: '/games/tetris',
+        category: '게임',
+      },
+      {
         title: '오늘의 메뉴',
         description: '소담뷔페 오늘의 메뉴를 확인하세요',
         icon: '🍽️',
@@ -196,7 +192,6 @@ export default function Works() {
     []
   );
 
-  // 관리자 권한에 따라 features 필터링
   const filteredFeatures = useMemo(
     () =>
       allFeatures.filter((feature) => {
@@ -207,6 +202,27 @@ export default function Works() {
       }),
     [allFeatures, isAdmin]
   );
+
+  const categoriesWithItems = useMemo(
+    () =>
+      categoryOrder
+        .map((cat) => ({
+          category: cat,
+          items: filteredFeatures.filter((f) => f.category === cat),
+        }))
+        .filter((g) => g.items.length > 0),
+    [categoryOrder, filteredFeatures]
+  );
+
+  useEffect(() => {
+    if (!categoriesWithItems.length) return;
+    const hasSelected = categoriesWithItems.some(
+      (cat) => cat.category === selectedTab
+    );
+    if (!hasSelected) {
+      setSelectedTab(categoriesWithItems[0].category);
+    }
+  }, [categoriesWithItems, selectedTab]);
 
   const updates = [
     {
@@ -243,7 +259,7 @@ export default function Works() {
       date: '2025.12.12',
       title: '카카오 광고 게재 안내',
       content:
-        '포털과 콘텐츠에 카카오 광고가 게재됩니다.\n수익은 거의 없으니 불편하게 보지 말아주세요 😅\n운영자 개인 실험용이며, 요청 시 수익 현황 투명하게 공개 가능합니다.\n(커피값도 안 나와요 ㅠㅠ)',
+        '포털과 콘텐츠에 카카오 광고가 게재됩니다.\n수익은 거의 없으니 불편하게 보지 말아주세요 😅\n운영자 개인 실험용이며, 요청 시 수익 현황 투명하게 공개 가능합니다.\n(커피값도 안 나와요 ㅠㅠ) 🙏🏻🙏🏻',
     },
     {
       date: '2025.12.11',
@@ -265,6 +281,95 @@ export default function Works() {
       return;
     }
     navigate(path);
+  };
+
+  const renderFeatures = () => {
+    if (!categoriesWithItems.length) return null;
+
+    const activeCategory =
+      categoriesWithItems.find((cat) => cat.category === selectedTab) ||
+      categoriesWithItems[0];
+
+    const isExpanded = expandedCategories[activeCategory.category] !== false;
+    const visibleItems = isExpanded ? activeCategory.items : [];
+
+    const toggleCategory = () =>
+      setExpandedCategories((prev) => ({
+        ...prev,
+        [activeCategory.category]: !isExpanded,
+      }));
+
+    return (
+      <div>
+        <div
+          className="tab-bar"
+          style={{
+            display: 'flex',
+            gap: 8,
+            // marginBottom: 12,
+            overflowX: 'auto',
+          }}
+        >
+          {categoriesWithItems.map((cat) => {
+            const isActive = cat.category === activeCategory.category;
+            return (
+              <button
+                key={cat.category}
+                onClick={() => setSelectedTab(cat.category)}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: 10,
+                  border: isActive ? '2px solid #4a5568' : '1px solid #e2e8f0',
+                  background: isActive ? '#4a5568' : '#fff',
+                  color: isActive ? '#fff' : '#4a5568',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {cat.category}
+              </button>
+            );
+          })}
+        </div>
+
+        <div>
+          <div
+            className="section-header"
+            onClick={toggleCategory}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleCategory();
+              }
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+            }}
+          ></div>
+
+          <div className="features-grid">
+            {visibleItems.map((feature, index) => (
+              <div
+                key={`${activeCategory.category}-${index}`}
+                className="feature-card"
+                onClick={() => handleNavigate(feature.path)}
+              >
+                <div className="feature-category">{feature.category}</div>
+                <h3 className="feature-title">{feature.title}</h3>
+                <p className="feature-description">{feature.description}</p>
+                <div className="feature-arrow">→</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -299,60 +404,38 @@ export default function Works() {
 
       {/* Features Grid */}
       <section className="features-section">
-        <div className="section-header">
-          {/* Mobile Ad (320x50) */}
-          <div className="kakao-ad-mobile">
-            <ins
-              className="kakao_ad_area"
-              data-ad-unit="DAN-7QuGrRryqcxW0vSl"
-              data-ad-width="320"
-              data-ad-height="50"
-            ></ins>
-          </div>
+        {/* Mobile Ad (320x50) */}
+        <div className="kakao-ad-mobile">
+          <ins
+            className="kakao_ad_area"
+            data-ad-unit="DAN-7QuGrRryqcxW0vSl"
+            data-ad-width="320"
+            data-ad-height="50"
+          ></ins>
         </div>
 
         {checked ? (
-          <div className="features-grid">
-            {filteredFeatures.map((feature, index) => (
-              <div
-                key={index}
-                className="feature-card"
-                onClick={() => handleNavigate(feature.path)}
-              >
-                <div className="feature-category">{feature.category}</div>
-                <h3 className="feature-title">{feature.title}</h3>
-                <p className="feature-description">{feature.description}</p>
-                <div className="feature-arrow">→</div>
-              </div>
-            ))}
-          </div>
+          renderFeatures()
         ) : (
           <div className="skeleton-grid">
-            {[...Array(9)].map((_, index) => (
+            {[...Array(8)].map((_, index) => (
               <div key={index} className="skeleton-card" />
             ))}
           </div>
         )}
       </section>
 
+      {/* Desktop Ad (728x90) */}
+      <div className="kakao-ad-desktop">
+        <ins
+          className="kakao_ad_area"
+          data-ad-unit="DAN-lEKg1XIxGnp97OrH"
+          data-ad-width="728"
+          data-ad-height="90"
+        ></ins>
+      </div>
       {/* Updates and Notices */}
       <section className="info-section">
-        {/* Kakao Ad */}
-        <div className="kakao-ad-container">
-          {/* Desktop Ad (728x90) */}
-          <div className="kakao-ad-desktop">
-            <ins
-              className="kakao_ad_area"
-              data-ad-unit="DAN-lEKg1XIxGnp97OrH"
-              data-ad-width="728"
-              data-ad-height="90"
-            ></ins>
-          </div>
-        </div>
-
-        {/* <div className="section-header">
-          <h2>🎉 재미로 보는 인사이트</h2>
-        </div> */}
         <div className="info-grid info-grid-main">
           {/* Fun Insights */}
           <div className="info-card insights-card">
@@ -388,7 +471,6 @@ export default function Works() {
                     </div>
                   ) : (
                     <div className="king-ranking">
-                      {/* 1위 - 왼쪽 큰 영역 */}
                       <div className="king-first">
                         <div className="king-rank-number">1위</div>
                         {insights.attendance[0]?.name !==
@@ -406,7 +488,6 @@ export default function Works() {
                         </div>
                       </div>
 
-                      {/* 2-5위 - 오른쪽 세로 목록 */}
                       <div className="king-others">
                         {insights.attendance.slice(1, 5).map((user, index) => (
                           <div key={index} className="king-other-item">
@@ -474,7 +555,6 @@ export default function Works() {
                     </div>
                   ) : (
                     <div className="king-ranking">
-                      {/* 1위 - 왼쪽 큰 영역 */}
                       <div className="king-first">
                         <div className="king-rank-number">1위</div>
                         {insights.dispatch[0]?.name !==
@@ -492,7 +572,6 @@ export default function Works() {
                         </div>
                       </div>
 
-                      {/* 2-5위 - 오른쪽 세로 목록 */}
                       <div className="king-others">
                         {insights.dispatch.slice(1, 5).map((user, index) => (
                           <div key={index} className="king-other-item">
@@ -528,7 +607,6 @@ export default function Works() {
         </div>
 
         <div className="info-grid info-grid-secondary">
-          {/* Recent Updates */}
           <div className="info-card updates-card">
             <div className="info-card-header">
               <h3>📢 최근 업데이트</h3>
@@ -546,7 +624,6 @@ export default function Works() {
             </div>
           </div>
 
-          {/* Notices */}
           <div className="info-card notices-card">
             <div className="info-card-header">
               <h3>📌 공지사항</h3>
@@ -559,9 +636,7 @@ export default function Works() {
                   onClick={() =>
                     notice.isLink && window.open(notice.link, '_blank')
                   }
-                  style={{
-                    cursor: notice.isLink ? 'pointer' : 'default',
-                  }}
+                  style={{ cursor: notice.isLink ? 'pointer' : 'default' }}
                 >
                   <div className="info-date">{notice.date}</div>
                   <div className="info-content">
@@ -575,14 +650,8 @@ export default function Works() {
         </div>
       </section>
 
-      {/* Quick Info Section */}
       <section className="quick-info-section">
         <div className="quick-info-grid">
-          {/* <div className="quick-info-card">
-            <div className="quick-info-icon">💡</div>
-            <h4>퀵링크 기능</h4>
-            <p>웹사이트 정보를 팀원들과 손쉽게 공유하세요</p>
-          </div> */}
           <div className="quick-info-card">
             <div className="quick-info-icon">🔔</div>
             <h4>실시간 알림</h4>
@@ -596,7 +665,6 @@ export default function Works() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="works-footer">
         <p>© 2025 F1Works는 직원들의 업무 효율성 향상을 위해 만들어졌습니다.</p>
       </footer>
