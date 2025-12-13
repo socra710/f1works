@@ -6,6 +6,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 const Tetris = () => {
   const canvasRef = useRef(null);
+  const nextPieceCanvasRef = useRef(null);
   const [gameStarted, setGameStarted] = useState(false);
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
@@ -16,16 +17,20 @@ const Tetris = () => {
   const [playerName, setPlayerName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [userId, setUserId] = useState(''); // 사용자 ID (sessionStorage에서 받음)
+  const [nextPiece, setNextPiece] = useState(null); // 다음 블록 미리보기용
   const gameStateRef = useRef({
     board: [],
     currentPiece: null,
     nextPiece: null,
     score: 0,
     gameRunning: false,
-    dropSpeed: 500,
+    dropSpeed: 800,
     dropInterval: null,
     gameStartTime: null,
-    lastSpeedIncrease: 0,
+    lastSpeedIncrease: 1,
+    grayLineActive: false, // 회색 블록 활성화
+    grayLineRow: -1, // 회색 블록이 있는 행
+    grayLineInterval: null, // 회색 블록 전용 인터벌
   });
 
   const COLS = 10;
@@ -497,7 +502,15 @@ const Tetris = () => {
   };
 
   const clearLines = (board) => {
-    let newBoard = board.filter((row) => row.some((cell) => !cell));
+    // 회색 블록(#808080)을 제외하고 완전히 채워진 줄만 제거
+    let newBoard = board.filter((row) => {
+      // 빈 칸이 있으면 유지
+      if (row.some((cell) => !cell)) return true;
+      // 모두 회색 블록이면 유지
+      if (row.every((cell) => cell === '#808080')) return true;
+      // 회색 블록이 아닌 블록으로 완전히 채워진 줄만 제거
+      return false;
+    });
     const linesCleared = board.length - newBoard.length;
     newBoard.unshift(
       ...Array(linesCleared)
@@ -556,11 +569,78 @@ const Tetris = () => {
     }
   };
 
+  // 다음 블록 미리보기 렌더링
+  const drawNextPiece = (piece) => {
+    const canvas = nextPieceCanvasRef.current;
+    if (!canvas || !piece) return;
+
+    const ctx = canvas.getContext('2d');
+    const previewBlockSize = 20;
+    
+    // 배경 초기화
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 블록의 실제 크기 계산
+    const shape = piece.shape;
+    let minX = 4, maxX = 0, minY = 4, maxY = 0;
+    for (let y = 0; y < shape.length; y++) {
+      for (let x = 0; x < shape[y].length; x++) {
+        if (shape[y][x]) {
+          minX = Math.min(minX, x);
+          maxX = Math.max(maxX, x);
+          minY = Math.min(minY, y);
+          maxY = Math.max(maxY, y);
+        }
+      }
+    }
+
+    const pieceWidth = (maxX - minX + 1) * previewBlockSize;
+    const pieceHeight = (maxY - minY + 1) * previewBlockSize;
+    const offsetX = (canvas.width - pieceWidth) / 2 - minX * previewBlockSize;
+    const offsetY = (canvas.height - pieceHeight) / 2 - minY * previewBlockSize;
+
+    // 블록 그리기
+    ctx.fillStyle = piece.color;
+    for (let y = 0; y < shape.length; y++) {
+      for (let x = 0; x < shape[y].length; x++) {
+        if (shape[y][x]) {
+          ctx.fillRect(
+            offsetX + x * previewBlockSize,
+            offsetY + y * previewBlockSize,
+            previewBlockSize - 1,
+            previewBlockSize - 1
+          );
+        }
+      }
+    }
+  };
+
+  // 맨 아래에 회색 블록 한 줄을 추가하고 모든 블록을 위로 밀어올림
+  const addGrayLineAtCurrentLevel = () => {
+    const gameState = gameStateRef.current;
+    
+    // 모든 행을 한 칸씩 위로 이동 (맨 위 줄은 제거됨)
+    const newBoard = gameState.board.slice(1);
+    
+    // 맨 아래에 회색 블록 한 줄 추가
+    const grayLine = Array(COLS).fill('#808080');
+    newBoard.push(grayLine);
+    
+    gameState.board = newBoard;
+    drawBoard(gameState.board, gameState.currentPiece);
+  };
+
   const dropPiece = () => {
     const gameState = gameStateRef.current;
 
     if (!gameState.currentPiece) {
       gameState.currentPiece = getRandomPiece();
+      // 다음 블록도 미리 생성
+      if (!gameState.nextPiece) {
+        gameState.nextPiece = getRandomPiece();
+        setNextPiece(gameState.nextPiece);
+      }
     }
 
     if (canMove(gameState.currentPiece, gameState.board, 0, 1)) {
@@ -585,7 +665,10 @@ const Tetris = () => {
         setScore(gameState.score);
       }
 
-      gameState.currentPiece = getRandomPiece();
+      // 다음 블록을 현재 블록으로, 새로운 다음 블록 생성
+      gameState.currentPiece = gameState.nextPiece;
+      gameState.nextPiece = getRandomPiece();
+      setNextPiece(gameState.nextPiece);
 
       if (!canMove(gameState.currentPiece, gameState.board, 0, 0)) {
         gameState.gameRunning = false;
@@ -596,23 +679,27 @@ const Tetris = () => {
       }
     }
 
-    drawBoard(gameState.board, gameState.currentPiece);
+    drawBoard(gameState.board, gameState.currentPiece, gameState.grayLineY);
   };
 
   const startGame = () => {
     const gameState = gameStateRef.current;
     gameState.board = initBoard();
     gameState.currentPiece = getRandomPiece();
+    gameState.nextPiece = getRandomPiece();
     gameState.score = 0;
     gameState.gameRunning = true;
-    gameState.dropSpeed = 500;
+    gameState.dropSpeed = 800;
     gameState.gameStartTime = Date.now();
-    gameState.lastSpeedIncrease = 0;
+    gameState.lastSpeedIncrease = 1;
+    gameState.grayLineActive = false; // 회색 블록 비활성화
+    gameState.grayLineRow = -1; // 회색 블록 행 초기화
     setScore(0);
     setGameOver(false);
     setGameStarted(true);
     setTimeLeft(300);
     setLevel(1);
+    setNextPiece(gameState.nextPiece);
 
     drawBoard(gameState.board, gameState.currentPiece);
 
@@ -668,6 +755,7 @@ const Tetris = () => {
         return;
     }
 
+    // 키 입력 시 즉시 화면에 반영
     if (shouldDraw) {
       drawBoard(gameState.board, gameState.currentPiece);
     }
@@ -679,6 +767,13 @@ const Tetris = () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
   }, [gameStarted, gameOver]);
+
+  // 다음 블록 미리보기 렌더링
+  useEffect(() => {
+    if (nextPiece) {
+      drawNextPiece(nextPiece);
+    }
+  }, [nextPiece]);
 
   // 타이머 및 속도 증가 효과
   useEffect(() => {
@@ -693,18 +788,36 @@ const Tetris = () => {
 
       setTimeLeft(remaining);
 
-      // 1분(60초)마다 속도 증가
+      // 1분(60초)마다 속도 증가 및 회색 블록 시작
       const newLevel = Math.floor(elapsedSeconds / 60) + 1;
-      // 레벨이 증가했을 때만 속도 갱신
+      // 레벨이 증가했을 때만 속도 갱신 및 회색 블록 추가
       if (newLevel > gameState.lastSpeedIncrease) {
         gameState.lastSpeedIncrease = newLevel;
-        // 더 공격적인 속도 증가: 분당 150ms 감소, 최소 60ms
-        gameState.dropSpeed = Math.max(60, 500 - (newLevel - 1) * 150);
+        // 완만한 속도 증가: 분당 50ms 감소, 최소 100ms
+        gameState.dropSpeed = Math.max(100, 800 - (newLevel - 1) * 50);
 
         // 새로운 속도로 드롭 인터벌 재설정
         clearInterval(gameState.dropInterval);
         gameState.dropInterval = setInterval(dropPiece, gameState.dropSpeed);
         setLevel(newLevel);
+
+        // 남은 시간에 따라 회색 블록 개수 결정
+        // 1분 경과(4분 남음): 1줄, 2분(3분 남음): 2줄, 3분(2분 남음): 3줄, 4분(1분 남음): 4줄
+        let grayLineCount = 1;
+        if (remaining <= 60) {
+          grayLineCount = 4; // 4분 경과 (1분 남음)
+        } else if (remaining <= 120) {
+          grayLineCount = 3; // 3분 경과 (2분 남음)
+        } else if (remaining <= 180) {
+          grayLineCount = 2; // 2분 경과 (3분 남음)
+        } else {
+          grayLineCount = 1; // 1분 경과 (4분 남음)
+        }
+
+        // 회색 블록을 지정된 개수만큼 추가
+        for (let i = 0; i < grayLineCount; i++) {
+          addGrayLineAtCurrentLevel();
+        }
       }
 
       // 시간 종료
@@ -749,6 +862,15 @@ const Tetris = () => {
         </div>
         <section className="tetris-content">
           <div className="tetris-board-wrap">
+            <div className="next-piece-preview">
+              <div className="preview-label">다음 블록</div>
+              <canvas
+                ref={nextPieceCanvasRef}
+                width={80}
+                height={80}
+                className="next-piece-canvas"
+              />
+            </div>
             <canvas
               ref={canvasRef}
               width={COLS * BLOCK_SIZE}
