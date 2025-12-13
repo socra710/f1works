@@ -1,7 +1,12 @@
+.tetris-main {
+  background-color: #000;
+  min-height: 100vh;
+}
+
 .msg {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: 49%;
   transform: translate(-50%, -50%);
   width: 100%;
   height: 100%;
@@ -44,15 +49,6 @@
   color: #000;
 }
 
-.tetris-main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #1a1a1a;
-  color: #fff;
-  min-height: 100vh;
-}
-
 .tetris-header {
   width: 100%;
   background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
@@ -64,16 +60,16 @@
   overflow: hidden;
 }
 
-header::before {
+/* header::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 1px;
-  /* background: linear-gradient(90deg, transparent, #a01b1b, transparent); */
+  background: linear-gradient(90deg, transparent, #a01b1b, transparent);
   opacity: 0.5;
-}
+} */
 
 .header-container {
   display: flex;
@@ -274,6 +270,7 @@ header::before {
   text-align: center;
   min-height: 600px;
   background-color: #000;
+  padding-bottom: 0;
 }
 
 .tetris-board-wrap {
@@ -282,10 +279,17 @@ header::before {
   vertical-align: top;
 }
 
-.next-piece-preview {
+.tetris-next-stack {
   position: absolute;
-  /* top: 10px; */
   right: -130px;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.next-piece-preview {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -315,6 +319,21 @@ header::before {
   background-color: #000;
   border: 1px solid #333;
   border-radius: 4px;
+}
+
+.tetris-ad {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+  z-index: 100;
+  background-color: transparent;
+}
+
+.tetris-ad ins.kakao_ad_area {
+  display: block !important;
+  position: relative !important;
+  z-index: 101 !important;
 }
 
 .tetris-board {
@@ -373,6 +392,7 @@ header::before {
 }
 .score-row .name {
   /* flex: 1; */
+  color: #bbb;
   text-align: left;
   padding-left: 8px;
   min-width: 80px;

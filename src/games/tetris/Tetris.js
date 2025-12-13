@@ -41,6 +41,16 @@ const Tetris = () => {
   const ROWS = 20;
   const BLOCK_SIZE = 35;
 
+  useEffect(() => {
+    setTimeout(() => {
+      
+    const script = document.createElement('script');
+    script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
+    script.async = true;
+    document.body.appendChild(script);
+    }, 500);
+  }, []);
+
   // 오리지널 테트리스 회전 시스템 (SRS)
   const TETRIS_PIECES = [
     {
@@ -283,10 +293,10 @@ const Tetris = () => {
   // 게임 종료 시 닉네임 모달 표시
   useEffect(() => {
     if (!gameOver || score <= 0) {
-      console.log('모달 표시 안함:', { gameOver, score });
+      // console.log('모달 표시 안함:', { gameOver, score });
       return;
     }
-    console.log('모달 표시:', { gameOver, score });
+    // console.log('모달 표시:', { gameOver, score });
     setShowNameModal(true);
   }, [gameOver, score]);
 
@@ -926,14 +936,25 @@ const Tetris = () => {
         </div>
         <section className="tetris-content">
           <div className="tetris-board-wrap">
-            <div className="next-piece-preview">
-              <div className="preview-label">다음 블록</div>
-              <canvas
-                ref={nextPieceCanvasRef}
-                width={80}
-                height={80}
-                className="next-piece-canvas"
-              />
+            <div className="tetris-next-stack">
+              <div className="next-piece-preview">
+                <div className="preview-label">다음 블록</div>
+                <canvas
+                  ref={nextPieceCanvasRef}
+                  width={80}
+                  height={80}
+                  className="next-piece-canvas"
+                />
+              </div>
+              <div className="tetris-ad">
+                <ins
+                  className="kakao_ad_area"
+                  style={{ display: 'none' }}
+                  data-ad-unit="DAN-OsuvBWYzUobzL8DU"
+                  data-ad-width="160"
+                  data-ad-height="600"
+                />
+              </div>
             </div>
             <canvas
               ref={canvasRef}
