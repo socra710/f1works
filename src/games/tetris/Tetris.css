@@ -620,6 +620,10 @@ header::before {
   transform: none;
 }
 
+.tetris-modal-limit {
+  width: 300px
+}
+
 /* Responsive (modal) */
 @media (max-width: 900px) {
   .tetris-modal {
