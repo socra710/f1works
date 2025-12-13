@@ -1,7 +1,12 @@
+.tetris-main {
+  background-color: #000;
+  min-height: 100vh;
+}
+
 .msg {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: 49%;
   transform: translate(-50%, -50%);
   width: 100%;
   height: 100%;
@@ -44,15 +49,6 @@
   color: #000;
 }
 
-.tetris-main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #1a1a1a;
-  color: #fff;
-  min-height: 100vh;
-}
-
 .tetris-header {
   width: 100%;
   background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
@@ -64,16 +60,16 @@
   overflow: hidden;
 }
 
-header::before {
+/* header::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 1px;
-  /* background: linear-gradient(90deg, transparent, #a01b1b, transparent); */
+  background: linear-gradient(90deg, transparent, #a01b1b, transparent);
   opacity: 0.5;
-}
+} */
 
 .header-container {
   display: flex;
@@ -274,6 +270,7 @@ header::before {
   text-align: center;
   min-height: 600px;
   background-color: #000;
+  padding-bottom: 0;
 }
 
 .tetris-board-wrap {
@@ -282,10 +279,17 @@ header::before {
   vertical-align: top;
 }
 
-.next-piece-preview {
+.tetris-next-stack {
   position: absolute;
-  /* top: 10px; */
-  right: -130px;
+  right: -180px;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  /* align-items: center; */
+  gap: 8px;
+}
+
+.next-piece-preview {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -303,7 +307,7 @@ header::before {
 }
 
 .preview-label {
-  font-size: 0.8rem;
+  font-size: 1rem;
   color: #999;
   text-transform: uppercase;
   letter-spacing: 1.5px;
@@ -315,6 +319,21 @@ header::before {
   background-color: #000;
   border: 1px solid #333;
   border-radius: 4px;
+}
+
+.tetris-ad {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+  z-index: 100;
+  background-color: transparent;
+}
+
+.tetris-ad ins.kakao_ad_area {
+  display: block !important;
+  position: relative !important;
+  z-index: 101 !important;
 }
 
 .tetris-board {
@@ -373,6 +392,7 @@ header::before {
 }
 .score-row .name {
   /* flex: 1; */
+  color: #bbb;
   text-align: left;
   padding-left: 8px;
   min-width: 80px;
@@ -393,6 +413,64 @@ header::before {
 .panel-empty {
   color: #bbb;
   font-size: 0.95rem;
+}
+
+/* Skeleton Loader Styles */
+.skeleton-loader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background-color: #1a1a1a;
+  border: 1px solid rgba(160, 27, 27, 0.3);
+  border-radius: 6px;
+}
+
+.skeleton-score-row span {
+  display: inline-block;
+  height: 16px;
+  background: linear-gradient(
+    90deg,
+    rgba(160, 27, 27, 0.1) 0%,
+    rgba(160, 27, 27, 0.2) 50%,
+    rgba(160, 27, 27, 0.1) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+.skeleton-rank {
+  width: 28px;
+}
+
+.skeleton-name {
+  min-width: 80px;
+  width: 100px;
+  margin-left: 8px;
+}
+
+.skeleton-pts {
+  width: 60px;
+}
+
+.skeleton-dt {
+  width: 80px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .game-description .panel-body {
@@ -618,6 +696,10 @@ header::before {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+}
+
+.tetris-modal-limit {
+  width: 300px
 }
 
 /* Responsive (modal) */

@@ -3,6 +3,8 @@ import React, { useState, useEffect, useRef } from 'react';
 
 // expense와 동일한 방식의 API 베이스 URL 사용
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const MAX_DAILY_SERVER_SAVES = 3;
+const DAILY_SAVE_STORAGE_KEY = 'tetrisDailyServerSaves';
 
 const Tetris = () => {
   const canvasRef = useRef(null);
@@ -13,11 +15,14 @@ const Tetris = () => {
   const [timeLeft, setTimeLeft] = useState(300); // 5분 = 300초
   const [level, setLevel] = useState(1);
   const [highScores, setHighScores] = useState([]);
+  const [isLoadingScores, setIsLoadingScores] = useState(true);
   const [showNameModal, setShowNameModal] = useState(false);
   const [playerName, setPlayerName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [userId, setUserId] = useState(''); // 사용자 ID (sessionStorage에서 받음)
   const [nextPiece, setNextPiece] = useState(null); // 다음 블록 미리보기용
+  const [saveLimitMessage, setSaveLimitMessage] = useState('');
+  const [saveAttemptsLeft, setSaveAttemptsLeft] = useState(MAX_DAILY_SERVER_SAVES);
   const gameStateRef = useRef({
     board: [],
     currentPiece: null,
@@ -36,6 +41,16 @@ const Tetris = () => {
   const COLS = 10;
   const ROWS = 20;
   const BLOCK_SIZE = 35;
+
+  useEffect(() => {
+    setTimeout(() => {
+      
+    const script = document.createElement('script');
+    script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
+    script.async = true;
+    document.body.appendChild(script);
+    }, 500);
+  }, []);
 
   // 오리지널 테트리스 회전 시스템 (SRS)
   const TETRIS_PIECES = [
@@ -233,6 +248,7 @@ const Tetris = () => {
 
   // 순위 데이터 로드 (expense와 동일 패턴: API_BASE_URL 사용)
   const fetchHighScores = async () => {
+    setIsLoadingScores(true);
     try {
       const url = `${API_BASE_URL}/jvWorksGetTetrisScores?limit=7`;
       const res = await fetch(url, {
@@ -256,6 +272,8 @@ const Tetris = () => {
     } catch (e) {
       console.error('순위 조회 실패:', e);
       setHighScores([]);
+    } finally {
+      setIsLoadingScores(false);
     }
   };
 
@@ -279,12 +297,26 @@ const Tetris = () => {
   // 게임 종료 시 닉네임 모달 표시
   useEffect(() => {
     if (!gameOver || score <= 0) {
-      console.log('모달 표시 안함:', { gameOver, score });
+      // console.log('모달 표시 안함:', { gameOver, score });
       return;
     }
-    console.log('모달 표시:', { gameOver, score });
+    // console.log('모달 표시:', { gameOver, score });
     setShowNameModal(true);
   }, [gameOver, score]);
+
+  useEffect(() => {
+    if (!showNameModal) return;
+    const info = getDailySaveInfo();
+    const remaining = Math.max(0, MAX_DAILY_SERVER_SAVES - info.count);
+    setSaveAttemptsLeft(remaining);
+    if (info.count >= MAX_DAILY_SERVER_SAVES) {
+      setSaveLimitMessage(
+        '아쉽지만 서버 점수 기록은 하루에 3번만 가능해요. 하지만 연습은 계속할 수 있어요!'
+      );
+    } else {
+      setSaveLimitMessage('');
+    }
+  }, [showNameModal]);
 
   // 서버에 점수 저장 (expense와 동일 패턴: API_BASE_URL 사용, userId 포함)
   const saveScoreToServer = async (name) => {
@@ -309,6 +341,10 @@ const Tetris = () => {
       if (data && (data.success === true || data.success === 'true')) {
         // 닉네임을 localStorage에 저장
         localStorage.setItem('tetrisPlayerName', name);
+        const info = getDailySaveInfo();
+        const updatedCount = info.date === getTodayString() ? info.count + 1 : 1;
+        setDailySaveInfo({ date: getTodayString(), count: updatedCount });
+        setSaveAttemptsLeft(Math.max(0, MAX_DAILY_SERVER_SAVES - updatedCount));
         await fetchHighScores();
       } else {
         console.error('점수 저장 실패:', data && data.message);
@@ -325,12 +361,24 @@ const Tetris = () => {
 
   const handleSaveName = () => {
     const name = playerName.trim() || '';
+    const info = getDailySaveInfo();
+    if (info.count >= MAX_DAILY_SERVER_SAVES) {
+      setSaveLimitMessage(
+        '아쉽지만 서버 점수 기록은 하루에 3번만 가능해요. 하지만 연습은 계속할 수 있어요!'
+      );
+      setSaveAttemptsLeft(0);
+      return;
+    }
+    setSaveLimitMessage('');
+    setSaveAttemptsLeft(Math.max(0, MAX_DAILY_SERVER_SAVES - info.count));
     saveScoreToServer(name);
   };
 
   const handleCancelModal = () => {
     setShowNameModal(false);
     setPlayerName('');
+    setSaveLimitMessage('');
+    setSaveAttemptsLeft(MAX_DAILY_SERVER_SAVES);
   };
 
   // 게임 종료 시 자동 저장 없음 (모달에서 API로 저장)
@@ -341,6 +389,36 @@ const Tetris = () => {
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const dd = String(d.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const getTodayString = () => formatDate(Date.now());
+
+  const getDailySaveInfo = () => {
+    try {
+      const raw = localStorage.getItem(DAILY_SAVE_STORAGE_KEY);
+      if (!raw) {
+        return { date: getTodayString(), count: 0 };
+      }
+      const parsed = JSON.parse(raw);
+      if (!parsed.date || typeof parsed.count !== 'number') {
+        return { date: getTodayString(), count: 0 };
+      }
+      if (parsed.date !== getTodayString()) {
+        return { date: getTodayString(), count: 0 };
+      }
+      return parsed;
+    } catch (e) {
+      console.error('일일 저장 정보 파싱 실패:', e);
+      return { date: getTodayString(), count: 0 };
+    }
+  };
+
+  const setDailySaveInfo = (info) => {
+    try {
+      localStorage.setItem(DAILY_SAVE_STORAGE_KEY, JSON.stringify(info));
+    } catch (e) {
+      console.error('일일 저장 정보 저장 실패:', e);
+    }
   };
 
   const initBoard = () => {
@@ -862,14 +940,24 @@ const Tetris = () => {
         </div>
         <section className="tetris-content">
           <div className="tetris-board-wrap">
-            <div className="next-piece-preview">
-              <div className="preview-label">다음 블록</div>
-              <canvas
-                ref={nextPieceCanvasRef}
-                width={80}
-                height={80}
-                className="next-piece-canvas"
-              />
+            <div className="tetris-next-stack">
+              <div className="next-piece-preview">
+                <div className="preview-label">다음 블록</div>
+                <canvas
+                  ref={nextPieceCanvasRef}
+                  width={130}
+                  height={80}
+                  className="next-piece-canvas"
+                />
+              </div>
+              <div className="tetris-ad">
+                <ins
+                  className="kakao_ad_area"
+                  data-ad-unit="DAN-OsuvBWYzUobzL8DU"
+                  data-ad-width="160"
+                  data-ad-height="600"
+                />
+              </div>
             </div>
             <canvas
               ref={canvasRef}
@@ -894,7 +982,18 @@ const Tetris = () => {
           <aside className="tetris-sidebar">
             <div className="sidebar-panel leaderboard">
               <div className="panel-title">순위</div>
-              {highScores.length === 0 ? (
+              {isLoadingScores ? (
+                <div className="skeleton-loader">
+                  {[...Array(7)].map((_, idx) => (
+                    <div key={idx} className="skeleton-score-row">
+                      <span className="skeleton-rank"></span>
+                      <span className="skeleton-name"></span>
+                      <span className="skeleton-pts"></span>
+                      <span className="skeleton-dt"></span>
+                    </div>
+                  ))}
+                </div>
+              ) : highScores.length === 0 ? (
                 <div className="panel-empty">아직 기록이 없어요.</div>
               ) : (
                 <ol className="scores-list">
@@ -961,10 +1060,18 @@ const Tetris = () => {
                     className="tetris-modal-input"
                   />
                 </div>
+                <p className="tetris-modal-remaining" style={{ color: '#555', fontSize: '0.9rem', marginTop: '6px' }}>
+                  오늘 남은 서버 점수 기록: {saveAttemptsLeft}회
+                </p>
+                {saveLimitMessage && (
+                  <p className="tetris-modal-limit" style={{ color: '#a01b1b', fontSize: '0.9rem' }}>
+                    {saveLimitMessage}
+                  </p>
+                )}
                 <div className="tetris-modal-buttons">
                   <button
                     onClick={handleSaveName}
-                    disabled={isSaving}
+                    disabled={isSaving || !!saveLimitMessage}
                     className="tetris-btn-save"
                   >
                     {isSaving ? '저장 중...' : '점수 저장 및 공유'}
