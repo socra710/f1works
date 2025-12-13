@@ -15,6 +15,7 @@ const Tetris = () => {
   const [timeLeft, setTimeLeft] = useState(300); // 5분 = 300초
   const [level, setLevel] = useState(1);
   const [highScores, setHighScores] = useState([]);
+  const [isLoadingScores, setIsLoadingScores] = useState(true);
   const [showNameModal, setShowNameModal] = useState(false);
   const [playerName, setPlayerName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -247,6 +248,7 @@ const Tetris = () => {
 
   // 순위 데이터 로드 (expense와 동일 패턴: API_BASE_URL 사용)
   const fetchHighScores = async () => {
+    setIsLoadingScores(true);
     try {
       const url = `${API_BASE_URL}/jvWorksGetTetrisScores?limit=7`;
       const res = await fetch(url, {
@@ -270,6 +272,8 @@ const Tetris = () => {
     } catch (e) {
       console.error('순위 조회 실패:', e);
       setHighScores([]);
+    } finally {
+      setIsLoadingScores(false);
     }
   };
 
@@ -941,7 +945,7 @@ const Tetris = () => {
                 <div className="preview-label">다음 블록</div>
                 <canvas
                   ref={nextPieceCanvasRef}
-                  width={80}
+                  width={130}
                   height={80}
                   className="next-piece-canvas"
                 />
@@ -949,7 +953,6 @@ const Tetris = () => {
               <div className="tetris-ad">
                 <ins
                   className="kakao_ad_area"
-                  style={{ display: 'none' }}
                   data-ad-unit="DAN-OsuvBWYzUobzL8DU"
                   data-ad-width="160"
                   data-ad-height="600"
@@ -979,7 +982,18 @@ const Tetris = () => {
           <aside className="tetris-sidebar">
             <div className="sidebar-panel leaderboard">
               <div className="panel-title">순위</div>
-              {highScores.length === 0 ? (
+              {isLoadingScores ? (
+                <div className="skeleton-loader">
+                  {[...Array(7)].map((_, idx) => (
+                    <div key={idx} className="skeleton-score-row">
+                      <span className="skeleton-rank"></span>
+                      <span className="skeleton-name"></span>
+                      <span className="skeleton-pts"></span>
+                      <span className="skeleton-dt"></span>
+                    </div>
+                  ))}
+                </div>
+              ) : highScores.length === 0 ? (
                 <div className="panel-empty">아직 기록이 없어요.</div>
               ) : (
                 <ol className="scores-list">
