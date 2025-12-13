@@ -32,7 +32,11 @@ export default function Works() {
   const fetchedInsightsRef = useRef(false);
   const adminCheckRef = useRef(false);
   const [expandedCategories, setExpandedCategories] = useState({});
-  const [selectedTab, setSelectedTab] = useState('업무');
+  const [selectedTab, setSelectedTab] = useState(() => {
+    // localStorage에서 저장된 탭 불러오기
+    const savedTab = localStorage.getItem('selectedTab');
+    return savedTab || '업무';
+  });
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -215,16 +219,22 @@ export default function Works() {
   );
 
   useEffect(() => {
-    if (!categoriesWithItems.length) return;
+    if (!checked || !categoriesWithItems.length) return;
     const hasSelected = categoriesWithItems.some(
       (cat) => cat.category === selectedTab
     );
     if (!hasSelected) {
       setSelectedTab(categoriesWithItems[0].category);
+      localStorage.setItem('selectedTab', categoriesWithItems[0].category);
     }
-  }, [categoriesWithItems, selectedTab]);
+  }, [checked, categoriesWithItems, selectedTab]);
 
   const updates = [
+    {
+      date: '2025.12.13',
+      title: '테트리스 게임 기능 출시',
+      description: '블록을 쌓아 라인을 지우는 클래식 게임으로 짧은 휴식을 즐겨보세요'
+    },
     {
       date: '2025.12.11',
       title: '재미로 보는 인사이트',
@@ -315,7 +325,11 @@ export default function Works() {
             return (
               <button
                 key={cat.category}
-                onClick={() => setSelectedTab(cat.category)}
+                onClick={() => {
+                  setSelectedTab(cat.category);
+                  // localStorage에 선택된 탭 저장
+                  localStorage.setItem('selectedTab', cat.category);
+                }}
                 style={{
                   padding: '8px 14px',
                   borderRadius: 10,
@@ -417,10 +431,17 @@ export default function Works() {
         {checked ? (
           renderFeatures()
         ) : (
-          <div className="skeleton-grid">
-            {[...Array(8)].map((_, index) => (
-              <div key={index} className="skeleton-card" />
-            ))}
+          <div>
+            <div className="skeleton-tab-bar">
+              {[...Array(5)].map((_, index) => (
+                <div key={index} className="skeleton-tab-button" />
+              ))}
+            </div>
+            <div className="skeleton-grid" style={{ marginTop: '12px' }}>
+              {[...Array(4)].map((_, index) => (
+                <div key={index} className="skeleton-card" />
+              ))}
+            </div>
           </div>
         )}
       </section>

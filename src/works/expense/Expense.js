@@ -1690,7 +1690,7 @@ export default function Expense() {
               </div>
             )}
           {/* 매니저 모드: 제출 상태에서 수정 가능, 임시저장 버튼만 표시 */}
-          {isManagerMode && status === 'SUBMITTED' && !managerChecked && (
+          {isManagerMode && (status === 'DRAFT' || status === 'SUBMITTED') && !managerChecked && (
             <div className="button-group">
               <button
                 type="button"

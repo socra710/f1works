@@ -225,23 +225,20 @@ header::before {
   text-shadow: 0 2px 8px rgba(160, 27, 27, 0.5);
 }
 
-.header-right {
+/* .header-right {
   display: flex;
   align-items: center;
   gap: 30px;
   flex: 0 0 auto;
-}
+} */
 
-section {
+.tetris-content {
   padding: 20px;
-}
-
-section.tetris-content {
   display: block;
   text-align: center;
 }
 
-section p {
+.tetris-content p {
   font-size: 1rem;
   margin-top: 20px;
   color: #ccc;
