@@ -268,11 +268,11 @@ export default function Calendar() {
                 </article>
                 <div
                   className="bottom-div-kakao-calendar"
-                  style={{ justifyContent: 'center', margin: '0 auto' }}
+                  style={{ justifyContent: 'center', margin: '0 auto', display: isMobile || innerWidth < 767 ? 'none' : 'block' }}
                 >
                   <ins
                     className="kakao_ad_area"
-                    style={{ display: 'none', height: '100%' }}
+                    style={{ height: '100%' }}
                     data-ad-unit="DAN-vDPJxStOywYqmdm0"
                     data-ad-width="160"
                     data-ad-height="600"

@@ -961,6 +961,24 @@ footer a {
   margin-bottom: 18px;
 }
 
+/* Tab Skeleton */
+.skeleton-tab-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.skeleton-tab-button {
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+  min-width: 60px;
+  height: 36px;
+  border: none;
+}
+
 @media (max-width: 768px) {
   .skeleton-grid {
     grid-template-columns: 1fr;
