@@ -250,7 +250,7 @@ const Tetris = () => {
   const fetchHighScores = async () => {
     setIsLoadingScores(true);
     try {
-      const url = `${API_BASE_URL}/jvWorksGetTetrisScores?limit=7`;
+      const url = `${API_BASE_URL}/jvWorksGetTetrisScores?limit=8`;
       const res = await fetch(url, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -1032,9 +1032,9 @@ const Tetris = () => {
               <div className="panel-title">게임 설명</div>
               <div className="panel-body">
                 <p>
-                  블록을 회전하고 이동하여 빈 칸 없이 줄을 만들면 라인이
-                  제거되고 점수를 획득합니다. 시간은 5분으로 제한되며, 1분마다
-                  블록 하강 속도가 빨라집니다.
+                  시간은 5분으로 제한되며, 1분마다 블록 하강 속도가 빨라집니다.
+                  또한, 시간이 지남에 따라 맨 아래에 회색 블록이 추가되어
+                  게임 난이도가 상승합니다.
                 </p>
                 <p className="controls-inline">
                   ←→ 이동 · ↑/Z 회전 · ↓ 빠르게 내리기 · SPACE 즉시 하강
