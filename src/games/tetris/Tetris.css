@@ -1,12 +1,29 @@
 .tetris-main {
-  background-color: #000;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a0000 50%, #0a0a0a 100%);
+  background-attachment: fixed;
   min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.tetris-main::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(139, 0, 0, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(160, 27, 27, 0.15) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .msg {
   position: absolute;
   left: 50%;
-  top: 49%;
+  top: 50%;
   transform: translate(-50%, -50%);
   width: 100%;
   height: 100%;
@@ -71,11 +88,11 @@
   opacity: 0.5;
 } */
 
-.header-container {
+.tetris-header-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
+  /* width: 100%; */
   padding: 0 20px;
   position: relative;
   z-index: 1;
@@ -349,6 +366,7 @@
 .tetris-sidebar {
   position: absolute;
   /* right: 0; */
+  left: 15%;
   top: 0;
   width: 425px;
   display: flex;
@@ -771,4 +789,121 @@
   .tetris-modal-content h2 {
     font-size: 1.6rem;
   }
+}
+/* === 공포 테트리스 이펙트 === */
+
+/* 피 튀김 파티클 */
+.blood-particle {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #ff4444, #aa0000);
+  box-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
+  opacity: 0.8;
+  filter: drop-shadow(0 0 4px rgba(255, 0, 0, 0.5));
+}
+
+@keyframes bloodSplat {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(0.3);
+    opacity: 0;
+  }
+}
+
+.blood-particle.splat {
+  animation: bloodSplat 0.8s ease-out forwards;
+}
+
+/* 게임 오버 피 오버레이 */
+.blood-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(200, 0, 0, 0) 0%, rgba(100, 0, 0, 0.4) 50%, rgba(50, 0, 0, 0.6) 100%);
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0;
+  animation: bloodCover 0.8s ease-in forwards;
+}
+
+@keyframes bloodCover {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* 텍스처 오버레이 */
+.blood-drip {
+  position: absolute;
+  width: 2px;
+  height: 0;
+  background: linear-gradient(180deg, rgba(255, 0, 0, 0.8), transparent);
+  animation: bloodDrip 1.2s ease-in infinite;
+}
+
+@keyframes bloodDrip {
+  0% {
+    height: 0;
+    opacity: 0.8;
+  }
+  100% {
+    height: 60px;
+    opacity: 0;
+  }
+}
+
+.blood-drip.drip1 { left: 10%; animation-delay: 0s; }
+.blood-drip.drip2 { left: 20%; animation-delay: 0.2s; }
+.blood-drip.drip3 { left: 35%; animation-delay: 0.4s; }
+.blood-drip.drip4 { left: 50%; animation-delay: 0.6s; }
+.blood-drip.drip5 { left: 65%; animation-delay: 0.8s; }
+.blood-drip.drip6 { left: 80%; animation-delay: 1s; }
+.blood-drip.drip7 { left: 90%; animation-delay: 1.2s; }
+
+/* 캔버스 주변 빛 효과 */
+.canvas-glow {
+  position: relative;
+  z-index: 2;
+}
+
+.canvas-glow::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  background: radial-gradient(ellipse at center, rgba(160, 27, 27, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+  border-radius: 4px;
+}
+
+/* 게임 오버 화면 흔들림 */
+@keyframes screenShake {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-5px, -5px); }
+  20% { transform: translate(5px, 5px); }
+  30% { transform: translate(-5px, 5px); }
+  40% { transform: translate(5px, -5px); }
+  50% { transform: translate(-3px, -3px); }
+  60% { transform: translate(3px, 3px); }
+  70% { transform: translate(-2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  90% { transform: translate(-1px, 1px); }
+}
+
+.screen-shake {
+  animation: screenShake 0.5s ease-in-out;
 }

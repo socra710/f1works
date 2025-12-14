@@ -36,6 +36,7 @@ const Tetris = () => {
     grayLineActive: false, // 회색 블록 활성화
     grayLineRow: -1, // 회색 블록이 있는 행
     grayLineInterval: null, // 회색 블록 전용 인터벌
+    bloodParticles: [], // 피 튀김 파티클
   });
 
   const COLS = 10;
@@ -52,11 +53,46 @@ const Tetris = () => {
     }, 500);
   }, []);
 
+  // 게임 오버 시 공포 이펙트
+  useEffect(() => {
+    if (gameOver) {
+      const mainElement = document.querySelector('.tetris-main');
+      if (mainElement) {
+        // 화면 흔들림 효과
+        mainElement.classList.add('screen-shake');
+        setTimeout(() => {
+          mainElement.classList.remove('screen-shake');
+        }, 500);
+
+        // 피 오버레이 추가
+        const overlay = document.createElement('div');
+        overlay.className = 'blood-overlay';
+        mainElement.appendChild(overlay);
+
+        // 피 흘림 이펙트 추가
+        const drips = ['drip1', 'drip2', 'drip3', 'drip4', 'drip5', 'drip6', 'drip7'];
+        drips.forEach((cls, idx) => {
+          const drip = document.createElement('div');
+          drip.className = `blood-drip ${cls}`;
+          drip.style.top = '0';
+          mainElement.appendChild(drip);
+        });
+
+        // 정리 함수
+        return () => {
+          const existingOverlay = mainElement.querySelector('.blood-overlay');
+          if (existingOverlay) existingOverlay.remove();
+          document.querySelectorAll('.blood-drip').forEach(drip => drip.remove());
+        };
+      }
+    }
+  }, [gameOver]);
+
   // 오리지널 테트리스 회전 시스템 (SRS)
   const TETRIS_PIECES = [
     {
       name: 'I',
-      color: '#00f0f0',
+      color: '#ff3333',
       states: [
         [
           [0, 0, 0, 0],
@@ -86,7 +122,7 @@ const Tetris = () => {
     },
     {
       name: 'O',
-      color: '#f0f000',
+      color: '#ee5555',
       states: [
         [
           [0, 1, 1, 0],
@@ -116,7 +152,7 @@ const Tetris = () => {
     },
     {
       name: 'T',
-      color: '#f00000',
+      color: '#ff5555',
       states: [
         [
           [0, 1, 0],
@@ -142,7 +178,7 @@ const Tetris = () => {
     },
     {
       name: 'S',
-      color: '#f000f0',
+      color: '#dd4444',
       states: [
         [
           [0, 1, 1],
@@ -168,7 +204,7 @@ const Tetris = () => {
     },
     {
       name: 'Z',
-      color: '#00f000',
+      color: '#ff6666',
       states: [
         [
           [1, 1, 0],
@@ -194,7 +230,7 @@ const Tetris = () => {
     },
     {
       name: 'J',
-      color: '#0000f0',
+      color: '#ff4444',
       states: [
         [
           [1, 0, 0],
@@ -220,7 +256,7 @@ const Tetris = () => {
     },
     {
       name: 'L',
-      color: '#f0a000',
+      color: '#ff7777',
       states: [
         [
           [0, 0, 1],
@@ -598,6 +634,75 @@ const Tetris = () => {
     return { newBoard, linesCleared };
   };
 
+  // 피 튀김 효과 생성 - 모니터 화면으로 튀기는 느낌
+  const spawnBloodParticles = (linesClearedCount) => {
+    const canvas = canvasRef.current;
+    const container = canvas?.parentElement;
+    if (!canvas || !container) return;
+
+    // 지워진 라인의 Y 위치 계산 (캔버스 중앙 근처)
+    const canvasRect = canvas.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    
+    const particleCount = linesClearedCount * 8; // 라인당 8개 파티클
+    
+    for (let i = 0; i < particleCount; i++) {
+      // 더 넓은 각도로 분산 - 모니터 화면 전체로 튀기는 느낌
+      const angle = (Math.random() * Math.PI * 2);
+      const speed = 4 + Math.random() * 8; // 더 빠른 속도
+      const tx = Math.cos(angle) * speed * 40; // 더 멀리 날아감
+      const ty = Math.sin(angle) * speed * 40;
+      
+      const particle = {
+        id: Date.now() + Math.random(),
+        // 캔버스 중앙에서 시작
+        x: containerRect.left + canvasRect.width / 2 + window.scrollX,
+        y: containerRect.top + canvasRect.height * 0.6 + window.scrollY,
+        tx: tx,
+        ty: ty,
+        size: 8 + Math.random() * 15, // 더 큰 사이즈
+        life: 1,
+        opacity: 0.9,
+        maxLife: 1,
+        isScreenParticle: true, // 화면 좌표 파티클 플래그
+      };
+      
+      gameStateRef.current.bloodParticles.push(particle);
+    }
+
+    // 파티클 애니메이션 업데이트 함수
+    const animateParticles = () => {
+      const particles = gameStateRef.current.bloodParticles;
+      
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.life -= 0.04; // 약간 더 오래 지속
+        p.x += p.tx * 0.15; // 더 빠른 이동
+        p.y += p.ty * 0.15;
+        p.ty += 0.8; // 더 강한 중력 효과
+        
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+    };
+
+    // 애니메이션 프레임 반복
+    let frameCount = 0;
+    const particleInterval = setInterval(() => {
+      animateParticles();
+      frameCount++;
+      
+      if (frameCount > 25) { // 약 1000ms
+        clearInterval(particleInterval);
+      }
+      
+      // 화면 파티클과 캔버스 파티클 모두 렌더링
+      drawBoard(gameStateRef.current.board, gameStateRef.current.currentPiece);
+      drawScreenBloodParticles();
+    }, 40);
+  };
+
   const drawBoard = (board, currentPiece) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -645,6 +750,19 @@ const Tetris = () => {
         }
       }
     }
+
+    // 피 튀김 파티클 그리기
+    const particles = gameStateRef.current.bloodParticles;
+    for (const p of particles) {
+      ctx.fillStyle = `rgba(255, 0, 0, ${p.life * 0.8})`;
+      ctx.shadowColor = `rgba(255, 0, 0, ${p.life * 0.6})`;
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
   };
 
   // 다음 블록 미리보기 렌더링
@@ -709,6 +827,50 @@ const Tetris = () => {
     drawBoard(gameState.board, gameState.currentPiece);
   };
 
+  // 화면 좌표에서 피 파티클 렌더링
+  const drawScreenBloodParticles = () => {
+    const screenParticles = gameStateRef.current.bloodParticles.filter(p => p.isScreenParticle);
+    
+    if (screenParticles.length === 0) return;
+
+    // 임시 오버레이 div 생성 또는 기존 것 사용
+    let overlay = document.getElementById('blood-particle-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'blood-particle-overlay';
+      overlay.style.position = 'fixed';
+      overlay.style.top = '0';
+      overlay.style.left = '0';
+      overlay.style.width = '100%';
+      overlay.style.height = '100%';
+      overlay.style.pointerEvents = 'none';
+      overlay.style.zIndex = '999';
+      document.body.appendChild(overlay);
+    }
+
+    // 기존 파티클 제거
+    overlay.innerHTML = '';
+
+    // 파티클 렌더링
+    screenParticles.forEach(p => {
+      const div = document.createElement('div');
+      const opacity = p.life * p.opacity;
+      
+      div.style.position = 'fixed';
+      div.style.left = p.x + 'px';
+      div.style.top = p.y + 'px';
+      div.style.width = p.size + 'px';
+      div.style.height = p.size + 'px';
+      div.style.borderRadius = '50%';
+      div.style.backgroundColor = `rgba(255, 0, 0, ${opacity})`;
+      div.style.boxShadow = `0 0 ${p.size * 0.8}px rgba(255, 0, 0, ${opacity * 0.6})`;
+      div.style.transform = 'translate(-50%, -50%)';
+      div.style.pointerEvents = 'none';
+      
+      overlay.appendChild(div);
+    });
+  };
+
   const dropPiece = () => {
     const gameState = gameStateRef.current;
 
@@ -741,6 +903,8 @@ const Tetris = () => {
       if (linesCleared > 0) {
         gameState.score += linesCleared * 100;
         setScore(gameState.score);
+        // 피 튀김 효과 발동
+        spawnBloodParticles(linesCleared);
       }
 
       // 다음 블록을 현재 블록으로, 새로운 다음 블록 생성
@@ -929,7 +1093,7 @@ const Tetris = () => {
     <>
       <div className="tetris-main">
         <div className="tetris-header">
-          <div className="header-container">
+          <div className="tetris-header-container">
             <div className="level-display">
               <span className="level-label">LV</span>
               <span className="level-value">{level}</span>
@@ -977,7 +1141,7 @@ const Tetris = () => {
               ref={canvasRef}
               width={COLS * BLOCK_SIZE}
               height={ROWS * BLOCK_SIZE}
-              className="tetris-board"
+              className="tetris-board canvas-glow"
             />
             {!gameStarted && (
               <div className="msg">
