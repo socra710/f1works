@@ -92,7 +92,7 @@ const Tetris = () => {
   const TETRIS_PIECES = [
     {
       name: 'I',
-      color: '#00f0f0',
+      color: '#ff3333',
       states: [
         [
           [0, 0, 0, 0],
@@ -122,7 +122,7 @@ const Tetris = () => {
     },
     {
       name: 'O',
-      color: '#f0f000',
+      color: '#ee5555',
       states: [
         [
           [0, 1, 1, 0],
@@ -152,7 +152,7 @@ const Tetris = () => {
     },
     {
       name: 'T',
-      color: '#f00000',
+      color: '#ff5555',
       states: [
         [
           [0, 1, 0],
@@ -178,7 +178,7 @@ const Tetris = () => {
     },
     {
       name: 'S',
-      color: '#f000f0',
+      color: '#dd4444',
       states: [
         [
           [0, 1, 1],
@@ -204,7 +204,7 @@ const Tetris = () => {
     },
     {
       name: 'Z',
-      color: '#00f000',
+      color: '#ff6666',
       states: [
         [
           [1, 1, 0],
@@ -230,7 +230,7 @@ const Tetris = () => {
     },
     {
       name: 'J',
-      color: '#0000f0',
+      color: '#ff4444',
       states: [
         [
           [1, 0, 0],
@@ -256,7 +256,7 @@ const Tetris = () => {
     },
     {
       name: 'L',
-      color: '#f0a000',
+      color: '#ff7777',
       states: [
         [
           [0, 0, 1],
