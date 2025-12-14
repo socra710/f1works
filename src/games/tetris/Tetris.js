@@ -929,7 +929,7 @@ const Tetris = () => {
     <>
       <div className="tetris-main">
         <div className="tetris-header">
-          <div className="header-container">
+          <div className="tetris-header-container">
             <div className="level-display">
               <span className="level-label">LV</span>
               <span className="level-value">{level}</span>

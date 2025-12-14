@@ -6,7 +6,7 @@
 .msg {
   position: absolute;
   left: 50%;
-  top: 49%;
+  top: 50%;
   transform: translate(-50%, -50%);
   width: 100%;
   height: 100%;
@@ -71,11 +71,11 @@
   opacity: 0.5;
 } */
 
-.header-container {
+.tetris-header-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
+  /* width: 100%; */
   padding: 0 20px;
   position: relative;
   z-index: 1;
@@ -349,6 +349,7 @@
 .tetris-sidebar {
   position: absolute;
   /* right: 0; */
+  left: 15%;
   top: 0;
   width: 425px;
   display: flex;
