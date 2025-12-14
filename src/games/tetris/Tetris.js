@@ -250,7 +250,7 @@ const Tetris = () => {
   const fetchHighScores = async () => {
     setIsLoadingScores(true);
     try {
-      const url = `${API_BASE_URL}/jvWorksGetTetrisScores?limit=7`;
+      const url = `${API_BASE_URL}/jvWorksGetTetrisScores?limit=8`;
       const res = await fetch(url, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
