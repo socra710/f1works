@@ -382,6 +382,46 @@
   background-color: #1a1a1a;
   border: 1px solid rgba(160, 27, 27, 0.3);
   border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.score-row.top1 {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.16), rgba(255, 215, 0, 0.05));
+  border-color: rgba(255, 215, 0, 0.6);
+  box-shadow: 0 0 18px rgba(255, 215, 0, 0.25);
+}
+
+.score-row.top2 {
+  background: linear-gradient(135deg, rgba(192, 192, 192, 0.16), rgba(192, 192, 192, 0.06));
+  border-color: rgba(192, 192, 192, 0.5);
+  box-shadow: 0 0 14px rgba(192, 192, 192, 0.22);
+}
+
+.score-row.top3 {
+  background: linear-gradient(135deg, rgba(205, 127, 50, 0.18), rgba(205, 127, 50, 0.06));
+  border-color: rgba(205, 127, 50, 0.5);
+  box-shadow: 0 0 12px rgba(205, 127, 50, 0.22);
+}
+
+.score-row.top1 .rank,
+.score-row.top2 .rank,
+.score-row.top3 .rank {
+  font-size: 1.1rem;
+}
+
+.score-row.top1::after,
+.score-row.top2::after,
+.score-row.top3::after {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: -30%;
+  width: 200%;
+  height: 180%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.08), transparent 60%);
+  animation: sweep 6s linear infinite;
+  pointer-events: none;
 }
 
 .score-row .rank {
@@ -398,16 +438,31 @@
   min-width: 80px;
 }
 .score-row .pts {
+  color: #ffcccc;
   font-weight: 900;
-  color: #ff6666;
   width: 60px;
   text-align: center;
 }
 .score-row .dt {
-  color: #bbb;
+  color: #888;
   font-size: 0.85rem;
   width: 80px;
   text-align: right;
+}
+
+@keyframes sweep {
+  0% {
+    transform: translateX(-20%);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateX(15%);
+    opacity: 0.55;
+  }
+  100% {
+    transform: translateX(50%);
+    opacity: 0.2;
+  }
 }
 
 .panel-empty {

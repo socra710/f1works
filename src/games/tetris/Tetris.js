@@ -39,7 +39,7 @@ const Tetris = () => {
   });
 
   const COLS = 10;
-  const ROWS = 20;
+  const ROWS = 21;
   const BLOCK_SIZE = 35;
 
   useEffect(() => {
@@ -911,6 +911,20 @@ const Tetris = () => {
     return () => clearInterval(timerInterval);
   }, [gameStarted, gameOver]);
 
+  const getRankLabel = (rank) => {
+    if (rank === 1) return '🥇';
+    if (rank === 2) return '🥈';
+    if (rank === 3) return '🥉';
+    return rank;
+  };
+
+  const getRankClass = (rank) => {
+    if (rank === 1) return 'top1';
+    if (rank === 2) return 'top2';
+    if (rank === 3) return 'top3';
+    return '';
+  };
+
   return (
     <>
       <div className="tetris-main">
@@ -1000,9 +1014,9 @@ const Tetris = () => {
                   {highScores.map((s, idx) => (
                     <li
                       key={`${s.score}-${s.date}-${idx}`}
-                      className="score-row"
+                      className={`score-row ${getRankClass(idx + 1)}`.trim()}
                     >
-                      <span className="rank">{idx + 1}</span>
+                      <span className="rank">{getRankLabel(idx + 1)}</span>
                       <span className="name" style={{ textAlign: 'left' }}>
                         {s.name}
                       </span>
