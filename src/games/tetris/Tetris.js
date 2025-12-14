@@ -22,7 +22,9 @@ const Tetris = () => {
   const [userId, setUserId] = useState(''); // 사용자 ID (sessionStorage에서 받음)
   const [nextPiece, setNextPiece] = useState(null); // 다음 블록 미리보기용
   const [saveLimitMessage, setSaveLimitMessage] = useState('');
-  const [saveAttemptsLeft, setSaveAttemptsLeft] = useState(MAX_DAILY_SERVER_SAVES);
+  const [saveAttemptsLeft, setSaveAttemptsLeft] = useState(
+    MAX_DAILY_SERVER_SAVES
+  );
   const gameStateRef = useRef({
     board: [],
     currentPiece: null,
@@ -45,11 +47,10 @@ const Tetris = () => {
 
   useEffect(() => {
     setTimeout(() => {
-      
-    const script = document.createElement('script');
-    script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
-    script.async = true;
-    document.body.appendChild(script);
+      const script = document.createElement('script');
+      script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
+      script.async = true;
+      document.body.appendChild(script);
     }, 500);
   }, []);
 
@@ -70,7 +71,15 @@ const Tetris = () => {
         mainElement.appendChild(overlay);
 
         // 피 흘림 이펙트 추가
-        const drips = ['drip1', 'drip2', 'drip3', 'drip4', 'drip5', 'drip6', 'drip7'];
+        const drips = [
+          'drip1',
+          'drip2',
+          'drip3',
+          'drip4',
+          'drip5',
+          'drip6',
+          'drip7',
+        ];
         drips.forEach((cls, idx) => {
           const drip = document.createElement('div');
           drip.className = `blood-drip ${cls}`;
@@ -82,7 +91,9 @@ const Tetris = () => {
         return () => {
           const existingOverlay = mainElement.querySelector('.blood-overlay');
           if (existingOverlay) existingOverlay.remove();
-          document.querySelectorAll('.blood-drip').forEach(drip => drip.remove());
+          document
+            .querySelectorAll('.blood-drip')
+            .forEach((drip) => drip.remove());
         };
       }
     }
@@ -378,7 +389,8 @@ const Tetris = () => {
         // 닉네임을 localStorage에 저장
         localStorage.setItem('tetrisPlayerName', name);
         const info = getDailySaveInfo();
-        const updatedCount = info.date === getTodayString() ? info.count + 1 : 1;
+        const updatedCount =
+          info.date === getTodayString() ? info.count + 1 : 1;
         setDailySaveInfo({ date: getTodayString(), count: updatedCount });
         setSaveAttemptsLeft(Math.max(0, MAX_DAILY_SERVER_SAVES - updatedCount));
         await fetchHighScores();
@@ -643,16 +655,16 @@ const Tetris = () => {
     // 지워진 라인의 Y 위치 계산 (캔버스 중앙 근처)
     const canvasRect = canvas.getBoundingClientRect();
     const containerRect = container.getBoundingClientRect();
-    
+
     const particleCount = linesClearedCount * 8; // 라인당 8개 파티클
-    
+
     for (let i = 0; i < particleCount; i++) {
       // 더 넓은 각도로 분산 - 모니터 화면 전체로 튀기는 느낌
-      const angle = (Math.random() * Math.PI * 2);
+      const angle = Math.random() * Math.PI * 2;
       const speed = 4 + Math.random() * 8; // 더 빠른 속도
       const tx = Math.cos(angle) * speed * 40; // 더 멀리 날아감
       const ty = Math.sin(angle) * speed * 40;
-      
+
       const particle = {
         id: Date.now() + Math.random(),
         // 캔버스 중앙에서 시작
@@ -666,21 +678,21 @@ const Tetris = () => {
         maxLife: 1,
         isScreenParticle: true, // 화면 좌표 파티클 플래그
       };
-      
+
       gameStateRef.current.bloodParticles.push(particle);
     }
 
     // 파티클 애니메이션 업데이트 함수
     const animateParticles = () => {
       const particles = gameStateRef.current.bloodParticles;
-      
+
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.life -= 0.04; // 약간 더 오래 지속
         p.x += p.tx * 0.15; // 더 빠른 이동
         p.y += p.ty * 0.15;
         p.ty += 0.8; // 더 강한 중력 효과
-        
+
         if (p.life <= 0) {
           particles.splice(i, 1);
         }
@@ -692,11 +704,12 @@ const Tetris = () => {
     const particleInterval = setInterval(() => {
       animateParticles();
       frameCount++;
-      
-      if (frameCount > 25) { // 약 1000ms
+
+      if (frameCount > 25) {
+        // 약 1000ms
         clearInterval(particleInterval);
       }
-      
+
       // 화면 파티클과 캔버스 파티클 모두 렌더링
       drawBoard(gameStateRef.current.board, gameStateRef.current.currentPiece);
       drawScreenBloodParticles();
@@ -772,14 +785,17 @@ const Tetris = () => {
 
     const ctx = canvas.getContext('2d');
     const previewBlockSize = 20;
-    
+
     // 배경 초기화
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // 블록의 실제 크기 계산
     const shape = piece.shape;
-    let minX = 4, maxX = 0, minY = 4, maxY = 0;
+    let minX = 4,
+      maxX = 0,
+      minY = 4,
+      maxY = 0;
     for (let y = 0; y < shape.length; y++) {
       for (let x = 0; x < shape[y].length; x++) {
         if (shape[y][x]) {
@@ -815,22 +831,24 @@ const Tetris = () => {
   // 맨 아래에 회색 블록 한 줄을 추가하고 모든 블록을 위로 밀어올림
   const addGrayLineAtCurrentLevel = () => {
     const gameState = gameStateRef.current;
-    
+
     // 모든 행을 한 칸씩 위로 이동 (맨 위 줄은 제거됨)
     const newBoard = gameState.board.slice(1);
-    
+
     // 맨 아래에 회색 블록 한 줄 추가
     const grayLine = Array(COLS).fill('#808080');
     newBoard.push(grayLine);
-    
+
     gameState.board = newBoard;
     drawBoard(gameState.board, gameState.currentPiece);
   };
 
   // 화면 좌표에서 피 파티클 렌더링
   const drawScreenBloodParticles = () => {
-    const screenParticles = gameStateRef.current.bloodParticles.filter(p => p.isScreenParticle);
-    
+    const screenParticles = gameStateRef.current.bloodParticles.filter(
+      (p) => p.isScreenParticle
+    );
+
     if (screenParticles.length === 0) return;
 
     // 임시 오버레이 div 생성 또는 기존 것 사용
@@ -852,10 +870,10 @@ const Tetris = () => {
     overlay.innerHTML = '';
 
     // 파티클 렌더링
-    screenParticles.forEach(p => {
+    screenParticles.forEach((p) => {
       const div = document.createElement('div');
       const opacity = p.life * p.opacity;
-      
+
       div.style.position = 'fixed';
       div.style.left = p.x + 'px';
       div.style.top = p.y + 'px';
@@ -863,10 +881,12 @@ const Tetris = () => {
       div.style.height = p.size + 'px';
       div.style.borderRadius = '50%';
       div.style.backgroundColor = `rgba(255, 0, 0, ${opacity})`;
-      div.style.boxShadow = `0 0 ${p.size * 0.8}px rgba(255, 0, 0, ${opacity * 0.6})`;
+      div.style.boxShadow = `0 0 ${p.size * 0.8}px rgba(255, 0, 0, ${
+        opacity * 0.6
+      })`;
       div.style.transform = 'translate(-50%, -50%)';
       div.style.pointerEvents = 'none';
-      
+
       overlay.appendChild(div);
     });
   };
@@ -904,7 +924,7 @@ const Tetris = () => {
         gameState.score += linesCleared * 100;
         setScore(gameState.score);
         // 피 튀김 효과 발동
-        spawnBloodParticles(linesCleared);
+        // spawnBloodParticles(linesCleared);
       }
 
       // 다음 블록을 현재 블록으로, 새로운 다음 블록 생성
@@ -1197,8 +1217,8 @@ const Tetris = () => {
               <div className="panel-body">
                 <p>
                   시간은 5분으로 제한되며, 1분마다 블록 하강 속도가 빨라집니다.
-                  또한, 시간이 지남에 따라 맨 아래에 회색 블록이 추가되어
-                  게임 난이도가 상승합니다.
+                  또한, 시간이 지남에 따라 맨 아래에 회색 블록이 추가되어 게임
+                  난이도가 상승합니다.
                 </p>
                 <p className="controls-inline">
                   ←→ 이동 · ↑/Z 회전 · ↓ 빠르게 내리기 · SPACE 즉시 하강
@@ -1238,11 +1258,21 @@ const Tetris = () => {
                     className="tetris-modal-input"
                   />
                 </div>
-                <p className="tetris-modal-remaining" style={{ color: '#555', fontSize: '0.9rem', marginTop: '6px' }}>
+                <p
+                  className="tetris-modal-remaining"
+                  style={{
+                    color: '#555',
+                    fontSize: '0.9rem',
+                    marginTop: '6px',
+                  }}
+                >
                   오늘 남은 서버 점수 기록: {saveAttemptsLeft}회
                 </p>
                 {saveLimitMessage && (
-                  <p className="tetris-modal-limit" style={{ color: '#a01b1b', fontSize: '0.9rem' }}>
+                  <p
+                    className="tetris-modal-limit"
+                    style={{ color: '#a01b1b', fontSize: '0.9rem' }}
+                  >
                     {saveLimitMessage}
                   </p>
                 )}
