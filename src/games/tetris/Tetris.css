@@ -13,9 +13,16 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: 
-    radial-gradient(circle at 20% 50%, rgba(139, 0, 0, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(160, 27, 27, 0.15) 0%, transparent 50%);
+  background-image: radial-gradient(
+      circle at 20% 50%,
+      rgba(139, 0, 0, 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(160, 27, 27, 0.15) 0%,
+      transparent 50%
+    );
   pointer-events: none;
   z-index: -1;
 }
@@ -23,7 +30,7 @@
 .msg {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: 49%;
   transform: translate(-50%, -50%);
   width: 100%;
   height: 100%;
@@ -411,19 +418,31 @@
 }
 
 .score-row.top1 {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.16), rgba(255, 215, 0, 0.05));
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0.16),
+    rgba(255, 215, 0, 0.05)
+  );
   border-color: rgba(255, 215, 0, 0.6);
   box-shadow: 0 0 18px rgba(255, 215, 0, 0.25);
 }
 
 .score-row.top2 {
-  background: linear-gradient(135deg, rgba(192, 192, 192, 0.16), rgba(192, 192, 192, 0.06));
+  background: linear-gradient(
+    135deg,
+    rgba(192, 192, 192, 0.16),
+    rgba(192, 192, 192, 0.06)
+  );
   border-color: rgba(192, 192, 192, 0.5);
   box-shadow: 0 0 14px rgba(192, 192, 192, 0.22);
 }
 
 .score-row.top3 {
-  background: linear-gradient(135deg, rgba(205, 127, 50, 0.18), rgba(205, 127, 50, 0.06));
+  background: linear-gradient(
+    135deg,
+    rgba(205, 127, 50, 0.18),
+    rgba(205, 127, 50, 0.06)
+  );
   border-color: rgba(205, 127, 50, 0.5);
   box-shadow: 0 0 12px rgba(205, 127, 50, 0.22);
 }
@@ -443,7 +462,11 @@
   left: -30%;
   width: 200%;
   height: 180%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.08), transparent 60%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.08),
+    transparent 60%
+  );
   animation: sweep 6s linear infinite;
   pointer-events: none;
 }
@@ -778,7 +801,7 @@
 }
 
 .tetris-modal-limit {
-  width: 300px
+  width: 300px;
 }
 
 /* Responsive (modal) */
@@ -828,7 +851,12 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(180deg, rgba(200, 0, 0, 0) 0%, rgba(100, 0, 0, 0.4) 50%, rgba(50, 0, 0, 0.6) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(200, 0, 0, 0) 0%,
+    rgba(100, 0, 0, 0.4) 50%,
+    rgba(50, 0, 0, 0.6) 100%
+  );
   pointer-events: none;
   z-index: 5;
   opacity: 0;
@@ -864,13 +892,34 @@
   }
 }
 
-.blood-drip.drip1 { left: 10%; animation-delay: 0s; }
-.blood-drip.drip2 { left: 20%; animation-delay: 0.2s; }
-.blood-drip.drip3 { left: 35%; animation-delay: 0.4s; }
-.blood-drip.drip4 { left: 50%; animation-delay: 0.6s; }
-.blood-drip.drip5 { left: 65%; animation-delay: 0.8s; }
-.blood-drip.drip6 { left: 80%; animation-delay: 1s; }
-.blood-drip.drip7 { left: 90%; animation-delay: 1.2s; }
+.blood-drip.drip1 {
+  left: 10%;
+  animation-delay: 0s;
+}
+.blood-drip.drip2 {
+  left: 20%;
+  animation-delay: 0.2s;
+}
+.blood-drip.drip3 {
+  left: 35%;
+  animation-delay: 0.4s;
+}
+.blood-drip.drip4 {
+  left: 50%;
+  animation-delay: 0.6s;
+}
+.blood-drip.drip5 {
+  left: 65%;
+  animation-delay: 0.8s;
+}
+.blood-drip.drip6 {
+  left: 80%;
+  animation-delay: 1s;
+}
+.blood-drip.drip7 {
+  left: 90%;
+  animation-delay: 1.2s;
+}
 
 /* 캔버스 주변 빛 효과 */
 .canvas-glow {
@@ -885,23 +934,48 @@
   left: -10px;
   right: -10px;
   bottom: -10px;
-  background: radial-gradient(ellipse at center, rgba(160, 27, 27, 0.2) 0%, transparent 70%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(160, 27, 27, 0.2) 0%,
+    transparent 70%
+  );
   pointer-events: none;
   border-radius: 4px;
 }
 
 /* 게임 오버 화면 흔들림 */
 @keyframes screenShake {
-  0%, 100% { transform: translate(0, 0); }
-  10% { transform: translate(-5px, -5px); }
-  20% { transform: translate(5px, 5px); }
-  30% { transform: translate(-5px, 5px); }
-  40% { transform: translate(5px, -5px); }
-  50% { transform: translate(-3px, -3px); }
-  60% { transform: translate(3px, 3px); }
-  70% { transform: translate(-2px, 2px); }
-  80% { transform: translate(2px, -2px); }
-  90% { transform: translate(-1px, 1px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  10% {
+    transform: translate(-5px, -5px);
+  }
+  20% {
+    transform: translate(5px, 5px);
+  }
+  30% {
+    transform: translate(-5px, 5px);
+  }
+  40% {
+    transform: translate(5px, -5px);
+  }
+  50% {
+    transform: translate(-3px, -3px);
+  }
+  60% {
+    transform: translate(3px, 3px);
+  }
+  70% {
+    transform: translate(-2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+  90% {
+    transform: translate(-1px, 1px);
+  }
 }
 
 .screen-shake {
