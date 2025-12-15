@@ -42,7 +42,7 @@
 }
 
 .btn-fuel-settings {
-  padding: 0.5rem 1rem;
+  padding: 0.65rem 1.2rem;
   background: #667eea;
   color: white;
   border: none;
@@ -515,6 +515,23 @@
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+.modal-body .form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.modal-body .form-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
 .modal-footer {
   padding: 1.5rem;
   border-top: 2px solid #f0f0f0;
@@ -556,4 +573,146 @@
   background: #5568d3;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-close {
+  padding: 0.75rem 1.5rem;
+  background: #e0e0e0;
+  color: #555;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-close:hover {
+  background: #d0d0d0;
+  transform: translateY(-2px);
+}
+
+/* 법인카드 설정 모달 스타일 */
+.card-form-section {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.card-form-section h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.card-form-section .form-group {
+  margin-bottom: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.form-actions .btn-save,
+.form-actions .btn-cancel {
+  flex: 1;
+}
+
+.card-list-section h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.empty-list {
+  padding: 2rem;
+  text-align: center;
+  color: #888;
+  background: #f9f9f9;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.card-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: #667eea;
+}
+
+.card-info {
+  flex: 1;
+}
+
+.card-name {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1rem;
+  margin-bottom: 0.3rem;
+}
+
+.card-number {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.3rem;
+}
+
+.card-type {
+  color: #888;
+  font-size: 0.85rem;
+  margin-bottom: 0.3rem;
+  display: inline-block;
+  background: #e8ecf1;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+}
+
+.card-memo {
+  color: #888;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+.btn-edit {
+  padding: 0.5rem 1rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-edit:hover {
+  background: #5568d3;
+  transform: translateY(-2px);
 }

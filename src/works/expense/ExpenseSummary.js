@@ -623,7 +623,16 @@ export default function ExpenseSummary() {
                   특별 항목 관리
                 </button>
               )}
-              <button className="btn-back" onClick={() => navigate('/works')}>
+              <button
+                className="btn-back"
+                onClick={() => {
+                  if (window.history.length > 1) {
+                    navigate(-1);
+                  } else {
+                    navigate('/works');
+                  }
+                }}
+              >
                 뒤로가기
               </button>
             </div>

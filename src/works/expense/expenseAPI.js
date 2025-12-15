@@ -512,3 +512,82 @@ export const getLatestApprovedExpenseId = async (factoryCode, userId) => {
     throw error;
   }
 };
+
+/**
+ * 법인카드 목록 조회
+ * @param {string} factoryCode - 공장 코드
+ * @returns {Promise<Array>} 법인카드 목록
+ */
+export const getCorporateCards = async (factoryCode) => {
+  try {
+    const formData = new FormData();
+    formData.append('factoryCode', factoryCode);
+
+    const response = await fetch(`${API_BASE_URL}/jvWorksGetCorporateCards`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // 배열 또는 객체로 반환될 수 있음
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    if (data.success === false) {
+      throw new Error(data.message || '법인카드 조회에 실패했습니다.');
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('getCorporateCards Error:', error);
+    throw error;
+  }
+};
+
+/**
+ * 법인카드 저장
+ * @param {object} cardData - 법인카드 정보 {factoryCode, cardName, cardNumber, cardType, memo, cardId(선택)}
+ * @returns {Promise<object>} 저장 결과
+ */
+export const saveCorporateCard = async (cardData) => {
+  try {
+    const formData = new FormData();
+    formData.append('factoryCode', cardData.factoryCode);
+    formData.append('cardName', cardData.cardName);
+    formData.append('cardNumber', cardData.cardNumber);
+    formData.append('cardType', cardData.cardType);
+    formData.append('memo', cardData.memo || '');
+    if (cardData.cardId) {
+      formData.append('cardId', cardData.cardId);
+    }
+    if (cardData.isActive !== undefined) {
+      formData.append('isActive', cardData.isActive);
+    }
+
+    const response = await fetch(`${API_BASE_URL}/jvWorksSetCorporateCard`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.success === false) {
+      throw new Error(data.message || '법인카드 저장에 실패했습니다.');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('saveCorporateCard Error:', error);
+    throw error;
+  }
+};

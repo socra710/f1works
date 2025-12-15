@@ -239,7 +239,13 @@ export default function SpecialItems() {
             </button>
             <button
               className="btn-back"
-              onClick={() => navigate('/works/expense-summary')}
+              onClick={() => {
+                if (window.history.length > 1) {
+                  navigate(-1);
+                } else {
+                  navigate('/works/expense-summary');
+                }
+              }}
             >
               뒤로가기
             </button>

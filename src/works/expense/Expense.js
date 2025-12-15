@@ -4,7 +4,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import './Expense.css';
 import { ClipLoader } from 'react-spinners';
 import { useToast, useDialog } from '../../common/Toast';
-import { checkAdminStatus } from './expenseAPI';
+import { checkAdminStatus, getCorporateCards } from './expenseAPI';
 
 const gubuns = [
   { code: 'EXPENSE', name: '경비' },
@@ -65,12 +65,14 @@ export default function Expense() {
       fuelType: '휘발유',
       distance: '',
       tollFee: '',
+      corporateCard: null, // 법인카드 ID
       file: null,
       fileName: '',
       managerConfirmed: false, // 관리자 확인 여부
     },
   ]);
   const [allChecked, setAllChecked] = useState(false);
+  const [corporateCards, setCorporateCards] = useState([]);
   const authCheckRef = useRef(false);
   // 관리자 대리 신청용 상태
   const [proxyMode, setProxyMode] = useState(false);
@@ -133,7 +135,6 @@ export default function Expense() {
   const checkAndLoadTempData = (month, userId) => {
     const tempKey = `expense_temp_${month}_${userId}`;
     const tempData = localStorage.getItem(tempKey);
-
     if (tempData) {
       try {
         const parsed = JSON.parse(tempData);
@@ -169,6 +170,8 @@ export default function Expense() {
                     ? formatWithCommas(row.tollFee)
                     : ''
                   : '',
+              corporateCard: row.corporateCard || null,
+              merchant: row.merchant || '',
               file: null,
               fileName: row.fileName || '',
               dirty: true,
@@ -186,6 +189,8 @@ export default function Expense() {
                 fuelType: '휘발유',
                 distance: '',
                 tollFee: '',
+                corporateCard: null,
+                merchant: '',
                 file: null,
                 fileName: '',
                 managerConfirmed: false,
@@ -274,7 +279,17 @@ export default function Expense() {
   };
 
   // 경비청구 초기화
-  const initializeExpense = (user) => {
+  const initializeExpense = async (user) => {
+    // 법인카드 목록 로드
+    try {
+      const factoryCode =
+        window.sessionStorage.getItem('factoryCode') || '000001';
+      const cards = await getCorporateCards(factoryCode);
+      setCorporateCards(Array.isArray(cards) ? cards : []);
+    } catch (error) {
+      console.error('법인카드 로드 오류:', error);
+    }
+
     // expenseId가 있으면 ID 기준, 없으면 월 기준 조회
     if (isIdBasedQuery) {
       // ID 기준 조회: expenseId로 조회
@@ -641,6 +656,8 @@ export default function Expense() {
                     ? formatWithCommas(row.tollFee)
                     : ''
                   : '',
+              corporateCard: row.corporateCard || null,
+              merchant: row.merchant || '',
               file: null,
               fileName: row.fileName || '',
               managerConfirmed: row.managerConfirmed || false,
@@ -682,6 +699,7 @@ export default function Expense() {
             description: '',
             amount: '',
             people: 1,
+            corporateCard: null,
             file: null,
             fileName: '',
             managerConfirmed: false,
@@ -714,6 +732,12 @@ export default function Expense() {
       const toll = unformatToInt(row.tollFee);
       return fuelPay + toll;
     }
+
+    // 법인카드는 금액 그대로 반환
+    if (row.type === 'corporate') {
+      return unformatToInt(row.amount);
+    }
+
     const amt = unformatToInt(row.amount);
     const cnt = parseInt(row.people) || 1;
 
@@ -904,6 +928,33 @@ export default function Expense() {
     ]);
   };
 
+  // 법인카드 항목 추가 (관리자만)
+  const addCorporateCardRow = () => {
+    // 해당 월의 1일로 기본값 설정
+    const [year, monthStr] = month.split('-');
+    const defaultDate = `${year}-${monthStr}-01`;
+
+    setRows([
+      ...rows,
+      {
+        rowId: null,
+        gbn: 'CORPORATE',
+        type: 'corporate',
+        category: '',
+        corporateCard: null,
+        merchant: '',
+        date: defaultDate,
+        description: '',
+        merchant: '',
+        amount: '',
+        file: null,
+        fileName: '',
+        dirty: true,
+        managerConfirmed: false,
+      },
+    ]);
+  };
+
   /** 항목 삭제 */
   const deleteRow = (idx) => {
     if (rows.length === 1) {
@@ -999,6 +1050,13 @@ export default function Expense() {
         formData.append(`rows[${idx}].amount`, row.amount);
         formData.append(`rows[${idx}].people`, row.people);
       }
+
+      if (row.gbn === 'CORPORATE') {
+        formData.append(`rows[${idx}].corporateCard`, row.corporateCard);
+        formData.append(`rows[${idx}].merchant`, row.merchant);
+        formData.append(`rows[${idx}].amount`, row.amount);
+      }
+
       formData.append(
         `rows[${idx}].pay`,
         `${calcPay(row).toLocaleString()}` || 0
@@ -1150,6 +1208,11 @@ export default function Expense() {
         if (row.fuelType !== '없음' && !row.distance) {
           return true;
         }
+      } else if (row.type === 'corporate') {
+        // 법인카드: 비고(description) 필수
+        if (!row.description) {
+          return true;
+        }
       } else {
         // 일반 경비: 인원, 금액(콤마 제거 후 체크), 날짜, 카테고리만 필수
         const amountValue = unformatToInt(row.amount);
@@ -1224,6 +1287,13 @@ export default function Expense() {
         formData.append(`rows[${idx}].amount`, row.amount);
         formData.append(`rows[${idx}].people`, row.people);
       }
+
+      if (row.gbn === 'CORPORATE') {
+        formData.append(`rows[${idx}].corporateCard`, row.corporateCard);
+        formData.append(`rows[${idx}].merchant`, row.merchant);
+        formData.append(`rows[${idx}].amount`, row.amount);
+      }
+
       formData.append(
         `rows[${idx}].pay`,
         `${calcPay(row).toLocaleString()}` || 0
@@ -1383,7 +1453,17 @@ export default function Expense() {
                   </>
                 )}
                 <button
-                  onClick={() => navigate('/works/expense-management')}
+                  onClick={() => {
+                    // 우선 히스토리 뒤로가기 시도
+                    if (window.history.length > 1) {
+                      // 여러 화면을 거쳐 왔을 경우 한 단계씩 뒤로가기
+                      // 필요 시 더 뒤로가기를 원하면 아래 횟수를 조정 가능
+                      navigate(-1);
+                    } else {
+                      // 히스토리가 없으면 관리 페이지로 이동
+                      navigate('/works/expense-management');
+                    }
+                  }}
                   className="btn-back-inline"
                 >
                   뒤로가기
@@ -1677,15 +1757,8 @@ export default function Expense() {
             >
               <thead>
                 <tr>
-                  <th
-                    style={{
-                      textAlign: 'center',
-                      width: '10%',
-                      minWidth: '100px',
-                    }}
-                  >
-                    구분 *
-                  </th>
+                  {/* 구분 열 숨김 */}
+                  {/* <th style={{ textAlign: 'center', width: '10%', minWidth: '100px' }}>구분 *</th> */}
                   <th
                     style={{
                       textAlign: 'center',
@@ -1804,248 +1877,276 @@ export default function Expense() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row, idx) => (
-                  <tr key={idx}>
-                    <td>
-                      <select
-                        value={row.gbn}
-                        onChange={(e) => updateRow(idx, 'gbn', e.target.value)}
-                        className="select-field"
-                        disabled={!isManagerMode || isInputDisabled()}
-                        title={
-                          !isManagerMode
-                            ? '일반 사용자는 변경할 수 없습니다.'
-                            : undefined
-                        }
-                      >
-                        <option value="">선택</option>
-                        {gubuns.map((cat) => (
-                          <option key={cat.code} value={cat.code}>
-                            {cat.name}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      {row.type === 'fuel' ? (
-                        <input
-                          type="text"
-                          value="유류비"
-                          className="input-field"
-                          disabled
+                {rows
+                  .filter((row) => row.gbn === 'EXPENSE' || !row.gbn)
+                  .map((row, idx) => {
+                    const originalIdx = rows.indexOf(row);
+                    return (
+                      <tr key={originalIdx}>
+                        {/* 구분 셀 제거 */}
+                        <td>
+                          {row.type === 'fuel' ? (
+                            <input
+                              type="text"
+                              value="유류비"
+                              className="input-field"
+                              disabled
+                              style={{
+                                backgroundColor: '#f5f5f5',
+                                cursor: 'not-allowed',
+                              }}
+                            />
+                          ) : (
+                            <select
+                              value={row.category}
+                              onChange={(e) =>
+                                updateRow(
+                                  originalIdx,
+                                  'category',
+                                  e.target.value
+                                )
+                              }
+                              className="select-field"
+                              disabled={isInputDisabled()}
+                            >
+                              <option value="">선택</option>
+                              {categories.map((cat) => (
+                                <option key={cat.code} value={cat.code}>
+                                  {cat.name}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                        </td>
+                        <td>
+                          <input
+                            type="date"
+                            value={row.date}
+                            onChange={(e) =>
+                              updateRow(originalIdx, 'date', e.target.value)
+                            }
+                            className="input-field"
+                            disabled={isInputDisabled()}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            value={row.description}
+                            onChange={(e) =>
+                              updateRow(
+                                originalIdx,
+                                'description',
+                                e.target.value
+                              )
+                            }
+                            className="input-field"
+                            placeholder={
+                              row.category === 'LUNCH' ||
+                              row.category === 'DINNER'
+                                ? '동행자만 기입(본인 미기입)'
+                                : '비고(유류비일 경우 필수)'
+                            }
+                            disabled={isInputDisabled()}
+                          />
+                        </td>
+                        <td>
+                          {row.type === 'fuel' ? (
+                            <select
+                              value={row.fuelType || '휘발유'}
+                              onChange={(e) =>
+                                updateRow(
+                                  originalIdx,
+                                  'fuelType',
+                                  e.target.value
+                                )
+                              }
+                              className="select-field"
+                              style={{ fontSize: '0.85rem' }}
+                              disabled={isInputDisabled()}
+                            >
+                              {fuelTypes.map((fuel) => (
+                                <option key={fuel.name} value={fuel.name}>
+                                  {fuel.name}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <span
+                              style={{ fontSize: '0.85rem', color: '#999' }}
+                            >
+                              -
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          {row.type === 'fuel' ? (
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.1"
+                              value={row.distance || ''}
+                              onChange={(e) =>
+                                updateRow(
+                                  originalIdx,
+                                  'distance',
+                                  e.target.value
+                                )
+                              }
+                              className="input-field text-right"
+                              placeholder="km"
+                              disabled={isInputDisabled()}
+                            />
+                          ) : (
+                            <input
+                              type="number"
+                              min="1"
+                              value={row.people || 1}
+                              onChange={(e) =>
+                                updateRow(originalIdx, 'people', e.target.value)
+                              }
+                              className="input-field text-right"
+                              disabled={isInputDisabled()}
+                            />
+                          )}
+                        </td>
+                        <td>
+                          {row.type === 'fuel' ? (
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              value={row.tollFee || ''}
+                              onChange={(e) =>
+                                handleMoneyChange(
+                                  originalIdx,
+                                  'tollFee',
+                                  e.target.value
+                                )
+                              }
+                              onBlur={() =>
+                                handleMoneyBlur(originalIdx, 'tollFee')
+                              }
+                              className="input-field text-right"
+                              placeholder="0"
+                              disabled={isInputDisabled()}
+                            />
+                          ) : (
+                            <span
+                              style={{ fontSize: '0.85rem', color: '#999' }}
+                            >
+                              -
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          {row.type === 'fuel' ? (
+                            <span
+                              style={{
+                                fontSize: '0.85rem',
+                                color: '#999',
+                                textAlign: 'center',
+                                display: 'block',
+                              }}
+                            >
+                              자동계산
+                            </span>
+                          ) : (
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              value={row.amount || ''}
+                              onChange={(e) =>
+                                handleMoneyChange(
+                                  originalIdx,
+                                  'amount',
+                                  e.target.value
+                                )
+                              }
+                              onBlur={() =>
+                                handleMoneyBlur(originalIdx, 'amount')
+                              }
+                              className="input-field text-right"
+                              placeholder="0"
+                              disabled={isInputDisabled()}
+                            />
+                          )}
+                        </td>
+                        <td
                           style={{
-                            backgroundColor: '#f5f5f5',
-                            cursor: 'not-allowed',
-                          }}
-                        />
-                      ) : (
-                        <select
-                          value={row.category}
-                          onChange={(e) =>
-                            updateRow(idx, 'category', e.target.value)
-                          }
-                          className="select-field"
-                          disabled={isInputDisabled()}
-                        >
-                          <option value="">선택</option>
-                          {categories.map((cat) => (
-                            <option key={cat.code} value={cat.code}>
-                              {cat.name}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                    </td>
-                    <td>
-                      <input
-                        type="date"
-                        value={row.date}
-                        onChange={(e) => updateRow(idx, 'date', e.target.value)}
-                        className="input-field"
-                        disabled={isInputDisabled()}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        value={row.description}
-                        onChange={(e) =>
-                          updateRow(idx, 'description', e.target.value)
-                        }
-                        className="input-field"
-                        placeholder={
-                          row.category === 'LUNCH' || row.category === 'DINNER'
-                            ? '동행자만 기입(본인 미기입)'
-                            : '비고(유류비일 경우 필수)'
-                        }
-                        disabled={isInputDisabled()}
-                      />
-                    </td>
-                    <td>
-                      {row.type === 'fuel' ? (
-                        <select
-                          value={row.fuelType || '휘발유'}
-                          onChange={(e) =>
-                            updateRow(idx, 'fuelType', e.target.value)
-                          }
-                          className="select-field"
-                          style={{ fontSize: '0.85rem' }}
-                          disabled={isInputDisabled()}
-                        >
-                          {fuelTypes.map((fuel) => (
-                            <option key={fuel.name} value={fuel.name}>
-                              {fuel.name}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <span style={{ fontSize: '0.85rem', color: '#999' }}>
-                          -
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      {row.type === 'fuel' ? (
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.1"
-                          value={row.distance || ''}
-                          onChange={(e) =>
-                            updateRow(idx, 'distance', e.target.value)
-                          }
-                          className="input-field text-right"
-                          placeholder="km"
-                          disabled={isInputDisabled()}
-                        />
-                      ) : (
-                        <input
-                          type="number"
-                          min="1"
-                          value={row.people || 1}
-                          onChange={(e) =>
-                            updateRow(idx, 'people', e.target.value)
-                          }
-                          className="input-field text-right"
-                          disabled={isInputDisabled()}
-                        />
-                      )}
-                    </td>
-                    <td>
-                      {row.type === 'fuel' ? (
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          value={row.tollFee || ''}
-                          onChange={(e) =>
-                            handleMoneyChange(idx, 'tollFee', e.target.value)
-                          }
-                          onBlur={() => handleMoneyBlur(idx, 'tollFee')}
-                          className="input-field text-right"
-                          placeholder="0"
-                          disabled={isInputDisabled()}
-                        />
-                      ) : (
-                        <span style={{ fontSize: '0.85rem', color: '#999' }}>
-                          -
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      {row.type === 'fuel' ? (
-                        <span
-                          style={{
-                            fontSize: '0.85rem',
-                            color: '#999',
-                            textAlign: 'center',
-                            display: 'block',
+                            textAlign: 'right',
+                            color: '#2c3e50',
+                            fontWeight: 600,
                           }}
                         >
-                          자동계산
-                        </span>
-                      ) : (
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          value={row.amount || ''}
-                          onChange={(e) =>
-                            handleMoneyChange(idx, 'amount', e.target.value)
-                          }
-                          onBlur={() => handleMoneyBlur(idx, 'amount')}
-                          className="input-field text-right"
-                          placeholder="0"
-                          disabled={isInputDisabled()}
-                        />
-                      )}
-                    </td>
-                    <td
-                      style={{
-                        textAlign: 'right',
-                        color: '#2c3e50',
-                        fontWeight: 600,
-                      }}
-                    >
-                      {calcPay(row).toLocaleString()}
-                    </td>
-                    {isManagerMode && (
-                      <td
-                        style={{ textAlign: 'center', verticalAlign: 'middle' }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={row.managerConfirmed || false}
-                          onChange={(e) => {
-                            const updated = [...rows];
-                            updated[idx].managerConfirmed = e.target.checked;
-                            setRows(updated);
-                            // 모든 행의 체크 상태 확인
-                            setAllChecked(
-                              updated.every((r) => r.managerConfirmed)
-                            );
-                          }}
-                          disabled={status === 'COMPLETED'}
-                          style={{
-                            cursor:
-                              status === 'COMPLETED'
-                                ? 'not-allowed'
-                                : 'pointer',
-                            width: '18px',
-                            height: '18px',
-                            opacity: status === 'COMPLETED' ? 0.5 : 1,
-                          }}
-                        />
-                      </td>
-                    )}
-                    <td
-                      style={{ textAlign: 'center', verticalAlign: 'middle' }}
-                    >
-                      {(status === 'DRAFT' || status === 'REJECTED') &&
-                        !managerChecked && (
-                          <button
-                            className="btn-delete"
-                            onClick={() => deleteRow(idx)}
+                          {calcPay(row).toLocaleString()}
+                        </td>
+                        {isManagerMode && (
+                          <td
+                            style={{
+                              textAlign: 'center',
+                              verticalAlign: 'middle',
+                            }}
                           >
-                            삭제
-                          </button>
-
-                          // <button
-                          //   type="button"
-                          //   onClick={() => deleteRow(idx)}
-                          //   className="btn-icon btn-delete"
-                          //   title="삭제"
-                          //   style={{
-                          //     display: 'inline-flex',
-                          //     alignItems: 'center',
-                          //     justifyContent: 'center',
-                          //     height: '100%',
-                          //   }}
-                          // >
-                          //   🗑️
-                          // </button>
+                            <input
+                              type="checkbox"
+                              checked={row.managerConfirmed || false}
+                              onChange={(e) => {
+                                const updated = [...rows];
+                                updated[originalIdx].managerConfirmed =
+                                  e.target.checked;
+                                setRows(updated);
+                                // 모든 행의 체크 상태 확인
+                                setAllChecked(
+                                  updated.every((r) => r.managerConfirmed)
+                                );
+                              }}
+                              disabled={status === 'COMPLETED'}
+                              style={{
+                                cursor:
+                                  status === 'COMPLETED'
+                                    ? 'not-allowed'
+                                    : 'pointer',
+                                width: '18px',
+                                height: '18px',
+                                opacity: status === 'COMPLETED' ? 0.5 : 1,
+                              }}
+                            />
+                          </td>
                         )}
-                    </td>
-                  </tr>
-                ))}
+                        <td
+                          style={{
+                            textAlign: 'center',
+                            verticalAlign: 'middle',
+                          }}
+                        >
+                          {(status === 'DRAFT' || status === 'REJECTED') &&
+                            !managerChecked && (
+                              <button
+                                className="btn-delete"
+                                onClick={() => deleteRow(originalIdx)}
+                              >
+                                삭제
+                              </button>
+
+                              // <button
+                              //   type="button"
+                              //   onClick={() => deleteRow(originalIdx)}
+                              //   className="btn-icon btn-delete"
+                              //   title="삭제"
+                              //   style={{
+                              //     display: 'inline-flex',
+                              //     alignItems: 'center',
+                              //     justifyContent: 'center',
+                              //     height: '100%',
+                              //   }}
+                              // >
+                              //   🗑️
+                              // </button>
+                            )}
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
             </table>
           </div>
@@ -2088,6 +2189,268 @@ export default function Expense() {
             </div>
           )}
         </section>
+
+        {/* 법인카드 상세 내역 */}
+        {(isManagerMode || rows.some((row) => row.gbn === 'CORPORATE')) && (
+          <section className="expense-section">
+            <h2 className="section-title">법인카드 상세 내역</h2>
+
+            <div className="expense-table-container">
+              <table className="expense-table">
+                <thead>
+                  <tr>
+                    <th
+                      style={{
+                        textAlign: 'center',
+                        width: '10%',
+                        minWidth: '100px',
+                      }}
+                    >
+                      구분
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'center',
+                        width: '15%',
+                        minWidth: '120px',
+                      }}
+                    >
+                      카드 종류 *
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'center',
+                        width: '10%',
+                        minWidth: '100px',
+                      }}
+                    >
+                      항목 *
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'center',
+                        width: '12%',
+                        minWidth: '130px',
+                      }}
+                    >
+                      날짜 *
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'center',
+                        width: '18%',
+                        minWidth: '150px',
+                      }}
+                    >
+                      이용가맹점
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'center',
+                        width: '25%',
+                        minWidth: '180px',
+                      }}
+                    >
+                      비고 *
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'center',
+                        width: '13%',
+                        minWidth: '110px',
+                      }}
+                    >
+                      금액
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'center',
+                        width: '10%',
+                        minWidth: '100px',
+                      }}
+                    >
+                      지급액
+                    </th>
+                    <th
+                      style={{
+                        width: '5%',
+                        minWidth: '60px',
+                        textAlign: 'center',
+                      }}
+                    >
+                      삭제
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows
+                    .filter((row) => row.gbn === 'CORPORATE')
+                    .map((row) => {
+                      const originalIdx = rows.indexOf(row);
+                      return (
+                        <tr key={originalIdx}>
+                          <td
+                            style={{
+                              textAlign: 'center',
+                              fontWeight: 600,
+                              color: '#2c3e50',
+                            }}
+                          >
+                            법인
+                          </td>
+                          <td>
+                            <select
+                              value={row.corporateCard || ''}
+                              onChange={(e) =>
+                                updateRow(
+                                  originalIdx,
+                                  'corporateCard',
+                                  e.target.value
+                                )
+                              }
+                              className="select-field"
+                              disabled={!isManagerMode || isInputDisabled()}
+                            >
+                              <option value="">선택</option>
+                              {corporateCards.map((card) => (
+                                <option key={card.cardId} value={card.cardId}>
+                                  {card.cardName}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td>
+                            <select
+                              value={row.category || ''}
+                              onChange={(e) =>
+                                updateRow(
+                                  originalIdx,
+                                  'category',
+                                  e.target.value
+                                )
+                              }
+                              className="select-field"
+                              disabled={!isManagerMode || isInputDisabled()}
+                            >
+                              <option value="">선택</option>
+                              {categories.map((cat) => (
+                                <option key={cat.code} value={cat.code}>
+                                  {cat.name}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td>
+                            <input
+                              type="date"
+                              value={row.date}
+                              onChange={(e) =>
+                                updateRow(originalIdx, 'date', e.target.value)
+                              }
+                              className="input-field"
+                              disabled={!isManagerMode || isInputDisabled()}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="text"
+                              value={row.merchant || ''}
+                              onChange={(e) =>
+                                updateRow(
+                                  originalIdx,
+                                  'merchant',
+                                  e.target.value
+                                )
+                              }
+                              className="input-field"
+                              placeholder="가맹점명"
+                              disabled={!isManagerMode || isInputDisabled()}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="text"
+                              value={row.description}
+                              onChange={(e) =>
+                                updateRow(
+                                  originalIdx,
+                                  'description',
+                                  e.target.value
+                                )
+                              }
+                              className="input-field"
+                              placeholder="비고"
+                              disabled={isInputDisabled()}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              value={row.amount || ''}
+                              onChange={(e) =>
+                                handleMoneyChange(
+                                  originalIdx,
+                                  'amount',
+                                  e.target.value
+                                )
+                              }
+                              onBlur={() =>
+                                handleMoneyBlur(originalIdx, 'amount')
+                              }
+                              className="input-field text-right"
+                              placeholder="0"
+                              disabled={!isManagerMode || isInputDisabled()}
+                            />
+                          </td>
+                          <td
+                            style={{
+                              textAlign: 'right',
+                              color: '#2c3e50',
+                              fontWeight: 600,
+                            }}
+                          >
+                            {unformatToInt(row.amount || 0).toLocaleString()}
+                          </td>
+                          <td
+                            style={{
+                              textAlign: 'center',
+                              verticalAlign: 'middle',
+                            }}
+                          >
+                            {isManagerMode &&
+                              (status === 'DRAFT' || status === 'REJECTED') &&
+                              !managerChecked && (
+                                <button
+                                  className="btn-delete"
+                                  onClick={() => deleteRow(originalIdx)}
+                                >
+                                  삭제
+                                </button>
+                              )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+
+            {isManagerMode && (status === 'DRAFT' || status === 'REJECTED') && (
+              <div style={{ marginTop: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={addCorporateCardRow}
+                  className="btn-add-row"
+                  style={{ background: '#9c27b0' }}
+                  disabled={isManagerMode && !proxyMode && !isIdBasedQuery}
+                >
+                  💳 법인카드 항목 추가
+                </button>
+              </div>
+            )}
+          </section>
+        )}
 
         {/* 합계 */}
         <section className="expense-section">
