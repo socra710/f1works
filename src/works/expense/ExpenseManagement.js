@@ -43,6 +43,7 @@ export default function ExpenseManagement() {
         navigate('/works');
         return;
       }
+
       checkManagerPermission(sessionUser);
     }, 500);
     // eslint-disable-next-line
@@ -60,15 +61,21 @@ export default function ExpenseManagement() {
       // setUserId(userIdEncoded);
 
       // 기본 월 설정 (이전 달 - 경비는 지난달 기준)
-      const now = new Date();
-      now.setMonth(now.getMonth() - 1); // 한 달 이전으로 설정
-      const defaultMonth = `${now.getFullYear()}-${String(
-        now.getMonth() + 1
-      ).padStart(2, '0')}`;
-      setSelectedMonth(defaultMonth);
+      // 이전 선택값이 있으면 복원, 없으면 기본 월(이전 달)
+      const persistedMonth = sessionStorage.getItem('expenseMgmtMonth');
+      let initialMonth = persistedMonth;
+      if (!initialMonth) {
+        const now = new Date();
+        now.setMonth(now.getMonth() - 1); // 한 달 이전으로 설정
+        initialMonth = `${now.getFullYear()}-${String(
+          now.getMonth() + 1
+        ).padStart(2, '0')}`;
+      }
+      setSelectedMonth(initialMonth);
+      sessionStorage.setItem('expenseMgmtMonth', initialMonth);
 
       // 목록 조회
-      await fetchExpenseList(factoryCode, defaultMonth, userIdEncoded);
+      await fetchExpenseList(factoryCode, initialMonth, userIdEncoded);
 
       setIsLoading(false);
     } catch (error) {
@@ -135,6 +142,11 @@ export default function ExpenseManagement() {
   const handleMonthChange = (e) => {
     const newMonth = e.target.value;
     setSelectedMonth(newMonth);
+    try {
+      sessionStorage.setItem('expenseMgmtMonth', newMonth);
+    } catch (err) {
+      console.warn('월 선택 저장 실패:', err);
+    }
   };
 
   // 검색 버튼 핸들러
@@ -324,6 +336,18 @@ export default function ExpenseManagement() {
           <div className="header-buttons">
             <button className="btn-fuel-settings" onClick={handleOpenFuelModal}>
               유류비 설정
+            </button>
+            <button
+              className="btn-primary"
+              onClick={() => {
+                const month = selectedMonth || '';
+                const qs = month
+                  ? `?mode=manager&month=${encodeURIComponent(month)}`
+                  : `?mode=manager`;
+                navigate(`/works/expense${qs}`);
+              }}
+            >
+              경비 대리 신청
             </button>
             <button className="btn-search" onClick={handleSearch}>
               🔍 검색

@@ -18,6 +18,7 @@ import Wordle from './games/wordle/Wordle';
 import Tetris from './games/tetris/Tetris';
 import Feed from './feed/index';
 import Calendar from './works/Calendar';
+import NotFound from './NotFound';
 
 function App() {
   return (
@@ -54,6 +55,7 @@ function App() {
           <Route path="/games/wordle" element={<Wordle />}></Route>
           <Route path="/games/tetris" element={<Tetris />}></Route>
           <Route path="/feed" element={<Feed />}></Route>
+          <Route path="*" element={<NotFound />}></Route>
         </Routes>
       </BrowserRouter>
     </ToastProvider>
