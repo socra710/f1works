@@ -1,5 +1,6 @@
 import './Tetris.css';
 import React, { useState, useEffect, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 
 // expense와 동일한 방식의 API 베이스 URL 사용
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
@@ -1156,6 +1157,10 @@ const Tetris = () => {
 
   return (
     <>
+    
+      <Helmet>
+        <title>테트리스 게임</title>
+      </Helmet>
       <div className="tetris-main">
         <div className="tetris-header">
           <div className="tetris-header-container">
