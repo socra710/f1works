@@ -475,3 +475,40 @@ export const getMonthlyWorkStatistics = async (factoryCode, year, userId) => {
     throw error;
   }
 };
+
+/**
+ * 사용자의 최근 승인된 경비 청구 ID 조회
+ * @param {string} factoryCode - 공장 코드
+ * @param {string} userId - 사용자 ID (직원번호)
+ * @returns {Promise<string>} 최근 승인된 경비 청구 ID
+ */
+export const getLatestApprovedExpenseId = async (factoryCode, userId) => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/jvWorksGetLatestApprovedExpense?factoryCode=${factoryCode}&userId=${encodeURIComponent(
+        userId
+      )}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.success === false) {
+      throw new Error(data.message || '최근 승인 경비 조회에 실패했습니다.');
+    }
+
+    return data.expenseId || null;
+  } catch (error) {
+    console.error('getLatestApprovedExpenseId Error:', error);
+    throw error;
+  }
+};
