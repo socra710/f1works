@@ -379,7 +379,7 @@ export default function ExpenseManagement() {
             >
               <option value="ALL">전체</option>
               <option value="SUBMITTED">제출</option>
-              <option value="APPROVED">승인</option>
+              <option value="COMPLETED">승인</option>
               <option value="REJECTED">반려</option>
             </select>
           </div>
