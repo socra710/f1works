@@ -458,14 +458,17 @@ export const deleteExpenseRow = async ({
   }
 
   try {
-    const formData = new FormData();
-    formData.append('factoryCode', factoryCode);
-    formData.append('expenseId', expenseId);
-    formData.append('rowId', rowId);
+    const params = new URLSearchParams();
+    params.append('factoryCode', factoryCode);
+    params.append('expenseId', expenseId);
+    params.append('rowId', rowId);
 
     const response = await fetch(`${API_BASE_URL}/jvWorksDeleteExpenseRow`, {
       method: 'POST',
-      body: formData,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params.toString(),
     });
 
     if (!response.ok) {
