@@ -6,6 +6,31 @@
   overflow: hidden;
 }
 
+/* 회색 블록 경고 효과 */
+.gray-line-warning {
+  animation: grayLineShake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes grayLineShake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translate(-5px, 0);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translate(5px, 0);
+  }
+}
+
 .tetris-main::before {
   content: '';
   position: fixed;
