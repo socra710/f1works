@@ -1117,7 +1117,7 @@ const Tetris = () => {
         } else if (remaining <= 120) {
           grayLineCount = 2; // 3분 경과 (2분 남음)
         } else if (remaining <= 180) {
-          grayLineCount = 1; // 2분 경과 (3분 남음)
+          grayLineCount = 2; // 2분 경과 (3분 남음)
         } else {
           grayLineCount = 1; // 1분 경과 (4분 남음)
         }
