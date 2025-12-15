@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import './ExpenseManagement.css';
 import { ClipLoader } from 'react-spinners';
 import { useToast } from '../../common/Toast';
+import { getCorporateCards, saveCorporateCard } from './expenseAPI';
 
 export default function ExpenseManagement() {
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
@@ -26,6 +27,17 @@ export default function ExpenseManagement() {
     lpg: 999,
     maintenanceRate: 1.2,
   });
+
+  // 법인카드 설정 모달
+  const [showCorporateCardModal, setShowCorporateCardModal] = useState(false);
+  const [corporateCards, setCorporateCards] = useState([]);
+  const [newCorporateCard, setNewCorporateCard] = useState({
+    cardName: '',
+    cardNumber: '',
+    cardType: '신용카드',
+    memo: '',
+  });
+  const [editingCardId, setEditingCardId] = useState(null);
 
   // 권한 확인 및 초기화
   useEffect(() => {
@@ -277,6 +289,104 @@ export default function ExpenseManagement() {
     }
   };
 
+  // 법인카드 설정 모달 열기
+  const handleOpenCorporateCardModal = () => {
+    setEditingCardId(null);
+    setNewCorporateCard({
+      cardName: '',
+      cardNumber: '',
+      cardType: '신용카드',
+      memo: '',
+    });
+    loadCorporateCards();
+    setShowCorporateCardModal(true);
+  };
+
+  // 법인카드 목록 불러오기
+  const loadCorporateCards = async () => {
+    try {
+      const factoryCode =
+        window.sessionStorage.getItem('factoryCode') || '000001';
+      const cards = await getCorporateCards(factoryCode);
+      setCorporateCards(Array.isArray(cards) ? cards : []);
+    } catch (error) {
+      console.error('법인카드 목록 불러오기 오류:', error);
+      showToast('법인카드 목록을 불러올 수 없습니다.', 'error');
+    }
+  };
+
+  // 법인카드 저장
+  const handleSaveCorporateCard = async () => {
+    if (!newCorporateCard.cardName.trim()) {
+      showToast('카드명을 입력해주세요.', 'warning');
+      return;
+    }
+    if (!newCorporateCard.cardNumber.trim()) {
+      showToast('카드번호를 입력해주세요.', 'warning');
+      return;
+    }
+
+    try {
+      const factoryCode =
+        window.sessionStorage.getItem('factoryCode') || '000001';
+      const cardData = {
+        factoryCode,
+        cardName: newCorporateCard.cardName,
+        cardNumber: newCorporateCard.cardNumber,
+        cardType: newCorporateCard.cardType,
+        memo: newCorporateCard.memo,
+      };
+
+      if (editingCardId) {
+        cardData.cardId = editingCardId;
+      }
+
+      const result = await saveCorporateCard(cardData);
+
+      if (result.success) {
+        showToast('카드가 저장되었습니다.', 'success');
+        setEditingCardId(null);
+        setNewCorporateCard({
+          cardName: '',
+          cardNumber: '',
+          cardType: '신용카드',
+          memo: '',
+        });
+        await loadCorporateCards();
+      } else {
+        showToast(
+          '저장 실패: ' + (result.message || '알 수 없는 오류'),
+          'error'
+        );
+      }
+    } catch (error) {
+      console.error('법인카드 저장 오류:', error);
+      showToast('카드 저장 중 오류가 발생했습니다.', 'error');
+    }
+  };
+
+  // 법인카드 편집 시작
+  const handleEditCorporateCard = (card) => {
+    setEditingCardId(card.cardId);
+    setNewCorporateCard({
+      cardName: card.cardName,
+      cardNumber: card.cardNumber,
+      cardType: card.cardType,
+      memo: card.memo || '',
+    });
+  };
+
+  // 법인카드 편집 취소
+  const handleCancelEditCorporateCard = () => {
+    setEditingCardId(null);
+    setNewCorporateCard({
+      cardName: '',
+      cardNumber: '',
+      cardType: '신용카드',
+      memo: '',
+    });
+  };
+
   // 날짜 포맷 (yyyy-MM-dd HH:mm:ss)
   const formatDateTime = (dateTimeStr) => {
     if (!dateTimeStr) return '-';
@@ -334,9 +444,6 @@ export default function ExpenseManagement() {
         <header className="management-header">
           <h1>경비 청구 관리</h1>
           <div className="header-buttons">
-            <button className="btn-fuel-settings" onClick={handleOpenFuelModal}>
-              유류비 설정
-            </button>
             <button
               className="btn-primary"
               onClick={() => {
@@ -348,6 +455,15 @@ export default function ExpenseManagement() {
               }}
             >
               경비 대리 신청
+            </button>
+            <button className="btn-fuel-settings" onClick={handleOpenFuelModal}>
+              유류비 설정
+            </button>
+            <button
+              className="btn-fuel-settings"
+              onClick={handleOpenCorporateCardModal}
+            >
+              법인카드 설정
             </button>
             <button className="btn-search" onClick={handleSearch}>
               🔍 검색
@@ -541,6 +657,146 @@ export default function ExpenseManagement() {
                   onClick={() => setShowFuelModal(false)}
                 >
                   취소
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 법인카드 설정 모달 */}
+        {showCorporateCardModal && (
+          <div
+            className="modal-overlay"
+            onClick={() => setShowCorporateCardModal(false)}
+          >
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>법인카드 설정</h2>
+                <button
+                  className="modal-close"
+                  onClick={() => setShowCorporateCardModal(false)}
+                >
+                  ×
+                </button>
+              </div>
+              <div className="modal-body">
+                {/* 카드 추가/편집 폼 */}
+                <div className="card-form-section">
+                  <h3>{editingCardId ? '카드 수정' : '새 카드 추가'}</h3>
+                  <div className="form-group">
+                    <label>카드명:</label>
+                    <input
+                      type="text"
+                      placeholder="예: 주용준이 카드"
+                      value={newCorporateCard.cardName}
+                      onChange={(e) =>
+                        setNewCorporateCard({
+                          ...newCorporateCard,
+                          cardName: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>카드번호:</label>
+                    <input
+                      type="text"
+                      placeholder="예: 1234-5678-9012-3456"
+                      value={newCorporateCard.cardNumber}
+                      onChange={(e) =>
+                        setNewCorporateCard({
+                          ...newCorporateCard,
+                          cardNumber: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>카드종류:</label>
+                    <select
+                      value={newCorporateCard.cardType}
+                      onChange={(e) =>
+                        setNewCorporateCard({
+                          ...newCorporateCard,
+                          cardType: e.target.value,
+                        })
+                      }
+                    >
+                      <option>신용카드</option>
+                      <option>체크카드</option>
+                      <option>프리페이드</option>
+                      <option>기타</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>비고:</label>
+                    <input
+                      type="text"
+                      placeholder="특이사항이 있으면 입력"
+                      value={newCorporateCard.memo}
+                      onChange={(e) =>
+                        setNewCorporateCard({
+                          ...newCorporateCard,
+                          memo: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="form-actions">
+                    <button
+                      className="btn-save"
+                      onClick={handleSaveCorporateCard}
+                    >
+                      {editingCardId ? '수정' : '추가'}
+                    </button>
+                    {editingCardId && (
+                      <button
+                        className="btn-cancel"
+                        onClick={handleCancelEditCorporateCard}
+                      >
+                        취소
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* 카드 목록 */}
+                <div className="card-list-section">
+                  <h3>등록된 카드</h3>
+                  {corporateCards.length === 0 ? (
+                    <div className="empty-list">등록된 카드가 없습니다.</div>
+                  ) : (
+                    <div className="card-list">
+                      {corporateCards.map((card) => (
+                        <div key={card.cardId} className="card-item">
+                          <div className="card-info">
+                            <div className="card-name">{card.cardName}</div>
+                            <div className="card-number">{card.cardNumber}</div>
+                            <div className="card-type">{card.cardType}</div>
+                            {card.memo && (
+                              <div className="card-memo">{card.memo}</div>
+                            )}
+                          </div>
+                          <div className="card-actions">
+                            <button
+                              className="btn-edit"
+                              onClick={() => handleEditCorporateCard(card)}
+                            >
+                              수정
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  className="btn-close"
+                  onClick={() => setShowCorporateCardModal(false)}
+                >
+                  닫기
                 </button>
               </div>
             </div>
