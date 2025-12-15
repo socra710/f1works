@@ -200,7 +200,7 @@ export default function SpecialItems() {
     return (
       <div className="special-items-wrapper">
         <Helmet>
-          <title>특별 항목 관리 - F1Soft Works</title>
+          <title>특별 항목 관리</title>
         </Helmet>
         <div
           style={{
