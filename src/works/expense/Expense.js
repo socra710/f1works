@@ -847,6 +847,99 @@ export default function Expense() {
     }
   };
 
+  const handleModifySave = async () => {
+    // ...existing code...
+    if (!month || !userId) {
+      showToast('월 정보와 사용자 정보가 필요합니다.', 'warning');
+      return;
+    }
+
+    // 매니저 모드에서 제출 상태일 때 status를 MODIFY로 설정
+    let tempStatus = 'MODIFY';
+    let toastMsg = '수정하였습니다.';
+
+    // 로컬 스토리지에도 저장
+    const tempData = {
+      month,
+      userId,
+      memo,
+      rows,
+      status: tempStatus,
+      managerChecked,
+      userEfficiency,
+      savedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(
+      `expense_temp_${month}_${userId}`,
+      JSON.stringify(tempData)
+    );
+
+    // 백엔드 API 호출
+    const formData = new FormData();
+    formData.append('factoryCode', '000001');
+    formData.append('month', month);
+    formData.append('userId', atob(userId));
+    formData.append('userName', userName);
+    formData.append('memo', memo);
+    formData.append('status', tempStatus); // 임시 저장 상태
+    formData.append('managerChecked', managerChecked ? 'true' : 'false');
+    formData.append('userEfficiency', userEfficiency); // 사용자 차량 연비 추가
+    if (expenseId) {
+      formData.append('expenseId', expenseId);
+    }
+
+    rows.forEach((row, idx) => {
+      // rowId 전송
+      if (row.rowId) {
+        formData.append(`rows[${idx}].rowId`, row.rowId);
+      }
+      formData.append(`rows[${idx}].type`, row.type);
+      formData.append(`rows[${idx}].category`, row.category);
+      formData.append(`rows[${idx}].date`, row.date);
+      formData.append(`rows[${idx}].description`, row.description);
+
+      if (row.type === 'fuel') {
+        formData.append(`rows[${idx}].fuelType`, row.fuelType);
+        formData.append(`rows[${idx}].distance`, row.distance);
+        formData.append(`rows[${idx}].tollFee`, row.tollFee);
+      } else {
+        formData.append(`rows[${idx}].amount`, row.amount);
+        formData.append(`rows[${idx}].people`, row.people);
+      }
+      formData.append(
+        `rows[${idx}].pay`,
+        `${calcPay(row).toLocaleString()}` || 0
+      );
+
+      if (row.file) {
+        formData.append(`rows[${idx}].file`, row.file);
+      }
+      // managerConfirmed 값도 전송
+      formData.append(
+        `rows[${idx}].managerConfirmed`,
+        row.managerConfirmed ? 'Y' : 'N'
+      );
+    });
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/jvWorksSetExpense`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (result.success === 'true') {
+        showToast(toastMsg, 'success');
+      } else {
+        showToast(result.message || '', 'error');
+      }
+    } catch (error) {
+      console.error('저장 실패:', error);
+      showToast('저장 중 오류가 발생했습니다.', 'error');
+    }
+  };
+
   /** 제출 처리 */
   const handleSubmit = async () => {
     // 유효성 검사
@@ -1690,17 +1783,19 @@ export default function Expense() {
               </div>
             )}
           {/* 매니저 모드: 제출 상태에서 수정 가능, 임시저장 버튼만 표시 */}
-          {isManagerMode && (status === 'DRAFT' || status === 'SUBMITTED') && !managerChecked && (
-            <div className="button-group">
-              <button
-                type="button"
-                onClick={handleTempSave}
-                className="btn-secondary"
-              >
-                수정하기
-              </button>
-            </div>
-          )}
+          {isManagerMode &&
+            (status === 'DRAFT' || status === 'SUBMITTED') &&
+            !managerChecked && (
+              <div className="button-group">
+                <button
+                  type="button"
+                  onClick={handleModifySave}
+                  className="btn-secondary"
+                >
+                  수정하기
+                </button>
+              </div>
+            )}
           {/* 안내 메시지 */}
           {!(status === 'DRAFT' || status === 'REJECTED') &&
             !managerChecked &&
