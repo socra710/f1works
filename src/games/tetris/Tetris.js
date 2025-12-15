@@ -1109,14 +1109,14 @@ const Tetris = () => {
         setLevel(newLevel);
 
         // 남은 시간에 따라 회색 블록 개수 결정
-        // 1분 경과(4분 남음): 1줄, 2분(3분 남음): 2줄, 3분(2분 남음): 3줄, 4분(1분 남음): 4줄
+        // 1분 경과(4분 남음): 1줄, 2분(3분 남음): 1줄, 3분(2분 남음): 2줄, 4분(1분 남음): 3줄
         let grayLineCount = 1;
         if (remaining <= 60) {
-          grayLineCount = 4; // 4분 경과 (1분 남음)
+          grayLineCount = 3; // 4분 경과 (1분 남음)
         } else if (remaining <= 120) {
-          grayLineCount = 3; // 3분 경과 (2분 남음)
+          grayLineCount = 2; // 3분 경과 (2분 남음)
         } else if (remaining <= 180) {
-          grayLineCount = 2; // 2분 경과 (3분 남음)
+          grayLineCount = 1; // 2분 경과 (3분 남음)
         } else {
           grayLineCount = 1; // 1분 경과 (4분 남음)
         }
