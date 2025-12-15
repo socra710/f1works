@@ -6,6 +6,11 @@ import { ClipLoader } from 'react-spinners';
 import { useToast, useDialog } from '../../common/Toast';
 import { checkAdminStatus } from './expenseAPI';
 
+const gubuns = [
+  { code: 'EXPENSE', name: '경비' },
+  { code: 'CORPORATE', name: '법인' },
+];
+
 const categories = [
   { code: 'LUNCH', name: '점심' },
   { code: 'DINNER', name: '저녁' },
@@ -50,6 +55,7 @@ export default function Expense() {
   const [rows, setRows] = useState([
     {
       rowId: null, // 서버에서 받은 행 ID
+      gbn: 'EXPENSE',
       type: 'expense', // 'expense' or 'fuel'
       category: '',
       date: '',
@@ -141,6 +147,7 @@ export default function Expense() {
           setRows(
             parsed.rows?.map((row) => ({
               rowId: row.rowId || null,
+              gbn: row.gbn || 'EXPENSE',
               type:
                 row.type || (row.category === '유류비' ? 'fuel' : 'expense'),
               category: row.category === '유류비' ? 'FUEL' : row.category || '',
@@ -169,6 +176,7 @@ export default function Expense() {
             })) || [
               {
                 rowId: null,
+                gbn: 'EXPENSE',
                 type: 'expense',
                 category: '',
                 date: '',
@@ -500,6 +508,8 @@ export default function Expense() {
     if (status === 'COMPLETED') return true;
 
     if (isManagerMode) {
+      // 관리자 모드에서 사용자 미선택 시 비활성화
+      if (!proxyMode && !isIdBasedQuery) return true;
       // 매니저 모드에서 관리팀 확인 전이면 제출 상태도 수정 가능
       if (status === 'SUBMITTED' && !managerChecked) return false;
       return managerChecked;
@@ -608,6 +618,7 @@ export default function Expense() {
           setRows(
             data.rows.map((row) => ({
               rowId: row.rowId || null,
+              gbn: row.gbn || 'EXPENSE',
               type:
                 row.type || (row.category === '유류비' ? 'fuel' : 'expense'),
               category: row.category === '유류비' ? 'FUEL' : row.category || '',
@@ -664,6 +675,7 @@ export default function Expense() {
         setRows([
           {
             rowId: null,
+            gbn: 'EXPENSE',
             type: 'expense',
             category: '',
             date: defaultDate,
@@ -796,6 +808,7 @@ export default function Expense() {
         if (isFuel) {
           return {
             rowId: null,
+            gbn: row.gbn || 'EXPENSE',
             type: 'fuel',
             category: 'FUEL',
             date: newDate,
@@ -811,6 +824,7 @@ export default function Expense() {
         } else {
           return {
             rowId: null,
+            gbn: row.gbn || 'EXPENSE',
             type: 'expense',
             category: row.category || '',
             date: newDate,
@@ -849,6 +863,7 @@ export default function Expense() {
       ...rows,
       {
         rowId: null,
+        gbn: 'EXPENSE',
         type: 'expense',
         category: '',
         date: defaultDate,
@@ -873,6 +888,7 @@ export default function Expense() {
       ...rows,
       {
         rowId: null,
+        gbn: 'EXPENSE',
         type: 'fuel',
         category: 'FUEL',
         date: defaultDate,
@@ -969,6 +985,7 @@ export default function Expense() {
       if (row.rowId) {
         formData.append(`rows[${idx}].rowId`, row.rowId);
       }
+      formData.append(`rows[${idx}].gbn`, row.gbn || 'EXPENSE');
       formData.append(`rows[${idx}].type`, row.type);
       formData.append(`rows[${idx}].category`, row.category);
       formData.append(`rows[${idx}].date`, row.date);
@@ -1062,6 +1079,7 @@ export default function Expense() {
       if (row.rowId) {
         formData.append(`rows[${idx}].rowId`, row.rowId);
       }
+      formData.append(`rows[${idx}].gbn`, row.gbn || 'EXPENSE');
       formData.append(`rows[${idx}].type`, row.type);
       formData.append(`rows[${idx}].category`, row.category);
       formData.append(`rows[${idx}].date`, row.date);
@@ -1192,6 +1210,7 @@ export default function Expense() {
       if (row.rowId) {
         formData.append(`rows[${idx}].rowId`, row.rowId);
       }
+      formData.append(`rows[${idx}].gbn`, row.gbn || 'EXPENSE');
       formData.append(`rows[${idx}].type`, row.type);
       formData.append(`rows[${idx}].category`, row.category);
       formData.append(`rows[${idx}].date`, row.date);
@@ -1634,12 +1653,39 @@ export default function Expense() {
         <section className="expense-section">
           <h2 className="section-title">경비 상세 내역</h2>
 
+          {isManagerMode && !proxyMode && !isIdBasedQuery && (
+            <div
+              className="info-box"
+              style={{
+                marginBottom: '1rem',
+                background: '#fff3cd',
+                borderLeftColor: '#ffc107',
+                color: '#856404',
+              }}
+            >
+              <strong>⚠️ 사용자를 선택해주세요.</strong>
+              <p style={{ margin: '0.5rem 0 0 0' }}>
+                기본 정보에서 "사용자 선택" 버튼을 클릭하여 대리 신청할 사용자를
+                선택한 후 경비 항목을 입력하실 수 있습니다.
+              </p>
+            </div>
+          )}
+
           <div className="expense-table-container">
             <table
               className={`expense-table ${isManagerMode ? 'manager-mode' : ''}`}
             >
               <thead>
                 <tr>
+                  <th
+                    style={{
+                      textAlign: 'center',
+                      width: '10%',
+                      minWidth: '100px',
+                    }}
+                  >
+                    구분 *
+                  </th>
                   <th
                     style={{
                       textAlign: 'center',
@@ -1760,6 +1806,26 @@ export default function Expense() {
               <tbody>
                 {rows.map((row, idx) => (
                   <tr key={idx}>
+                    <td>
+                      <select
+                        value={row.gbn}
+                        onChange={(e) => updateRow(idx, 'gbn', e.target.value)}
+                        className="select-field"
+                        disabled={!isManagerMode || isInputDisabled()}
+                        title={
+                          !isManagerMode
+                            ? '일반 사용자는 변경할 수 없습니다.'
+                            : undefined
+                        }
+                      >
+                        <option value="">선택</option>
+                        {gubuns.map((cat) => (
+                          <option key={cat.code} value={cat.code}>
+                            {cat.name}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
                     <td>
                       {row.type === 'fuel' ? (
                         <input
@@ -1996,6 +2062,7 @@ export default function Expense() {
                 type="button"
                 onClick={addExpenseRow}
                 className="btn-add-row"
+                disabled={isManagerMode && !proxyMode && !isIdBasedQuery}
               >
                 ➕ 경비 항목 추가
               </button>
@@ -2004,6 +2071,7 @@ export default function Expense() {
                 onClick={addFuelRow}
                 className="btn-add-row"
                 style={{ background: '#007bff' }}
+                disabled={isManagerMode && !proxyMode && !isIdBasedQuery}
               >
                 ⛽ 유류비 항목 추가
               </button>
@@ -2013,6 +2081,7 @@ export default function Expense() {
                 className="btn-add-row"
                 style={{ background: '#28a745' }}
                 title="지난달 내역을 불러와 현재 월로 변환하여 추가"
+                disabled={isManagerMode && !proxyMode && !isIdBasedQuery}
               >
                 🕘 최근 내역 가져오기
               </button>
@@ -2065,6 +2134,7 @@ export default function Expense() {
                   type="button"
                   onClick={handleModifySave}
                   className="btn-secondary"
+                  disabled={!isIdBasedQuery}
                 >
                   수정하기
                 </button>
@@ -2080,6 +2150,7 @@ export default function Expense() {
                   type="button"
                   onClick={handleTempSave}
                   className="btn-secondary"
+                  disabled={false}
                 >
                   임시 저장
                 </button>
@@ -2087,6 +2158,7 @@ export default function Expense() {
                   type="button"
                   onClick={handleSubmit}
                   className="btn-primary"
+                  disabled={false}
                 >
                   제출하기
                 </button>
