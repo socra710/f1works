@@ -828,9 +828,43 @@ const Tetris = () => {
     }
   };
 
+  // 경고음 재생 함수
+  const playWarningSound = () => {
+    const audioContext = new (window.AudioContext ||
+      window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.value = 440; // A 음
+    oscillator.type = 'sine';
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(
+      0.01,
+      audioContext.currentTime + 0.3
+    );
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.3);
+  };
+
   // 맨 아래에 회색 블록 한 줄을 추가하고 모든 블록을 위로 밀어올림
   const addGrayLineAtCurrentLevel = () => {
     const gameState = gameStateRef.current;
+
+    // 경고 효과 실행
+    playWarningSound();
+
+    // 화면 흔들림 효과
+    const mainElement = document.querySelector('.tetris-main');
+    if (mainElement) {
+      mainElement.classList.add('gray-line-warning');
+      setTimeout(() => {
+        mainElement.classList.remove('gray-line-warning');
+      }, 500);
+    }
 
     // 모든 행을 한 칸씩 위로 이동 (맨 위 줄은 제거됨)
     const newBoard = gameState.board.slice(1);
@@ -840,6 +874,17 @@ const Tetris = () => {
     newBoard.push(grayLine);
 
     gameState.board = newBoard;
+
+    // 캔버스에 회색 블록 등장 효과를 위해 플래시 추가
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.save();
+      ctx.fillStyle = 'rgba(128, 128, 128, 0.5)';
+      ctx.fillRect(0, (ROWS - 1) * BLOCK_SIZE, COLS * BLOCK_SIZE, BLOCK_SIZE);
+      ctx.restore();
+    }
+
     drawBoard(gameState.board, gameState.currentPiece);
   };
 
@@ -1064,14 +1109,14 @@ const Tetris = () => {
         setLevel(newLevel);
 
         // 남은 시간에 따라 회색 블록 개수 결정
-        // 1분 경과(4분 남음): 1줄, 2분(3분 남음): 2줄, 3분(2분 남음): 3줄, 4분(1분 남음): 4줄
+        // 1분 경과(4분 남음): 1줄, 2분(3분 남음): 1줄, 3분(2분 남음): 2줄, 4분(1분 남음): 3줄
         let grayLineCount = 1;
         if (remaining <= 60) {
-          grayLineCount = 4; // 4분 경과 (1분 남음)
+          grayLineCount = 3; // 4분 경과 (1분 남음)
         } else if (remaining <= 120) {
-          grayLineCount = 3; // 3분 경과 (2분 남음)
+          grayLineCount = 2; // 3분 경과 (2분 남음)
         } else if (remaining <= 180) {
-          grayLineCount = 2; // 2분 경과 (3분 남음)
+          grayLineCount = 1; // 2분 경과 (3분 남음)
         } else {
           grayLineCount = 1; // 1분 경과 (4분 남음)
         }

@@ -68,8 +68,8 @@ export default function Expense() {
   const authCheckRef = useRef(false);
   // 관리자 대리 신청용 상태
   const [proxyMode, setProxyMode] = useState(false);
-  const [proxyUserIdInput, setProxyUserIdInput] = useState('');
-  const [proxyUserNameInput, setProxyUserNameInput] = useState('');
+  const [proxyUserIdInput] = useState('');
+  const [proxyUserNameInput] = useState('');
   const [showUserSelectModal, setShowUserSelectModal] = useState(false);
   const [userList, setUserList] = useState([]);
   const [userSearchTerm, setUserSearchTerm] = useState('');

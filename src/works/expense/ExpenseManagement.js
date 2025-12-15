@@ -32,9 +32,9 @@ export default function ExpenseManagement() {
     // React Strict Mode에서 초기 useEffect가 두 번 실행되는 것을 방지
     if (initializedRef.current) return;
     initializedRef.current = true;
-    const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(
-      navigator.userAgent
-    );
+    // const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(
+    //   navigator.userAgent
+    // );
 
     setTimeout(() => {
       const sessionUser = window.sessionStorage.getItem('extensionLogin');
