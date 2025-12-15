@@ -1394,7 +1394,7 @@ export default function Expense() {
     return (
       <div className="expense-container">
         <Helmet>
-          <title>경비 청구서 제출 - F1Works</title>
+          <title>경비 청구서 제출</title>
         </Helmet>
         <section className="container">
           <div
@@ -2191,7 +2191,10 @@ export default function Expense() {
         </section>
 
         {/* 법인카드 상세 내역 */}
-        {(isManagerMode || rows.some((row) => row.gbn === 'CORPORATE')) && (
+        {(status === 'COMPLETED'
+          ? rows.some((row) => row.gbn === 'CORPORATE')
+          : (isManagerMode || rows.some((row) => row.gbn === 'CORPORATE'))
+        ) && (
           <section className="expense-section">
             <h2 className="section-title">법인카드 상세 내역</h2>
 
