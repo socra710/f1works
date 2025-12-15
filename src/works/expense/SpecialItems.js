@@ -41,7 +41,7 @@ export default function SpecialItems() {
     }
     checkManagerPermission(sessionUser);
     // eslint-disable-next-line
-  }, [navigate]);
+  }, [navigate, showToast]);
 
   // 관리자 권한 확인
   const checkManagerPermission = async (userIdEncoded) => {
@@ -49,12 +49,18 @@ export default function SpecialItems() {
       const factoryCode =
         window.sessionStorage.getItem('factoryCode') || '000001';
 
-      // 기본 월 설정 (전월)
-      const now = new Date();
-      const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const defaultMonth = `${prev.getFullYear()}-${String(
-        prev.getMonth() + 1
-      ).padStart(2, '0')}`;
+      // 저장된 월이 있으면 사용, 없으면 기본값(전월)으로 설정
+      const savedMonth = localStorage.getItem('specialItems_selectedMonth');
+      let defaultMonth = savedMonth;
+
+      if (!defaultMonth) {
+        const now = new Date();
+        const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        defaultMonth = `${prev.getFullYear()}-${String(
+          prev.getMonth() + 1
+        ).padStart(2, '0')}`;
+      }
+
       setSelectedMonth(defaultMonth);
 
       // 목록 조회
@@ -110,6 +116,8 @@ export default function SpecialItems() {
   const handleSearch = () => {
     const factoryCode =
       window.sessionStorage.getItem('factoryCode') || '000001';
+    // 검색 시 선택한 월을 localStorage에 저장
+    localStorage.setItem('specialItems_selectedMonth', selectedMonth);
     fetchSpecialItemsList(factoryCode, selectedMonth);
   };
 

@@ -8,6 +8,7 @@ import {
   getExpenseAggregationByYear,
   getExpenseAggregationByUser,
   getMonthlyWorkStatistics,
+  getLatestApprovedExpenseId,
   // getSpecialItems,
 } from './expenseAPI';
 
@@ -149,6 +150,28 @@ export default function ExpenseSummary() {
   const didFetch = useRef(false);
   const initializedRef = useRef(false);
 
+  // 사용자 클릭 핸들러: 최근 승인된 경비 ID로 이동
+  const handleUserClick = async (userObj) => {
+    try {
+      setIsLoading(true);
+      const expenseId = await getLatestApprovedExpenseId(
+        factoryCode,
+        userObj.userId
+      );
+      if (expenseId) {
+        // 경비 상세 페이지로 이동 (ID 기준 조회)
+        navigate(`/works/expense/${expenseId}?mode=manager`);
+      } else {
+        showToast('승인된 경비 청구가 없습니다.', 'info');
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error('사용자 경비 조회 오류:', error);
+      showToast('경비 조회 중 오류가 발생했습니다.', 'error');
+      setIsLoading(false);
+    }
+  };
+
   // 권한 확인 및 초기화
   useEffect(() => {
     // React Strict Mode에서 초기 useEffect가 두 번 실행되는 것을 방지
@@ -223,7 +246,7 @@ export default function ExpenseSummary() {
         )
       );
 
-      // 사용자별 합산: { [userName]: { status, monthly: {1: 금액}, total, avg } }
+      // 사용자별 합산: { [userName]: { status, monthly: {1: 금액}, total, avg, userId } }
       const userAggregated = {};
       userAggResults.forEach((list, monthIdx) => {
         const month = monthIdx + 1;
@@ -246,6 +269,8 @@ export default function ExpenseSummary() {
               item.type ||
               '재직자';
           const amount = item.totalAmount ?? item.amount ?? 0;
+          const userIdFromData =
+            item.userId || item.EMPLOYEE_NO || item.employeeNo || '';
 
           if (!userAggregated[name]) {
             userAggregated[name] = {
@@ -253,9 +278,11 @@ export default function ExpenseSummary() {
               monthly: {},
               total: 0,
               avg: 0,
+              userId: userIdFromData,
             };
           }
           userAggregated[name].status = status;
+          userAggregated[name].userId = userIdFromData;
           userAggregated[name].monthly[month] =
             (userAggregated[name].monthly[month] || 0) + amount;
         });
@@ -1077,7 +1104,14 @@ export default function ExpenseSummary() {
                                   )}
                                   <td
                                     className="subcategory"
-                                    style={{ textAlign: 'center' }}
+                                    style={{
+                                      textAlign: 'center',
+                                      cursor: 'pointer',
+                                      color: '#2c5aa0',
+                                      textDecoration: 'underline',
+                                    }}
+                                    onClick={() => handleUserClick(data)}
+                                    title="클릭하여 최근 승인된 경비 조회"
                                   >
                                     {name}
                                   </td>
