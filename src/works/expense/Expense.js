@@ -4,12 +4,16 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import './Expense.css';
 import { ClipLoader } from 'react-spinners';
 import { useToast, useDialog } from '../../common/Toast';
-import { checkAdminStatus, getCorporateCards } from './expenseAPI';
+import {
+  checkAdminStatus,
+  getCorporateCards,
+  deleteExpenseRow as deleteExpenseRowAPI,
+} from './expenseAPI';
 
-const gubuns = [
-  { code: 'EXPENSE', name: '경비' },
-  { code: 'CORPORATE', name: '법인' },
-];
+// const gubuns = [
+//   { code: 'EXPENSE', name: '경비' },
+//   { code: 'CORPORATE', name: '법인' },
+// ];
 
 const categories = [
   { code: 'LUNCH', name: '점심' },
@@ -945,7 +949,6 @@ export default function Expense() {
         merchant: '',
         date: defaultDate,
         description: '',
-        merchant: '',
         amount: '',
         file: null,
         fileName: '',
@@ -957,11 +960,61 @@ export default function Expense() {
 
   /** 항목 삭제 */
   const deleteRow = (idx) => {
-    if (rows.length === 1) {
-      showToast('최소 1개 이상의 항목이 필요합니다.', 'warning');
+    const targetRow = rows[idx];
+    const factoryCode =
+      window.sessionStorage.getItem('factoryCode') || '000001';
+
+    const canImmediateServerDelete =
+      isManagerMode &&
+      !proxyMode &&
+      isIdBasedQuery &&
+      !managerChecked &&
+      (status === 'DRAFT' || status === 'SUBMITTED' || status === 'REJECTED') &&
+      targetRow?.rowId;
+
+    const removeRow = () => {
+      setRows((prev) => {
+        if (prev.length === 1) {
+          showToast('최소 1개 이상의 항목이 필요합니다.', 'warning');
+          return prev;
+        }
+        return prev.filter((_, i) => i !== idx);
+      });
+    };
+
+    const handleConfirmedDelete = async () => {
+      if (canImmediateServerDelete) {
+        try {
+          await deleteExpenseRowAPI({
+            expenseId,
+            rowId: targetRow.rowId,
+            factoryCode,
+          });
+          showToast('항목을 삭제했습니다.', 'success');
+        } catch (error) {
+          console.error('[Expense] deleteExpenseRow failed:', error);
+          showToast('삭제 중 오류가 발생했습니다.', 'error');
+          return;
+        }
+      }
+
+      removeRow();
+    };
+
+    if (canImmediateServerDelete) {
+      showDialog({
+        title: '삭제 확인',
+        message: canImmediateServerDelete
+          ? '이 항목을 삭제하면 즉시 삭제됩니다. 진행하시겠습니까?'
+          : '이 항목을 삭제하시겠습니까?',
+        okText: '네',
+        cancelText: '아니오',
+        onOk: handleConfirmedDelete,
+      });
       return;
     }
-    setRows(rows.filter((_, i) => i !== idx));
+
+    removeRow();
   };
 
   /** 항목 변경 */

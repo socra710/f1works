@@ -442,6 +442,50 @@ export const checkAdminStatus = async (userId) => {
 };
 
 /**
+ * 경비 상세 행 삭제 (내용수정 모드)
+ * @param {Object} params
+ * @param {string} params.expenseId
+ * @param {number|string} params.rowId - DETAIL_SEQ
+ * @param {string} [params.factoryCode]
+ */
+export const deleteExpenseRow = async ({
+  expenseId,
+  rowId,
+  factoryCode = '000001',
+}) => {
+  if (!expenseId || rowId === undefined || rowId === null) {
+    throw new Error('expenseId와 rowId가 필요합니다.');
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('factoryCode', factoryCode);
+    formData.append('expenseId', expenseId);
+    formData.append('rowId', rowId);
+
+    const response = await fetch(`${API_BASE_URL}/jvWorksDeleteExpenseRow`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.success === 'false' || data.success === false) {
+      throw new Error(data.message || '경비 항목 삭제에 실패했습니다.');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('deleteExpenseRow Error:', error);
+    throw error;
+  }
+};
+
+/**
  * 월별 근무 통계 데이터 조회
  * @param {string} factoryCode - 공장 코드
  * @param {string} year - 조회 년도 (YYYY)
