@@ -1217,7 +1217,8 @@ const Tetris = () => {
                       최종 점수: {score}
                     </p>
                     <p style={{ color: '#888', fontSize: '0.9rem' }}>
-                      오늘 남은 서버 점수 기록: {saveAttemptsLeft}회
+                      오늘 남은 서버 점수 기록: {saveAttemptsLeft}회<br />
+                      연습은 무제한으로 가능해요!
                     </p>
                   </>
                 )}
