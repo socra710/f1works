@@ -4,6 +4,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import './Expense.css';
 import { ClipLoader } from 'react-spinners';
 import { useToast, useDialog } from '../../common/Toast';
+import { checkAdminStatus } from './expenseAPI';
 
 const categories = [
   { code: 'LUNCH', name: '점심' },
@@ -65,6 +66,13 @@ export default function Expense() {
   ]);
   const [allChecked, setAllChecked] = useState(false);
   const authCheckRef = useRef(false);
+  // 관리자 대리 신청용 상태
+  const [proxyMode, setProxyMode] = useState(false);
+  const [proxyUserIdInput, setProxyUserIdInput] = useState('');
+  const [proxyUserNameInput, setProxyUserNameInput] = useState('');
+  const [showUserSelectModal, setShowUserSelectModal] = useState(false);
+  const [userList, setUserList] = useState([]);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
 
   // 인증 및 초기화
   useEffect(() => {
@@ -75,13 +83,41 @@ export default function Expense() {
     //   navigator.userAgent
     // );
 
-    setTimeout(() => {
+    setTimeout(async () => {
       const sessionUser = window.sessionStorage.getItem('extensionLogin');
       if (!sessionUser) {
         showToast('로그인이 필요한 서비스입니다.', 'warning');
         navigate('/works');
         return;
       }
+
+      // Expense 페이지에서만 관리자 모드 권한 확인
+      if (isManagerMode) {
+        let decodedUserId = null;
+        try {
+          decodedUserId = atob(sessionUser);
+        } catch (e) {
+          decodedUserId = sessionUser;
+        }
+
+        try {
+          const isAdmin = await checkAdminStatus((decodedUserId || '').trim());
+          if (!isAdmin) {
+            showToast(
+              '해당 페이지를 이용할 수 없습니다, 관리자 권한이 없습니다.',
+              'warning'
+            );
+            navigate('/works');
+            return;
+          }
+        } catch (err) {
+          console.error('[Expense] 관리자 권한 확인 실패:', err);
+          showToast('관리자 권한 확인 중 오류가 발생했습니다.', 'error');
+          navigate('/works');
+          return;
+        }
+      }
+
       initializeExpense(sessionUser);
     }, 500);
     // eslint-disable-next-line
@@ -330,6 +366,134 @@ export default function Expense() {
     }
   };
 
+  // 사용자 목록 로드 (관리자용, TIN114 기반 전용 API)
+  const loadUserList = async (query = '') => {
+    try {
+      const factoryCode =
+        window.sessionStorage.getItem('factoryCode') || '000001';
+      const formData = new FormData();
+      formData.append('factoryCode', factoryCode);
+      if (query) formData.append('query', query);
+
+      const response = await fetch(`${API_BASE_URL}/jvWorksGetUserList`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const txt = await response.text();
+        console.warn('사용자 목록 응답 오류:', response.status, txt);
+        showToast('사용자 목록을 불러오지 못했습니다.', 'error');
+        return;
+      }
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        const txt = await response.text();
+        console.warn('JSON 파싱 실패:', txt);
+        data = null;
+      }
+
+      const rawList = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.list)
+        ? data.list
+        : Array.isArray(data?.users)
+        ? data.users
+        : [];
+
+      // 중복 제거 및 필드 매핑
+      const seen = new Set();
+      const users = [];
+      rawList.forEach((item) => {
+        const id = String(
+          item.userId ?? item.id ?? item.empNo ?? item.employeeId ?? ''
+        ).trim();
+        const name = String(item.userName ?? item.name ?? '').trim();
+        if (!id) return;
+        if (seen.has(id)) return;
+        seen.add(id);
+        users.push({ userId: id, userName: name });
+      });
+      setUserList(users);
+    } catch (e) {
+      console.error('loadUserList error:', e);
+      showToast('사용자 목록 로드 중 오류가 발생했습니다.', 'error');
+    }
+  };
+
+  const openUserSelectModal = async () => {
+    if (!isManagerMode || isIdBasedQuery) return;
+    await loadUserList('');
+    setShowUserSelectModal(true);
+  };
+
+  const closeUserSelectModal = () => setShowUserSelectModal(false);
+
+  // 관리자: 사용자 선택 후 대리 청구 시작
+  const handleProxySelect = async (selectedUserId, selectedUserName) => {
+    if (!isManagerMode) return;
+    const rawId = (selectedUserId ?? proxyUserIdInput ?? '').trim();
+    const rawName = (selectedUserName ?? proxyUserNameInput ?? '').trim();
+    if (!rawId || !rawName) {
+      showToast('사용자 ID와 이름을 입력하세요.', 'warning');
+      return;
+    }
+
+    try {
+      const encodedId = btoa(rawId);
+
+      // 월이 비어있다면 기본 월로 설정 (현재 월)
+      let targetMonth = month;
+      if (!targetMonth) {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        targetMonth = `${y}-${m}`;
+      }
+
+      // 상태 설정
+      setUserId(encodedId);
+      setUserName(rawName);
+      setMonth(targetMonth);
+      setMemo('');
+      setManagerChecked(false);
+      setStatus('DRAFT');
+      setProxyMode(true);
+
+      // 해당 월의 1일 기본 날짜로 초기 행 구성
+      const [yy, mm] = targetMonth.split('-');
+      const defaultDate = `${yy}-${mm}-01`;
+      setRows([
+        {
+          rowId: null,
+          type: 'expense',
+          category: '',
+          date: defaultDate,
+          description: '',
+          amount: '',
+          people: 1,
+          file: null,
+          fileName: '',
+          dirty: true,
+          managerConfirmed: false,
+        },
+      ]);
+
+      // 유류비 설정 불러오기 (선택 사용자 기준) - encodedId 직접 전달
+      await fetchFuelSettings(targetMonth, encodedId);
+
+      // 선택 사용자의 경비 데이터 불러오기 (서버에 저장된 데이터 또는 임시저장 데이터)
+      await fetchExpenseData(targetMonth, encodedId, null, rawName);
+
+      showToast('대리 신청 사용자로 전환되었습니다.', 'info');
+    } catch (e) {
+      console.error('handleProxySelect error:', e);
+      showToast('사용자 선택 처리 중 오류가 발생했습니다.', 'error');
+    }
+  };
+
   // 입력 가능 여부 확인 (매니저 모드 제출 상태는 수정 가능, COMPLETED는 비활성화)
   const isInputDisabled = () => {
     // COMPLETED 상태는 항상 비활성화
@@ -360,7 +524,12 @@ export default function Expense() {
   };
 
   /** 경비 데이터 조회 */
-  const fetchExpenseData = async (month, userId, expenseId) => {
+  const fetchExpenseData = async (
+    month,
+    userId,
+    expenseId,
+    presetUserName = null
+  ) => {
     if (!userId) return;
 
     setIsLoading(true);
@@ -473,7 +642,7 @@ export default function Expense() {
         }
 
         // 기본 사용자 정보 설정 (서버에서 받아야 함)
-        setUserName(data?.userName || '사용자');
+        setUserName(data?.userName || presetUserName || '사용자');
         setStatus(data?.status || 'DRAFT');
         setManagerChecked(!!data?.managerChecked);
       }
@@ -760,10 +929,10 @@ export default function Expense() {
     // 매니저 모드에서 제출 상태일 때 status를 MODIFY로 설정
     let tempStatus = 'DRAFT';
     let toastMsg = '임시 저장되었습니다.';
-    if (isManagerMode && status === 'SUBMITTED' && !managerChecked) {
-      tempStatus = 'MODIFY';
-      toastMsg = '수정하였습니다.';
-    }
+    // if (isManagerMode && status === 'SUBMITTED' && !managerChecked) {
+    //   tempStatus = 'MODIFY';
+    //   toastMsg = '수정하였습니다.';
+    // }
 
     // 로컬 스토리지에도 저장
     const tempData = {
@@ -1271,21 +1440,38 @@ export default function Expense() {
 
         {/* 기본 정보 */}
         <section className="expense-section">
-          <h2 className="section-title">기본 정보</h2>
-          <div className="form-group-horizontal">
-            {userName && (
-              <div className="form-group">
-                <label htmlFor="userName">제출자</label>
-                <input
-                  id="userName"
-                  type="text"
-                  value={userName}
-                  className="input-field"
-                  disabled
-                  style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
-                />
-              </div>
+          <div
+            className="section-title"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <h2 style={{ margin: 0 }}>기본 정보</h2>
+            {isManagerMode && !isIdBasedQuery && (
+              <button
+                type="button"
+                onClick={openUserSelectModal}
+                className="btn-secondary"
+                disabled={managerChecked || status === 'COMPLETED'}
+              >
+                사용자 선택
+              </button>
             )}
+          </div>
+          <div className="form-group-horizontal">
+            <div className="form-group">
+              <label htmlFor="userName">제출자</label>
+              <input
+                id="userName"
+                type="text"
+                value={userName}
+                className="input-field"
+                disabled
+                style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+              />
+            </div>
             <div className="form-group">
               <label htmlFor="month">청구 월</label>
               <select
@@ -1357,6 +1543,92 @@ export default function Expense() {
             </div>
           </div>
         </section>
+        {showUserSelectModal && (
+          <div className="modal-overlay" onClick={closeUserSelectModal}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>사용자 선택</h2>
+                <button className="modal-close" onClick={closeUserSelectModal}>
+                  ×
+                </button>
+              </div>
+              <div className="modal-body">
+                <div className="form-group" style={{ marginBottom: '8px' }}>
+                  <input
+                    type="text"
+                    placeholder="이름 또는 사번 검색"
+                    value={userSearchTerm}
+                    onChange={(e) => setUserSearchTerm(e.target.value)}
+                    className="input-field"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        loadUserList(userSearchTerm);
+                      }
+                    }}
+                  />
+                  {/* <div style={{ marginTop: '6px' }}>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => loadUserList(userSearchTerm)}
+                    >
+                      검색
+                    </button>
+                  </div> */}
+                </div>
+                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                  <table className="expense-table">
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: 'center' }}>사번</th>
+                        <th style={{ textAlign: 'center' }}>이름</th>
+                        <th style={{ textAlign: 'center' }}>선택</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(userList || [])
+                        .filter((u) => {
+                          const term = userSearchTerm.trim().toLowerCase();
+                          if (!term) return true;
+                          return (
+                            String(u.userId).toLowerCase().includes(term) ||
+                            String(u.userName).toLowerCase().includes(term)
+                          );
+                        })
+                        .map((u, i) => (
+                          <tr key={`${u.userId}-${i}`}>
+                            <td style={{ textAlign: 'center' }}>{u.userId}</td>
+                            <td style={{ textAlign: 'center' }}>
+                              {u.userName}
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              <button
+                                className="btn-secondary"
+                                onClick={() => {
+                                  closeUserSelectModal();
+                                  handleProxySelect(
+                                    String(u.userId),
+                                    String(u.userName || '')
+                                  );
+                                }}
+                              >
+                                선택
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn-cancel" onClick={closeUserSelectModal}>
+                  닫기
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 경비 상세 내역 */}
         <section className="expense-section">
@@ -1711,8 +1983,7 @@ export default function Expense() {
               </tbody>
             </table>
           </div>
-
-          {(status === 'DRAFT' || status === 'REJECTED') && !managerChecked && (
+          {(status === 'DRAFT' || status === 'REJECTED') && (
             <div
               style={{
                 display: 'flex',
@@ -1782,9 +2053,12 @@ export default function Expense() {
                 </button>
               </div>
             )}
-          {/* 매니저 모드: 제출 상태에서 수정 가능, 임시저장 버튼만 표시 */}
+          {/* 매니저 모드: 제출, 반려 상태에서 수정 가능, 임시저장 버튼만 표시 */}
           {isManagerMode &&
-            (status === 'DRAFT' || status === 'SUBMITTED') &&
+            !proxyMode &&
+            (status === 'DRAFT' ||
+              status === 'SUBMITTED' ||
+              status === 'REJECTED') &&
             !managerChecked && (
               <div className="button-group">
                 <button
@@ -1793,6 +2067,28 @@ export default function Expense() {
                   className="btn-secondary"
                 >
                   수정하기
+                </button>
+              </div>
+            )}
+          {/* 매니저 모드: 대리 신청 진행 중이면 일반 버튼 표시 */}
+          {isManagerMode &&
+            proxyMode &&
+            (status === 'DRAFT' || status === 'REJECTED') &&
+            !managerChecked && (
+              <div className="button-group">
+                <button
+                  type="button"
+                  onClick={handleTempSave}
+                  className="btn-secondary"
+                >
+                  임시 저장
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  className="btn-primary"
+                >
+                  제출하기
                 </button>
               </div>
             )}

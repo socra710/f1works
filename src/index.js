@@ -5,7 +5,7 @@ import App from './App';
 import Modal from 'react-modal';
 import reportWebVitals from './reportWebVitals';
 // import { FpjsProvider } from '@fingerprintjs/fingerprintjs-pro-react'
-import { HelmetProvider } from "react-helmet-async"; // 이부분 추가
+import { HelmetProvider } from 'react-helmet-async'; // 이부분 추가
 
 Modal.setAppElement('#root');
 
