@@ -147,6 +147,7 @@ export default function Works() {
         path: '/works/expense',
         category: '업무',
         requiresAdmin: false,
+        isNew: true,
       },
       {
         title: '경비 청구 관리',
@@ -155,6 +156,7 @@ export default function Works() {
         path: '/works/expense-management',
         category: '관리',
         requiresAdmin: true,
+        isNew: true,
       },
       {
         title: '경비 청구 집계',
@@ -163,6 +165,7 @@ export default function Works() {
         path: '/works/expense-summary',
         category: '관리',
         requiresAdmin: true,
+        isNew: true,
       },
       {
         title: 'Wordle 게임',
@@ -177,6 +180,7 @@ export default function Works() {
         icon: '🎮',
         path: '/games/tetris',
         category: '게임',
+        isNew: true,
       },
       {
         title: '오늘의 메뉴',
@@ -233,7 +237,8 @@ export default function Works() {
     {
       date: '2025.12.13',
       title: '테트리스 게임 기능 출시',
-      description: '블록을 쌓아 라인을 지우는 클래식 게임으로 짧은 휴식을 즐겨보세요'
+      description:
+        '블록을 쌓아 라인을 지우는 클래식 게임으로 짧은 휴식을 즐겨보세요',
     },
     {
       date: '2025.12.11',
@@ -322,6 +327,7 @@ export default function Works() {
         >
           {categoriesWithItems.map((cat) => {
             const isActive = cat.category === activeCategory.category;
+            const newCount = cat.items.filter((item) => item.isNew).length;
             return (
               <button
                 key={cat.category}
@@ -339,8 +345,32 @@ export default function Works() {
                   fontWeight: 600,
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
+                  position: 'relative',
                 }}
               >
+                {newCount > 0 && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: '-6px',
+                      right: '-6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      background: isActive ? '#ff758c' : '#ff7eb3',
+                      color: 'white',
+                      fontSize: '0.65rem',
+                      fontWeight: 700,
+                      border: '2px solid white',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    }}
+                  >
+                    {newCount}
+                  </span>
+                )}
                 {cat.category}
               </button>
             );
@@ -374,6 +404,11 @@ export default function Works() {
                 className="feature-card"
                 onClick={() => handleNavigate(feature.path)}
               >
+                {feature.isNew && (
+                  <span className="feature-badge-new" aria-label="신규">
+                    NEW
+                  </span>
+                )}
                 <div className="feature-category">{feature.category}</div>
                 <h3 className="feature-title">{feature.title}</h3>
                 <p className="feature-description">{feature.description}</p>
@@ -457,6 +492,49 @@ export default function Works() {
       </div>
       {/* Updates and Notices */}
       <section className="info-section">
+        <div className="info-grid info-grid-secondary">
+          <div className="info-card updates-card">
+            <div className="info-card-header">
+              <h3>📢 최근 업데이트</h3>
+            </div>
+            <div className="info-card-body">
+              {updates.map((update, index) => (
+                <div key={index} className="info-item">
+                  <div className="info-date">{update.date}</div>
+                  <div className="info-content">
+                    <h4>{update.title}</h4>
+                    <p>{update.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="info-card notices-card">
+            <div className="info-card-header">
+              <h3>📌 공지사항</h3>
+            </div>
+            <div className="info-card-body">
+              {notices.map((notice, index) => (
+                <div
+                  key={index}
+                  className="info-item"
+                  onClick={() =>
+                    notice.isLink && window.open(notice.link, '_blank')
+                  }
+                  style={{ cursor: notice.isLink ? 'pointer' : 'default' }}
+                >
+                  <div className="info-date">{notice.date}</div>
+                  <div className="info-content">
+                    <h4>{notice.title}</h4>
+                    <p style={{ whiteSpace: 'pre-line' }}>{notice.content}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div className="info-grid info-grid-main">
           {/* Fun Insights */}
           <div className="info-card insights-card">
@@ -623,49 +701,6 @@ export default function Works() {
                   )}
                 </>
               )}
-            </div>
-          </div>
-        </div>
-
-        <div className="info-grid info-grid-secondary">
-          <div className="info-card updates-card">
-            <div className="info-card-header">
-              <h3>📢 최근 업데이트</h3>
-            </div>
-            <div className="info-card-body">
-              {updates.map((update, index) => (
-                <div key={index} className="info-item">
-                  <div className="info-date">{update.date}</div>
-                  <div className="info-content">
-                    <h4>{update.title}</h4>
-                    <p>{update.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="info-card notices-card">
-            <div className="info-card-header">
-              <h3>📌 공지사항</h3>
-            </div>
-            <div className="info-card-body">
-              {notices.map((notice, index) => (
-                <div
-                  key={index}
-                  className="info-item"
-                  onClick={() =>
-                    notice.isLink && window.open(notice.link, '_blank')
-                  }
-                  style={{ cursor: notice.isLink ? 'pointer' : 'default' }}
-                >
-                  <div className="info-date">{notice.date}</div>
-                  <div className="info-content">
-                    <h4>{notice.title}</h4>
-                    <p style={{ whiteSpace: 'pre-line' }}>{notice.content}</p>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
