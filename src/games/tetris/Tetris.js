@@ -1213,8 +1213,12 @@ const Tetris = () => {
                 <h3>{gameOver ? '게임 오버!' : '테트리스'}</h3>
                 {gameOver && (
                   <>
-                    <p style={{ color: '#a01b1b' }}>최종 점수: {score}</p>
-                    <p style={{ color: '#888', fontSize: '0.9rem' }}></p>
+                    <p style={{ color: '#a01b1b', fontWeight: 'bold' }}>
+                      최종 점수: {score}
+                    </p>
+                    <p style={{ color: '#888', fontSize: '0.9rem' }}>
+                      오늘 남은 서버 점수 기록: {saveAttemptsLeft}회
+                    </p>
                   </>
                 )}
                 <button onClick={startGame}>게임 시작</button>
