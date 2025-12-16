@@ -1884,7 +1884,7 @@ export default function Expense() {
                   >
                     지급액
                   </th>
-                  {isManagerMode && (
+                  {isManagerMode && status === 'SUBMITTED' && (
                     <th
                       style={{
                         width: '8%',
@@ -2133,7 +2133,7 @@ export default function Expense() {
                         >
                           {calcPay(row).toLocaleString()}
                         </td>
-                        {isManagerMode && (
+                        {isManagerMode && status === 'SUBMITTED' && (
                           <td
                             style={{
                               textAlign: 'center',
@@ -2327,6 +2327,17 @@ export default function Expense() {
                         >
                           지급액
                         </th>
+                        {isManagerMode && status === 'SUBMITTED' && (
+                          <th
+                            style={{
+                              width: '8%',
+                              minWidth: '80px',
+                              textAlign: 'center',
+                            }}
+                          >
+                            확인
+                          </th>
+                        )}
                         <th
                           style={{
                             width: '5%',
@@ -2476,6 +2487,35 @@ export default function Expense() {
                                 {unformatToInt(
                                   row.amount || 0
                                 ).toLocaleString()}
+                              </td>
+                              <td
+                                style={{
+                                  textAlign: 'center',
+                                  verticalAlign: 'middle',
+                                }}
+                              >
+                                {isManagerMode && status === 'SUBMITTED' && (
+                                  <input
+                                    type="checkbox"
+                                    checked={row.managerConfirmed || false}
+                                    onChange={(e) =>
+                                      updateRow(
+                                        originalIdx,
+                                        'managerConfirmed',
+                                        e.target.checked
+                                      )
+                                    }
+                                    disabled={status === 'COMPLETED'}
+                                    style={{
+                                      cursor:
+                                        status === 'COMPLETED'
+                                          ? 'not-allowed'
+                                          : 'pointer',
+                                      width: '18px',
+                                      height: '18px',
+                                    }}
+                                  />
+                                )}
                               </td>
                               <td
                                 style={{
