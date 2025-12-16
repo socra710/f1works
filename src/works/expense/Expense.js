@@ -4,12 +4,16 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import './Expense.css';
 import { ClipLoader } from 'react-spinners';
 import { useToast, useDialog } from '../../common/Toast';
-import { checkAdminStatus, getCorporateCards } from './expenseAPI';
+import {
+  checkAdminStatus,
+  getCorporateCards,
+  deleteExpenseRow as deleteExpenseRowAPI,
+} from './expenseAPI';
 
-const gubuns = [
-  { code: 'EXPENSE', name: '경비' },
-  { code: 'CORPORATE', name: '법인' },
-];
+// const gubuns = [
+//   { code: 'EXPENSE', name: '경비' },
+//   { code: 'CORPORATE', name: '법인' },
+// ];
 
 const categories = [
   { code: 'LUNCH', name: '점심' },
@@ -945,7 +949,6 @@ export default function Expense() {
         merchant: '',
         date: defaultDate,
         description: '',
-        merchant: '',
         amount: '',
         file: null,
         fileName: '',
@@ -957,11 +960,61 @@ export default function Expense() {
 
   /** 항목 삭제 */
   const deleteRow = (idx) => {
-    if (rows.length === 1) {
-      showToast('최소 1개 이상의 항목이 필요합니다.', 'warning');
+    const targetRow = rows[idx];
+    const factoryCode =
+      window.sessionStorage.getItem('factoryCode') || '000001';
+
+    const canImmediateServerDelete =
+      isManagerMode &&
+      !proxyMode &&
+      isIdBasedQuery &&
+      !managerChecked &&
+      (status === 'DRAFT' || status === 'SUBMITTED' || status === 'REJECTED') &&
+      targetRow?.rowId;
+
+    const removeRow = () => {
+      setRows((prev) => {
+        if (prev.length === 1) {
+          showToast('최소 1개 이상의 항목이 필요합니다.', 'warning');
+          return prev;
+        }
+        return prev.filter((_, i) => i !== idx);
+      });
+    };
+
+    const handleConfirmedDelete = async () => {
+      if (canImmediateServerDelete) {
+        try {
+          await deleteExpenseRowAPI({
+            expenseId,
+            rowId: targetRow.rowId,
+            factoryCode,
+          });
+          showToast('항목을 삭제했습니다.', 'success');
+        } catch (error) {
+          console.error('[Expense] deleteExpenseRow failed:', error);
+          showToast('삭제 중 오류가 발생했습니다.', 'error');
+          return;
+        }
+      }
+
+      removeRow();
+    };
+
+    if (canImmediateServerDelete) {
+      showDialog({
+        title: '삭제 확인',
+        message: canImmediateServerDelete
+          ? '이 항목을 삭제하면 즉시 삭제됩니다. 진행하시겠습니까?'
+          : '이 항목을 삭제하시겠습니까?',
+        okText: '네',
+        cancelText: '아니오',
+        onOk: handleConfirmedDelete,
+      });
       return;
     }
-    setRows(rows.filter((_, i) => i !== idx));
+
+    removeRow();
   };
 
   /** 항목 변경 */
@@ -1394,7 +1447,7 @@ export default function Expense() {
     return (
       <div className="expense-container">
         <Helmet>
-          <title>경비 청구서 제출 - F1Works</title>
+          <title>경비 청구서 제출</title>
         </Helmet>
         <section className="container">
           <div
@@ -2150,306 +2203,505 @@ export default function Expense() {
               </tbody>
             </table>
           </div>
-          {(status === 'DRAFT' || status === 'REJECTED') && (
-            <div
-              style={{
-                display: 'flex',
-                gap: '1rem',
-                marginTop: '0.5rem',
-                flexWrap: 'wrap',
-              }}
-            >
-              <button
-                type="button"
-                onClick={addExpenseRow}
-                className="btn-add-row"
-                disabled={isManagerMode && !proxyMode && !isIdBasedQuery}
+          {(status === 'DRAFT' || status === 'REJECTED') &&
+            !(isManagerMode && !proxyMode && !isIdBasedQuery) && (
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '1rem',
+                  marginTop: '0.5rem',
+                  flexWrap: 'wrap',
+                }}
               >
-                ➕ 경비 항목 추가
-              </button>
-              <button
-                type="button"
-                onClick={addFuelRow}
-                className="btn-add-row"
-                style={{ background: '#007bff' }}
-                disabled={isManagerMode && !proxyMode && !isIdBasedQuery}
-              >
-                ⛽ 유류비 항목 추가
-              </button>
-              <button
-                type="button"
-                onClick={importLastMonthRows}
-                className="btn-add-row"
-                style={{ background: '#28a745' }}
-                title="지난달 내역을 불러와 현재 월로 변환하여 추가"
-                disabled={isManagerMode && !proxyMode && !isIdBasedQuery}
-              >
-                🕘 최근 내역 가져오기
-              </button>
-            </div>
-          )}
-        </section>
-
-        {/* 법인카드 상세 내역 */}
-        {(isManagerMode || rows.some((row) => row.gbn === 'CORPORATE')) && (
-          <section className="expense-section">
-            <h2 className="section-title">법인카드 상세 내역</h2>
-
-            <div className="expense-table-container">
-              <table className="expense-table">
-                <thead>
-                  <tr>
-                    <th
-                      style={{
-                        textAlign: 'center',
-                        width: '10%',
-                        minWidth: '100px',
-                      }}
-                    >
-                      구분
-                    </th>
-                    <th
-                      style={{
-                        textAlign: 'center',
-                        width: '15%',
-                        minWidth: '120px',
-                      }}
-                    >
-                      카드 종류 *
-                    </th>
-                    <th
-                      style={{
-                        textAlign: 'center',
-                        width: '10%',
-                        minWidth: '100px',
-                      }}
-                    >
-                      항목 *
-                    </th>
-                    <th
-                      style={{
-                        textAlign: 'center',
-                        width: '12%',
-                        minWidth: '130px',
-                      }}
-                    >
-                      날짜 *
-                    </th>
-                    <th
-                      style={{
-                        textAlign: 'center',
-                        width: '18%',
-                        minWidth: '150px',
-                      }}
-                    >
-                      이용가맹점
-                    </th>
-                    <th
-                      style={{
-                        textAlign: 'center',
-                        width: '25%',
-                        minWidth: '180px',
-                      }}
-                    >
-                      비고 *
-                    </th>
-                    <th
-                      style={{
-                        textAlign: 'center',
-                        width: '13%',
-                        minWidth: '110px',
-                      }}
-                    >
-                      금액
-                    </th>
-                    <th
-                      style={{
-                        textAlign: 'center',
-                        width: '10%',
-                        minWidth: '100px',
-                      }}
-                    >
-                      지급액
-                    </th>
-                    <th
-                      style={{
-                        width: '5%',
-                        minWidth: '60px',
-                        textAlign: 'center',
-                      }}
-                    >
-                      삭제
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows
-                    .filter((row) => row.gbn === 'CORPORATE')
-                    .map((row) => {
-                      const originalIdx = rows.indexOf(row);
-                      return (
-                        <tr key={originalIdx}>
-                          <td
-                            style={{
-                              textAlign: 'center',
-                              fontWeight: 600,
-                              color: '#2c3e50',
-                            }}
-                          >
-                            법인
-                          </td>
-                          <td>
-                            <select
-                              value={row.corporateCard || ''}
-                              onChange={(e) =>
-                                updateRow(
-                                  originalIdx,
-                                  'corporateCard',
-                                  e.target.value
-                                )
-                              }
-                              className="select-field"
-                              disabled={!isManagerMode || isInputDisabled()}
-                            >
-                              <option value="">선택</option>
-                              {corporateCards.map((card) => (
-                                <option key={card.cardId} value={card.cardId}>
-                                  {card.cardName}
-                                </option>
-                              ))}
-                            </select>
-                          </td>
-                          <td>
-                            <select
-                              value={row.category || ''}
-                              onChange={(e) =>
-                                updateRow(
-                                  originalIdx,
-                                  'category',
-                                  e.target.value
-                                )
-                              }
-                              className="select-field"
-                              disabled={!isManagerMode || isInputDisabled()}
-                            >
-                              <option value="">선택</option>
-                              {categories.map((cat) => (
-                                <option key={cat.code} value={cat.code}>
-                                  {cat.name}
-                                </option>
-                              ))}
-                            </select>
-                          </td>
-                          <td>
-                            <input
-                              type="date"
-                              value={row.date}
-                              onChange={(e) =>
-                                updateRow(originalIdx, 'date', e.target.value)
-                              }
-                              className="input-field"
-                              disabled={!isManagerMode || isInputDisabled()}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="text"
-                              value={row.merchant || ''}
-                              onChange={(e) =>
-                                updateRow(
-                                  originalIdx,
-                                  'merchant',
-                                  e.target.value
-                                )
-                              }
-                              className="input-field"
-                              placeholder="가맹점명"
-                              disabled={!isManagerMode || isInputDisabled()}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="text"
-                              value={row.description}
-                              onChange={(e) =>
-                                updateRow(
-                                  originalIdx,
-                                  'description',
-                                  e.target.value
-                                )
-                              }
-                              className="input-field"
-                              placeholder="비고"
-                              disabled={isInputDisabled()}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              value={row.amount || ''}
-                              onChange={(e) =>
-                                handleMoneyChange(
-                                  originalIdx,
-                                  'amount',
-                                  e.target.value
-                                )
-                              }
-                              onBlur={() =>
-                                handleMoneyBlur(originalIdx, 'amount')
-                              }
-                              className="input-field text-right"
-                              placeholder="0"
-                              disabled={!isManagerMode || isInputDisabled()}
-                            />
-                          </td>
-                          <td
-                            style={{
-                              textAlign: 'right',
-                              color: '#2c3e50',
-                              fontWeight: 600,
-                            }}
-                          >
-                            {unformatToInt(row.amount || 0).toLocaleString()}
-                          </td>
-                          <td
-                            style={{
-                              textAlign: 'center',
-                              verticalAlign: 'middle',
-                            }}
-                          >
-                            {isManagerMode &&
-                              (status === 'DRAFT' || status === 'REJECTED') &&
-                              !managerChecked && (
-                                <button
-                                  className="btn-delete"
-                                  onClick={() => deleteRow(originalIdx)}
-                                >
-                                  삭제
-                                </button>
-                              )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              </table>
-            </div>
-
-            {isManagerMode && (status === 'DRAFT' || status === 'REJECTED') && (
-              <div style={{ marginTop: '0.5rem' }}>
                 <button
                   type="button"
-                  onClick={addCorporateCardRow}
+                  onClick={addExpenseRow}
                   className="btn-add-row"
-                  style={{ background: '#9c27b0' }}
-                  disabled={isManagerMode && !proxyMode && !isIdBasedQuery}
                 >
-                  💳 법인카드 항목 추가
+                  ➕ 경비 항목 추가
+                </button>
+                <button
+                  type="button"
+                  onClick={addFuelRow}
+                  className="btn-add-row"
+                  style={{ background: '#007bff' }}
+                >
+                  ⛽ 유류비 항목 추가
+                </button>
+                <button
+                  type="button"
+                  onClick={importLastMonthRows}
+                  className="btn-add-row"
+                  style={{ background: '#28a745' }}
+                  title="지난달 내역을 불러와 현재 월로 변환하여 추가"
+                >
+                  🕘 최근 내역 가져오기
                 </button>
               </div>
             )}
-          </section>
+        </section>
+
+        {/* 법인카드 상세 내역 */}
+        {(status === 'COMPLETED'
+          ? rows.some((row) => row.gbn === 'CORPORATE')
+          : isManagerMode || rows.some((row) => row.gbn === 'CORPORATE')) && (
+          <>
+            {isManagerMode ? (
+              // 관리자 모드: 기존 방식 - 단일 테이블
+              <section className="expense-section">
+                <h2 className="section-title">법인카드 상세 내역</h2>
+
+                <div className="expense-table-container">
+                  <table className="expense-table">
+                    <thead>
+                      <tr>
+                        <th
+                          style={{
+                            textAlign: 'center',
+                            width: '10%',
+                            minWidth: '100px',
+                          }}
+                        >
+                          구분
+                        </th>
+                        <th
+                          style={{
+                            textAlign: 'center',
+                            width: '15%',
+                            minWidth: '120px',
+                          }}
+                        >
+                          카드 종류 *
+                        </th>
+                        <th
+                          style={{
+                            textAlign: 'center',
+                            width: '10%',
+                            minWidth: '100px',
+                          }}
+                        >
+                          항목 *
+                        </th>
+                        <th
+                          style={{
+                            textAlign: 'center',
+                            width: '12%',
+                            minWidth: '130px',
+                          }}
+                        >
+                          날짜 *
+                        </th>
+                        <th
+                          style={{
+                            textAlign: 'center',
+                            width: '18%',
+                            minWidth: '150px',
+                          }}
+                        >
+                          이용가맹점
+                        </th>
+                        <th
+                          style={{
+                            textAlign: 'center',
+                            width: '25%',
+                            minWidth: '180px',
+                          }}
+                        >
+                          비고 *
+                        </th>
+                        <th
+                          style={{
+                            textAlign: 'center',
+                            width: '13%',
+                            minWidth: '110px',
+                          }}
+                        >
+                          금액
+                        </th>
+                        <th
+                          style={{
+                            textAlign: 'center',
+                            width: '10%',
+                            minWidth: '100px',
+                          }}
+                        >
+                          지급액
+                        </th>
+                        <th
+                          style={{
+                            width: '5%',
+                            minWidth: '60px',
+                            textAlign: 'center',
+                          }}
+                        >
+                          삭제
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows
+                        .filter((row) => row.gbn === 'CORPORATE')
+                        .map((row) => {
+                          const originalIdx = rows.indexOf(row);
+                          return (
+                            <tr key={originalIdx}>
+                              <td
+                                style={{
+                                  textAlign: 'center',
+                                  fontWeight: 600,
+                                  color: '#2c3e50',
+                                }}
+                              >
+                                법인
+                              </td>
+                              <td>
+                                <select
+                                  value={row.corporateCard || ''}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      originalIdx,
+                                      'corporateCard',
+                                      e.target.value
+                                    )
+                                  }
+                                  className="select-field"
+                                  disabled={!isManagerMode || isInputDisabled()}
+                                >
+                                  <option value="">선택</option>
+                                  {corporateCards.map((card) => (
+                                    <option
+                                      key={card.cardId}
+                                      value={card.cardId}
+                                    >
+                                      {card.cardName}
+                                    </option>
+                                  ))}
+                                </select>
+                              </td>
+                              <td>
+                                <select
+                                  value={row.category || ''}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      originalIdx,
+                                      'category',
+                                      e.target.value
+                                    )
+                                  }
+                                  className="select-field"
+                                  disabled={!isManagerMode || isInputDisabled()}
+                                >
+                                  <option value="">선택</option>
+                                  {categories.map((cat) => (
+                                    <option key={cat.code} value={cat.code}>
+                                      {cat.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </td>
+                              <td>
+                                <input
+                                  type="date"
+                                  value={row.date}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      originalIdx,
+                                      'date',
+                                      e.target.value
+                                    )
+                                  }
+                                  className="input-field"
+                                  disabled={!isManagerMode || isInputDisabled()}
+                                />
+                              </td>
+                              <td>
+                                <input
+                                  type="text"
+                                  value={row.merchant || ''}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      originalIdx,
+                                      'merchant',
+                                      e.target.value
+                                    )
+                                  }
+                                  className="input-field"
+                                  placeholder="가맹점명"
+                                  disabled={!isManagerMode || isInputDisabled()}
+                                />
+                              </td>
+                              <td>
+                                <input
+                                  type="text"
+                                  value={row.description}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      originalIdx,
+                                      'description',
+                                      e.target.value
+                                    )
+                                  }
+                                  className="input-field"
+                                  placeholder="비고"
+                                  disabled={isInputDisabled()}
+                                />
+                              </td>
+                              <td>
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={row.amount || ''}
+                                  onChange={(e) =>
+                                    handleMoneyChange(
+                                      originalIdx,
+                                      'amount',
+                                      e.target.value
+                                    )
+                                  }
+                                  onBlur={() =>
+                                    handleMoneyBlur(originalIdx, 'amount')
+                                  }
+                                  className="input-field text-right"
+                                  placeholder="0"
+                                  disabled={!isManagerMode || isInputDisabled()}
+                                />
+                              </td>
+                              <td
+                                style={{
+                                  textAlign: 'right',
+                                  color: '#2c3e50',
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {unformatToInt(
+                                  row.amount || 0
+                                ).toLocaleString()}
+                              </td>
+                              <td
+                                style={{
+                                  textAlign: 'center',
+                                  verticalAlign: 'middle',
+                                }}
+                              >
+                                {isManagerMode &&
+                                  (status === 'DRAFT' ||
+                                    status === 'REJECTED') &&
+                                  !managerChecked && (
+                                    <button
+                                      className="btn-delete"
+                                      onClick={() => deleteRow(originalIdx)}
+                                    >
+                                      삭제
+                                    </button>
+                                  )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {isManagerMode &&
+                  (status === 'DRAFT' || status === 'REJECTED') &&
+                  !(isManagerMode && !proxyMode && !isIdBasedQuery) && (
+                    <div style={{ marginTop: '0.5rem' }}>
+                      <button
+                        type="button"
+                        onClick={addCorporateCardRow}
+                        className="btn-add-row"
+                        style={{ background: '#9c27b0' }}
+                      >
+                        💳 법인카드 항목 추가
+                      </button>
+                    </div>
+                  )}
+              </section>
+            ) : (
+              // 일반 사용자 모드: 법인카드별로 그룹화하여 표시
+              <>
+                {(() => {
+                  // 법인카드별로 그룹화
+                  const corporateRows = rows.filter(
+                    (row) => row.gbn === 'CORPORATE'
+                  );
+                  const groupedByCard = {};
+
+                  corporateRows.forEach((row) => {
+                    const cardId = row.corporateCard || 'unknown';
+                    if (!groupedByCard[cardId]) {
+                      groupedByCard[cardId] = [];
+                    }
+                    groupedByCard[cardId].push(row);
+                  });
+
+                  return Object.entries(groupedByCard).map(
+                    ([cardId, cardRows]) => {
+                      const cardInfo = corporateCards.find(
+                        (c) => c.cardId === cardId
+                      );
+                      const cardName = cardInfo
+                        ? cardInfo.cardName
+                        : '미지정 카드';
+
+                      return (
+                        <section
+                          key={cardId}
+                          className="expense-section"
+                          style={{ marginTop: '1.5rem' }}
+                        >
+                          <h2 className="section-title">
+                            💳 {cardName} 상세 내역
+                          </h2>
+
+                          <div className="expense-table-container">
+                            <table className="expense-table">
+                              <thead>
+                                <tr>
+                                  <th
+                                    style={{
+                                      textAlign: 'center',
+                                      width: '8%',
+                                      minWidth: '80px',
+                                    }}
+                                  >
+                                    구분
+                                  </th>
+                                  <th
+                                    style={{
+                                      textAlign: 'center',
+                                      width: '12%',
+                                      minWidth: '100px',
+                                    }}
+                                  >
+                                    항목
+                                  </th>
+                                  <th
+                                    style={{
+                                      textAlign: 'center',
+                                      width: '12%',
+                                      minWidth: '130px',
+                                    }}
+                                  >
+                                    날짜
+                                  </th>
+                                  <th
+                                    style={{
+                                      textAlign: 'center',
+                                      width: '16%',
+                                      minWidth: '150px',
+                                    }}
+                                  >
+                                    이용가맹점
+                                  </th>
+                                  <th
+                                    style={{
+                                      textAlign: 'center',
+                                      width: '30%',
+                                      minWidth: '180px',
+                                    }}
+                                  >
+                                    비고
+                                  </th>
+                                  <th
+                                    style={{
+                                      textAlign: 'center',
+                                      width: '12%',
+                                      minWidth: '110px',
+                                    }}
+                                  >
+                                    금액
+                                  </th>
+                                  <th
+                                    style={{
+                                      textAlign: 'center',
+                                      width: '10%',
+                                      minWidth: '100px',
+                                    }}
+                                  >
+                                    지급액
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {cardRows.map((row) => {
+                                  const originalIdx = rows.indexOf(row);
+                                  const categoryInfo = categories.find(
+                                    (cat) => cat.code === row.category
+                                  );
+                                  const categoryName = categoryInfo
+                                    ? categoryInfo.name
+                                    : row.category || '';
+
+                                  return (
+                                    <tr key={originalIdx}>
+                                      <td
+                                        style={{
+                                          textAlign: 'center',
+                                          fontWeight: 600,
+                                          color: '#2c3e50',
+                                        }}
+                                      >
+                                        법인
+                                      </td>
+                                      <td style={{ textAlign: 'center' }}>
+                                        {categoryName}
+                                      </td>
+                                      <td style={{ textAlign: 'center' }}>
+                                        {row.date}
+                                      </td>
+                                      <td>{row.merchant || '-'}</td>
+                                      <td>
+                                        <input
+                                          type="text"
+                                          value={row.description}
+                                          onChange={(e) =>
+                                            updateRow(
+                                              originalIdx,
+                                              'description',
+                                              e.target.value
+                                            )
+                                          }
+                                          className="input-field"
+                                          placeholder="비고"
+                                          disabled={isInputDisabled()}
+                                        />
+                                      </td>
+                                      <td
+                                        style={{
+                                          textAlign: 'right',
+                                          fontWeight: 600,
+                                        }}
+                                      >
+                                        {unformatToInt(
+                                          row.amount || 0
+                                        ).toLocaleString()}
+                                      </td>
+                                      <td
+                                        style={{
+                                          textAlign: 'right',
+                                          color: '#2c3e50',
+                                          fontWeight: 600,
+                                        }}
+                                      >
+                                        {unformatToInt(
+                                          row.amount || 0
+                                        ).toLocaleString()}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        </section>
+                      );
+                    }
+                  );
+                })()}
+              </>
+            )}
+          </>
         )}
 
         {/* 합계 */}
@@ -2488,6 +2740,7 @@ export default function Expense() {
           {/* 매니저 모드: 제출, 반려 상태에서 수정 가능, 임시저장 버튼만 표시 */}
           {isManagerMode &&
             !proxyMode &&
+            isIdBasedQuery &&
             (status === 'DRAFT' ||
               status === 'SUBMITTED' ||
               status === 'REJECTED') &&
@@ -2497,7 +2750,6 @@ export default function Expense() {
                   type="button"
                   onClick={handleModifySave}
                   className="btn-secondary"
-                  disabled={!isIdBasedQuery}
                 >
                   수정하기
                 </button>
