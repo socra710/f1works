@@ -108,7 +108,7 @@ export default function Works() {
       } finally {
         setChecked(true);
       }
-    }, 500);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, []);
