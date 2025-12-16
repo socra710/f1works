@@ -237,7 +237,7 @@ export default function Works() {
   const updates = [
     {
       date: '2025.12.16',
-      title: '배차 신청 스타일 개선',
+      title: '배차 신청 UI/UX 개선',
       description:
         '배차 신청 페이지의 UI/UX가 더욱 직관적으로 개선되었습니다',
     },
