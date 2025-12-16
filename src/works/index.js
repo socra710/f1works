@@ -126,6 +126,7 @@ export default function Works() {
         icon: '🚗',
         path: '/works/dispatch/car',
         category: '업무',
+        isUpdated: true,
       },
       {
         title: '모니터 신청',
@@ -235,6 +236,12 @@ export default function Works() {
   }, [checked, categoriesWithItems, selectedTab]);
 
   const updates = [
+    {
+      date: '2025.12.16',
+      title: '배차 신청 UI/UX 개선',
+      description:
+        '배차 신청 페이지의 UI/UX가 더욱 직관적으로 개선되었습니다',
+    },
     {
       date: '2025.12.13',
       title: '테트리스 게임 기능 출시',
@@ -445,6 +452,11 @@ export default function Works() {
                 {feature.isNew && (
                   <span className="feature-badge-new" aria-label="신규">
                     NEW
+                  </span>
+                )}
+                {feature.isUpdated && (
+                  <span className="feature-badge-updated" aria-label="업데이트">
+                    UPDATE
                   </span>
                 )}
                 <div className="feature-category">{feature.category}</div>

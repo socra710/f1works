@@ -1,10 +1,10 @@
-import './Monitor.css';
+import styles from './Car.module.css';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async'; // 추가
 import ClipLoader from 'react-spinners/ClipLoader'; //설치한 cliploader을 import한다
 
-import ModalHelp from './components/ModalHelp';
+import ModalHelp from '../components/ModalHelp';
 
 export default function Car() {
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
@@ -15,6 +15,9 @@ export default function Car() {
   const [authUser, setAuthUser] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+  const [carStatus, setCarStatus] = useState('운행 가능');
+  const [carStatusDesc, setCarStatusDesc] = useState('배차 요청 후 담당자 확인');
 
   useEffect(() => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -75,11 +78,11 @@ export default function Car() {
       document.getElementById('myForm').style.display = 'none';
     });
 
-    var helpDispatch = document.querySelector('#helpDispatch');
-    helpDispatch.addEventListener('click', function (event) {
-      document.querySelector('#btn-help').click();
-      setIsOpen(true);
-    });
+    // var helpDispatch = document.querySelector('#helpDispatch');
+    // helpDispatch.addEventListener('click', function (event) {
+    //   document.querySelector('#btn-help').click();
+    //   setIsOpen(true);
+    // });
 
     var formDispatch = document.querySelector('#formDispatch');
     formDispatch.addEventListener('submit', async function (event) {
@@ -308,6 +311,28 @@ export default function Car() {
     onViewDispatch();
   }, [authUser]);
 
+  // 출발일/복귀일 기반 상태 계산 함수
+  const calculateCarStatus = (useDateFrom, useDateTo) => {
+    const today = getStringToDate();
+    
+    if (!useDateFrom || !useDateTo) {
+      return { status: '운행 가능', desc: '배차 요청 후 담당자 확인' };
+    }
+
+    if (today < useDateFrom) {
+      // 아직 시작 안함 - 예정 중
+      return { status: '예정 중', desc: useDateFrom + ' 예정' };
+    } else if (today >= useDateFrom && today <= useDateTo) {
+      // 현재 운행 중
+      return { status: '운행 중', desc: useDateTo + ' 까지 운행' };
+    } else if (today > useDateTo) {
+      // 운행 완료
+      return { status: '운행 완료', desc: useDateTo + ' 반납 완료' };
+    }
+
+    return { status: '운행 가능', desc: '배차 요청 후 담당자 확인' };
+  };
+
   const getStringToDate = () => {
     const curDate = new Date();
     const year = curDate.getFullYear();
@@ -364,6 +389,14 @@ export default function Car() {
           ele.firstChild.remove();
         }
 
+        // 첫번째 배차 데이터로 상태 업데이트
+        if (e.data.length > 0) {
+          const firstItem = e.data[0];
+          const statusInfo = calculateCarStatus(firstItem.USE_DATE_FROM, firstItem.USE_DATE_TO);
+          setCarStatus(statusInfo.status);
+          setCarStatusDesc(statusInfo.desc);
+        }
+
         for (var i = 0; i < e.data.length; i++) {
           const item = e.data[i];
 
@@ -376,7 +409,7 @@ export default function Car() {
           // 신청번호
           td = document.createElement('td');
           td.innerHTML =
-            '<a href="#" class="aTagDispatCh">' + item.DISPATCH_NO + '</a>';
+            '<a href="javascript:void(0)" class="aTagDispatCh" style="cursor:pointer;color:#667eea;">' + item.DISPATCH_NO + '</a>';
           tr.append(td);
 
           // 신청일
@@ -417,6 +450,7 @@ export default function Car() {
           tr.append(td);
 
           td = document.createElement('td');
+          td.setAttribute('style', 'text-align:center;');
           td.innerHTML = item.FLUX_FROM + '/' + item.FLUX_TO;
           tr.append(td);
 
@@ -447,6 +481,8 @@ export default function Car() {
 
         document.querySelectorAll('.aTagDispatCh').forEach((target) =>
           target.addEventListener('click', function (evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
             document.querySelector('#lightbox').style.display = 'block';
             onModifyForm(this);
           })
@@ -550,222 +586,236 @@ export default function Car() {
           content={`https://codefeat.netlify.app/works/dispatch`}
         />
       </Helmet>
-      <div className="div-monitor">
+      <div className={`${styles['car-shell']} ${styles['div-car']}`}>
         {loading ? (
-          <section className="container">
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              minHeight: '100vh',
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 9999,
+            }}
+          >
             <ClipLoader
-              color="#f88c6b"
-              loading={loading} //useState로 관리
-              size={150}
+              color="#667eea"
+              loading={loading}
+              size={120}
             />
-          </section>
+          </div>
         ) : (
           <>
-            <main style={{ padding: '0', maxWidth: 'max-content' }}>
-              <div
-                className="bottom-div-kakao"
-                style={{
-                  justifyContent: 'center',
-                  margin: '5px auto',
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  zIndex: 1000, // 다른 요소 위에 배치
-                  backgroundColor: '#fff', // 배경색 (필요에 따라 설정)
-                }}
-              >
-                <ins
-                  className="kakao_ad_area"
-                  data-ad-unit="DAN-0oWzN1iMfbRwhBwd"
-                  data-ad-width="728"
-                  data-ad-height="90"
-                ></ins>
-              </div>
-              <div
-                className="bottom-div-kakao-mobile"
-                style={{
-                  justifyContent: 'center',
-                  margin: '5px auto',
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  zIndex: 1000, // 다른 요소 위에 배치
-                  backgroundColor: '#fff', // 배경색 (필요에 따라 설정)
-                }}
-              >
-                <ins
-                  className="kakao_ad_area"
-                  data-ad-unit="DAN-oggtfE3ed1r7kKEV"
-                  data-ad-width="320"
-                  data-ad-height="50"
-                ></ins>
-              </div>
-              <section className="pc_exp">
-                <div className="div-space-between" style={{ width: '100%' }}>
-                  <aside style={{ width: '60%', minHeight: '310px' }}>
-                    <p>
-                      <sup>필독</sup>
-                      <b>업무용 차량 운용 및 배차 요령</b>
-                    </p>
-                    <ul>
-                      <li>
-                        신청은 1일 전에 신청하되 급한 용무에 한해 당일 배차 가능
-                        <mark>(단, 선배차된 사용자 우선)</mark>
-                      </li>
-                      <li>
-                        차량 관리 : 최정욱 부장, 키 수령 : 백지선 선임 자리
-                        책꽂이, 최정욱 부장 자리 옆 칸막이
-                      </li>
-                      <li>
-                        사용 후 특이사항에 주차위치 기재, 출발전과 복귀후 반드시
-                        이동거리 및 유량(%)을 체크할 것.
-                      </li>
-                      <li>
-                        주유 및 주차비는 영수증 첨부하여 개별 경비 청구할 것.
-                      </li>
-                      <li>
-                        운전자 부주의로 법규 미준수하여 과태료
-                        <mark>(과속, 주정차 등)</mark> 부과시 본인 부담으로
-                        과태료 납부할 것.
-                      </li>
-                      <li>
-                        차량에 이상 발생<mark>(파손, 사고, 고장증세 등)</mark>시
-                        특이사항에 기재할 것.
-                      </li>
-                      <li>
-                        <b>사용 후 키를 반드시 관리팀에 반납할 것.</b>
-                        <mark>
-                          (외부에서 퇴근하여 바로 반납이 불가한 경우에는
-                          관리팀에 알려주시기 바랍니다.)
-                        </mark>
-                      </li>
-                      <li>
-                        <b>차량내 금연</b>해주시고 <b>연비 운전</b>{' '}
-                        부탁드립니다.
-                        <mark>
-                          (차간거리 충분히 유지, 탄력운전, 급출발 및 급제동 지양
-                          등)
-                        </mark>
-                      </li>
-                      <li>
-                        <b>출발 및 복귀</b> 시간을 정확하게 입력 부탁드립니다.
-                        <mark>
-                          (복귀 시간이 다음날을 넘어갈 경우 복귀일을 정확하게
-                          입력할것.)
-                        </mark>
-                      </li>
-                    </ul>
-                  </aside>
-                  <aside style={{ width: '40%', minHeight: '310px' }}>
-                    <p>
-                      <b>차량 정보</b>
-                    </p>
-                    <ul>
-                      <li>모델명 : 기아 더뉴 카니발 9인승 럭셔리</li>
-                      <li>
-                        차량번호 : <b>245로 4279</b>
-                      </li>
-                      <li>
-                        유종 및 배기량 : <b>디젤</b>(2199CC)
-                      </li>
-                      <li>연월식 : 18년 5월식(19년형)</li>
-                      <li>주행거리 : 98,000KM</li>
-                      <li>
-                        구매처 : K CAR 안양직영점(이성원
-                        차량평가사,0501-13740-3514)
-                      </li>
-                      <li>구매일 : 2022년 8월 30일</li>
-                      <li>
-                        하이패스 : <b>있음</b>
-                      </li>
-                      <li>
-                        주유카드 :{' '}
-                        <b style={{ color: 'red' }}>
-                          중앙 팔걸이 보관함 비닐 케이스에 있음
-                        </b>
-                      </li>
-                    </ul>
-                  </aside>
+            <main className={styles['car-content']}>
+              <section className={styles['dispatch-hero']}>
+                <div className={styles['dispatch-hero__text']}>
+                  {/* <p className="eyebrow">F1Works</p> */}
+                  <h1 className={styles['hero-title']}>업무 차량 배차 신청</h1>
+                  <p className={styles['hero-sub']}>
+                    안전하고 효율적인 출장 운행을 위해 사전에 신청하고, 사용
+                    후에는 이동거리와 주유 정보를 빠짐없이 업데이트하세요.
+                  </p>
+                  <div className={styles['hero-meta']}>
+                    <span className={`${styles['chip']} ${styles['chip--solid']}`}>245로 4279 · 카니발</span>
+                    <span className={styles['chip']}>하이패스 · 주유카드 구비</span>
+                    <span className={styles['chip']}>실시간 신청 · 수정</span>
+                  </div>
+                </div>
+                <div className={styles['dispatch-hero__status']}>
+                  <div className={styles['stat-card']}>
+                    <p className={styles['stat-label']}>현재 상태</p>
+                    <p className={styles['stat-value']}>{carStatus}</p>
+                    <small className={styles['stat-desc']}>{carStatusDesc}</small>
+                  </div>
+                  <div className={styles['stat-card']}>
+                    <p className={styles['stat-label']}>필수 체크</p>
+                    <p className={styles['stat-value']}>출발·복귀 시간</p>
+                    <small className={styles['stat-desc']}>유량/주차 위치 기재</small>
+                  </div>
                 </div>
               </section>
-              <div className="div-space-between2">
-                <i className="infoI">
-                  💡 작성된 배차 신청 내역은 <b>신청번호</b>를 클릭하여 수정할
+
+              <div className={styles['ad-row']}>
+                <div className={`${styles['ad-card']} ${styles['pc-ad']}`}>
+                  <ins
+                    className="kakao_ad_area"
+                    data-ad-unit="DAN-0oWzN1iMfbRwhBwd"
+                    data-ad-width="728"
+                    data-ad-height="90"
+                  ></ins>
+                </div>
+                <div className={`${styles['ad-card']} ${styles['mobile-ad']}`}>
+                  <ins
+                    className="kakao_ad_area"
+                    data-ad-unit="DAN-oggtfE3ed1r7kKEV"
+                    data-ad-width="320"
+                    data-ad-height="50"
+                  ></ins>
+                </div>
+              </div>
+
+              <div className={styles['dispatch-toolbar']}>
+                <i className={styles['infoI']}>
+                  💡 작성된 배차 신청 내역은 <b>신청번호*</b>를 클릭하여 수정할
                   수 있습니다.
                 </i>
-                <div
-                  style={{ justifyContent: 'space-between', display: 'flex' }}
-                >
+                <div className={styles['toolbar-actions']}>
                   <button
-                    id="openDispatch"
-                    className="btn"
-                    style={{ marginRight: '5px' }}
+                    type="button"
+                    className={`${styles['btnHelp']} ${styles['btn-ghost']}`}
+                    onClick={() => setShowGuide(true)}
                   >
-                    배차 신청
+                    배차 안내 보기
                   </button>
-                  <button
-                    id="helpDispatch"
-                    className="btnHelp"
-                    style={{ fontSize: '13px' }}
-                  >
+                  {/* <button id="helpDispatch" className="btnHelp btn-ghost">
                     도움말
+                  </button> */}
+                  <button id="openDispatch" className={`${styles['btn']} ${styles['btn-elevated']}`}>
+                    배차 신청
                   </button>
                 </div>
               </div>
               <section>
-                <table className="table_style">
-                  <thead>
-                    <tr>
-                      <th>No</th>
-                      <th class="importantCell">신청번호</th>
-                      <th>신청일</th>
-                      <th>관리번호</th>
-                      <th>출발일 (시간)</th>
-                      <th>복귀일 (시간)</th>
-                      <th>출장지</th>
-                      <th>이동거리</th>
-                      <th>출발유량/복귀유량</th>
-                      <th>주유여부(경유)</th>
-                      <th>운전자</th>
-                      <th>주차구역</th>
-                      <th>정비이력 등 특이사항</th>
-                    </tr>
-                    {/* <tr>
-                      <th rowSpan="2" colSpan="1">No</th>
-                      <th rowSpan="2" colSpan="1" className="importantCell">신청번호</th>
-                      <th rowSpan="2" colSpan="1">신청일</th>
-                      <th className="thparent" rowSpan="1" colSpan="2">사용일</th>
-                      <th className="thparent" rowSpan="1" colSpan="2">사용시간</th>
-                      <th rowSpan="2" colSpan="1">출장지</th>
-                      <th rowSpan="2" colSpan="1">이동거리</th>
-                      <th className="thparent" rowSpan="1" colSpan="2">유량(%)</th>
-                      <th rowSpan="2" colSpan="1">주유여부(경유)</th>
-                      <th rowSpan="2" colSpan="1">운전자</th>
-                      <th rowSpan="2" colSpan="1">주차구역</th>
-                      <th rowSpan="2" colSpan="1">정비이력 등 특이사항</th>
-                    </tr>
-                    <tr>
-                      <th className="thchild" style={{ backgroundColor: '#fafafa', borderTopLeftRadius: '0', textAlign: 'center' }}>출발</th>
-                      <th className="thchild" style={{ backgroundColor: '#fafafa', borderTopRightRadius: '0' }}>복귀</th>
-                      <th className="thchild" style={{ backgroundColor: '#fafafa', borderTopLeftRadius: '0' }}>출발</th>
-                      <th className="thchild" style={{ backgroundColor: '#fafafa', borderTopRightRadius: '0' }}>복귀</th>
-                      <th className="thchild" style={{ backgroundColor: '#fafafa', borderTopLeftRadius: '0' }}>출발</th>
-                      <th className="thchild" style={{ backgroundColor: '#fafafa', borderTopRightRadius: '0' }}>복귀</th>
-                    </tr> */}
-                  </thead>
-                  <tbody id="tbDispatch"></tbody>
-                </table>
+                <div className={styles['table-wrapper']}>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>No</th>
+                        <th>신청번호*</th>
+                        <th>신청일</th>
+                        <th>관리번호</th>
+                        <th>출발일 (시간)</th>
+                        <th>복귀일 (시간)</th>
+                        <th>출장지</th>
+                        <th>이동거리</th>
+                        <th>출발유량/복귀유량</th>
+                        <th>주유여부(경유)</th>
+                        <th>운전자</th>
+                        <th>주차구역</th>
+                        <th>정비이력 등 특이사항</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbDispatch"></tbody>
+                  </table>
+                </div>
               </section>
             </main>
-            <div className="form-popup" id="myForm">
-              <form id="formDispatch" className="form-container">
+            {showGuide && (
+              <div
+                className={styles['info-modal-backdrop']}
+                onClick={() => setShowGuide(false)}
+              >
+                <div
+                  className={styles['info-modal']}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <header className={styles['info-modal__header']}>
+                    <div>
+                      <h3>배차 요령 및 차량 정보</h3>
+                    </div>
+                    <button
+                      className={`${styles['btn']} ${styles['cancel']}`}
+                      onClick={() => setShowGuide(false)}
+                    >
+                      ✕
+                    </button>
+                  </header>
+                  <div className={styles['info-modal__body']}>
+                    <div className={styles['info-card']}>
+                      <p>
+                        <sup>필독</sup>
+                        <b>업무용 차량 운용 및 배차 요령</b>
+                      </p>
+                      <ul>
+                        <li>
+                          신청은 1일 전에 신청하되 급한 용무에 한해 당일 배차 가능
+                          <mark>(단, 선배차된 사용자 우선)</mark>
+                        </li>
+                        <li>
+                          차량 관리 : 최정욱 부장, 키 수령 : 백지선 선임 자리
+                          책꽂이, 최정욱 부장 자리 옆 칸막이
+                        </li>
+                        <li>
+                          사용 후 특이사항에 주차위치 기재, 출발전과 복귀후 반드시
+                          이동거리 및 유량(%)을 체크할 것.
+                        </li>
+                        <li>
+                          주유 및 주차비는 영수증 첨부하여 개별 경비 청구할 것.
+                        </li>
+                        <li>
+                          운전자 부주의로 법규 미준수하여 과태료
+                          <mark>(과속, 주정차 등)</mark> 부과시 본인 부담으로
+                          과태료 납부할 것.
+                        </li>
+                        <li>
+                          차량에 이상 발생<mark>(파손, 사고, 고장증세 등)</mark>시
+                          특이사항에 기재할 것.
+                        </li>
+                        <li>
+                          <b>사용 후 키를 반드시 관리팀에 반납할 것.</b>
+                          <mark>
+                            (외부에서 퇴근하여 바로 반납이 불가한 경우에는
+                            관리팀에 알려주시기 바랍니다.)
+                          </mark>
+                        </li>
+                        <li>
+                          <b>차량내 금연</b>해주시고 <b>연비 운전</b> 부탁드립니다.
+                          <mark>
+                            (차간거리 충분히 유지, 탄력운전, 급출발 및 급제동 지양 등)
+                          </mark>
+                        </li>
+                        <li>
+                          <b>출발 및 복귀</b> 시간을 정확하게 입력 부탁드립니다.
+                          <mark>
+                            (복귀 시간이 다음날을 넘어갈 경우 복귀일을 정확하게 입력할것.)
+                          </mark>
+                        </li>
+                      </ul>
+                    </div>
+                    <div className={`${styles['info-card']} ${styles['info-spec']}`}>
+                      <p>
+                        <b>🚗 차량 정보</b>
+                      </p>
+                      <ul>
+                        <li>모델명 : 기아 더뉴 카니발 9인승 럭셔리</li>
+                        <li>
+                          차량번호 : <b>245로 4279</b>
+                        </li>
+                        <li>
+                          유종 및 배기량 : <b>디젤</b>(2199CC)
+                        </li>
+                        <li>연월식 : 18년 5월식(19년형)</li>
+                        <li>주행거리 : 98,000KM</li>
+                        <li>
+                          구매처 : K CAR 안양직영점(이성원 차량평가사,0501-13740-3514)
+                        </li>
+                        <li>구매일 : 2022년 8월 30일</li>
+                        <li>
+                          하이패스 : <b>있음</b>
+                        </li>
+                        <li>
+                          주유카드 :{' '}
+                          <b style={{ color: '#ef4444' }}>
+                            중앙 팔걸이 보관함 비닐 케이스에 있음
+                          </b>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className={styles['form-popup']} id="myForm">
+              <form id="formDispatch" className={styles['form-container']}>
                 <h3>배차 신청</h3>
                 <hr style={{ margin: '0 0 1rem 0' }} />
 
-                <div className="div-space-between">
-                  <div style={{ marginRight: '5px', width: '100%' }}>
+                <div className={styles['form-row']}>
+                  <div className={`${styles['field']} ${styles['field--full']}`}>
                     <label htmlFor="dispatchNo">
                       <b>신청번호</b>
                     </label>
@@ -777,7 +827,7 @@ export default function Car() {
                       readOnly
                     />
                   </div>
-                  <div style={{ marginRight: '5px', width: '100%' }}>
+                  <div className={styles['field']}>
                     <label htmlFor="appDate">
                       <b>신청일</b>
                     </label>
@@ -791,8 +841,8 @@ export default function Car() {
                   </div>
                 </div>
 
-                <div className="div-space-between">
-                  <div style={{ marginRight: '5px', width: '100%' }}>
+                <div className={styles['form-row']}>
+                  <div className={styles['field']}>
                     <label htmlFor="appNo">
                       <b>차량 선택</b>
                     </label>
@@ -801,7 +851,7 @@ export default function Car() {
                       <option value="245-4279">245-4279(카니발)</option>
                     </select>
                   </div>
-                  <div style={{ width: '100%' }}>
+                  <div className={styles['field']}>
                     <label htmlFor="rideUserName">
                       <b>사용자</b>
                     </label>
@@ -814,18 +864,17 @@ export default function Car() {
                   </div>
                 </div>
 
-                <div className="div-space-between">
-                  <div style={{ marginRight: '5px', width: '100%' }}>
+                <div className={styles['form-row']}>
+                  <div className={styles['field']}>
                     <label htmlFor="useDate">
                       <b>사용일</b>
                     </label>
-                    <div className="div-space-between">
+                    <div className={styles['inline-row']}>
                       <input
                         type="date"
                         placeholder="출발"
                         id="useDateFrom"
                         name="useDateFrom"
-                        style={{ marginRight: '5px' }}
                         onChange={changeDateFrom}
                         defaultValue={useDateFrom}
                         required
@@ -841,17 +890,16 @@ export default function Car() {
                     </div>
                   </div>
 
-                  <div style={{ width: '100%' }}>
+                  <div className={styles['field']}>
                     <label htmlFor="useTime">
                       <b>사용시간</b>
                     </label>
-                    <div className="div-space-between">
+                    <div className={styles['inline-row']}>
                       <input
                         type="time"
                         placeholder="출발"
                         id="useTimeFrom"
                         name="useTimeFrom"
-                        style={{ marginRight: '5px' }}
                         required
                       />
                       <input
@@ -865,34 +913,37 @@ export default function Car() {
                   </div>
                 </div>
 
-                <label htmlFor="locationName">
-                  <b>출장지</b>
-                </label>
-                <input
-                  type="text"
-                  id="locationName"
-                  name="locationName"
-                  required
-                />
+                <div className={styles['form-row']}>
+                  <div className={styles['field']}>
+                  <label htmlFor="locationName">
+                    <b>출장지</b>
+                  </label>
+                  <input
+                    type="text"
+                    id="locationName"
+                    name="locationName"
+                    required
+                  />
+                  </div>
+                </div>
 
-                <div id="div01" className="div-space-between">
-                  <div style={{ marginRight: '5px', width: '100%' }}>
+                <div id="div01" className={styles['form-row']}>
+                  <div className={styles['field']}>
                     <label htmlFor="distance">
                       <b>이동거리</b>
                     </label>
                     <input type="text" id="distance" name="distance" />
                   </div>
-                  <div style={{ width: '100%' }}>
+                  <div className={styles['field']}>
                     <label htmlFor="flux">
                       <b>유량(%)</b>
                     </label>
-                    <div className="div-space-between">
+                    <div className={styles['inline-row']}>
                       <input
                         type="number"
                         placeholder="출발"
                         id="fluxFrom"
                         name="fluxFrom"
-                        style={{ marginRight: '5px' }}
                         min="0"
                       />
                       <input
@@ -906,14 +957,14 @@ export default function Car() {
                   </div>
                 </div>
 
-                <div id="div02" className="div-space-between">
-                  <div style={{ marginRight: '5px', width: '100%' }}>
+                <div id="div02" className={styles['form-row']}>
+                  <div className={styles['field']}>
                     <label htmlFor="oilingYn">
                       <b>주유여부(경유)</b>
                     </label>
                     <input type="text" id="oilingYn" name="oilingYn" />
                   </div>
-                  <div style={{ width: '100%' }}>
+                  <div className={styles['field']}>
                     <label htmlFor="parkingArea">
                       <b>주차구역</b>
                     </label>
@@ -921,50 +972,54 @@ export default function Car() {
                   </div>
                 </div>
 
-                <div id="div03">
-                  <label htmlFor="bigo">
-                    <b>정비이력 등 특이사항</b>
-                  </label>
-                  <textarea
-                    id="bigo"
-                    name="bigo"
-                    rows="3"
-                    style={{ resize: 'none' }}
-                  ></textarea>
+                <div id="div03"  className={styles['form-row']}>
+                  <div className={`${styles['field']} ${styles['field--full']}`}>
+                    <label htmlFor="bigo">
+                      <b>정비이력 등 특이사항</b>
+                    </label>
+                    <textarea
+                      className={styles['textarea-lg']}
+                      id="bigo"
+                      name="bigo"
+                      rows="3"
+                    ></textarea>
+                  </div>
                 </div>
 
-                <button
-                  type="button"
-                  id="btnDelete"
-                  className="btn"
-                  style={{ display: 'none', float: 'right' }}
-                >
-                  삭제하기
-                </button>
-                <button
-                  id="closeDispatch"
-                  type="button"
-                  className="btn cancel"
-                  style={{ float: 'right' }}
-                >
-                  닫기
-                </button>
-                <button
-                  type="submit"
-                  id="btnSave"
-                  className="btn"
-                  style={{ float: 'right' }}
-                >
-                  신청하기
-                </button>
-                <button
-                  type="button"
-                  id="btnModify"
-                  className="btn"
-                  style={{ display: 'none', float: 'right' }}
-                >
-                  수정하기
-                </button>
+                <div className={styles['form-actions']}>
+                  <button
+                    type="button"
+                    id="btnDelete"
+                    className={styles['btn']}
+                    style={{ display: 'none' }}
+                  >
+                    삭제하기
+                  </button>
+                  <div className={styles['form-actions-right']}>
+                    <button
+                      type="submit"
+                      id="btnSave"
+                      className={styles['btn']}
+                    >
+                      신청하기
+                    </button>
+                    <button
+                      type="button"
+                      id="btnModify"
+                      className={styles['btn']}
+                      style={{ display: 'none' }}
+                    >
+                      수정하기
+                    </button>
+                    <button
+                      id="closeDispatch"
+                      type="button"
+                      className={`${styles['btn']} ${styles['cancel']}`}
+                    >
+                      닫기
+                    </button>
+                  </div>
+                </div>
               </form>
             </div>
             <ModalHelp isOpen={isOpen} />

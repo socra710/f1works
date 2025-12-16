@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async'; // 추가
 import ClipLoader from 'react-spinners/ClipLoader'; //설치한 cliploader을 import한다
 
-import ModalHelp from './components/ModalHelp2';
+import ModalHelp from '../components/ModalHelp2';
 
 export default function Monitor() {
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
