@@ -126,6 +126,7 @@ export default function Works() {
         icon: '🚗',
         path: '/works/dispatch/car',
         category: '업무',
+        isUpdated: true,
       },
       {
         title: '모니터 신청',
@@ -451,6 +452,11 @@ export default function Works() {
                 {feature.isNew && (
                   <span className="feature-badge-new" aria-label="신규">
                     NEW
+                  </span>
+                )}
+                {feature.isUpdated && (
+                  <span className="feature-badge-updated" aria-label="업데이트">
+                    UPDATE
                   </span>
                 )}
                 <div className="feature-category">{feature.category}</div>
