@@ -438,7 +438,7 @@ export default function ExpenseManagement() {
   return (
     <div className="expense-management-wrapper">
       <Helmet>
-        <title>경비 청구 관리 - F1Soft Works</title>
+        <title>경비 청구 관리</title>
       </Helmet>
       <div className="expense-management-container">
         <header className="management-header">

@@ -1489,7 +1489,7 @@ export default function Expense() {
   return (
     <div className="expense-container">
       <Helmet>
-        <title>경비 청구서 제출 - F1Works</title>
+        <title>경비 청구서 제출</title>
         <meta property="og:title" content="경비 청구서 제출 - F1Works" />
         <meta property="og:description" content="월별 경비를 청구하세요" />
       </Helmet>

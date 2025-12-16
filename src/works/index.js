@@ -462,8 +462,8 @@ export default function Works() {
   return (
     <div className="works-container">
       <Helmet>
-        <title>F1Works - 직원 포털</title>
-        <meta property="og:title" content="F1Works - 직원 포털" />
+        <title>F1Works - 통합 포털</title>
+        <meta property="og:title" content="F1Works - 통합 포털" />
         <meta
           property="og:description"
           content="F1Soft 직원들을 위한 통합 업무 포털입니다."
