@@ -1204,6 +1204,13 @@ export default function Expense() {
         formData.append(`rows[${idx}].amount`, row.amount);
         formData.append(`rows[${idx}].people`, row.people);
       }
+
+      if (row.gbn === 'CORPORATE') {
+        formData.append(`rows[${idx}].corporateCard`, row.corporateCard);
+        formData.append(`rows[${idx}].merchant`, row.merchant);
+        formData.append(`rows[${idx}].amount`, row.amount);
+      }
+
       formData.append(
         `rows[${idx}].pay`,
         `${calcPay(row).toLocaleString()}` || 0
@@ -1262,8 +1269,8 @@ export default function Expense() {
           return true;
         }
       } else if (row.type === 'corporate') {
-        // 법인카드: 비고(description) 필수
-        if (!row.description) {
+        // 법인카드: 카드 종류, 항목, 날짜 필수
+        if (!row.corporateCard || !row.category || !row.date) {
           return true;
         }
       } else {
@@ -1495,16 +1502,19 @@ export default function Expense() {
           <div className="header-right">
             {isManagerMode && (
               <>
-                {status === 'SUBMITTED' && !managerChecked && (
-                  <>
-                    <button onClick={handleApprove} className="btn-approve">
-                      승인
-                    </button>
-                    <button onClick={handleReject} className="btn-reject">
-                      반려
-                    </button>
-                  </>
-                )}
+                {status === 'SUBMITTED' &&
+                  !managerChecked &&
+                  isIdBasedQuery &&
+                  !proxyMode && (
+                    <>
+                      <button onClick={handleApprove} className="btn-approve">
+                        승인
+                      </button>
+                      <button onClick={handleReject} className="btn-reject">
+                        반려
+                      </button>
+                    </>
+                  )}
                 <button
                   onClick={() => {
                     // 우선 히스토리 뒤로가기 시도
@@ -2258,8 +2268,8 @@ export default function Expense() {
                         <th
                           style={{
                             textAlign: 'center',
-                            width: '10%',
-                            minWidth: '100px',
+                            width: '7%',
+                            minWidth: '70px',
                           }}
                         >
                           구분
@@ -2267,8 +2277,8 @@ export default function Expense() {
                         <th
                           style={{
                             textAlign: 'center',
-                            width: '15%',
-                            minWidth: '120px',
+                            width: '11%',
+                            minWidth: '110px',
                           }}
                         >
                           카드 종류 *
@@ -2276,8 +2286,8 @@ export default function Expense() {
                         <th
                           style={{
                             textAlign: 'center',
-                            width: '10%',
-                            minWidth: '100px',
+                            width: '8%',
+                            minWidth: '90px',
                           }}
                         >
                           항목 *
@@ -2285,8 +2295,8 @@ export default function Expense() {
                         <th
                           style={{
                             textAlign: 'center',
-                            width: '12%',
-                            minWidth: '130px',
+                            width: '9%',
+                            minWidth: '95px',
                           }}
                         >
                           날짜 *
@@ -2294,8 +2304,8 @@ export default function Expense() {
                         <th
                           style={{
                             textAlign: 'center',
-                            width: '18%',
-                            minWidth: '150px',
+                            width: '14%',
+                            minWidth: '130px',
                           }}
                         >
                           이용가맹점
@@ -2303,17 +2313,17 @@ export default function Expense() {
                         <th
                           style={{
                             textAlign: 'center',
-                            width: '25%',
-                            minWidth: '180px',
+                            width: '21%',
+                            minWidth: '170px',
                           }}
                         >
-                          비고 *
+                          비고
                         </th>
                         <th
                           style={{
                             textAlign: 'center',
-                            width: '13%',
-                            minWidth: '110px',
+                            width: '10%',
+                            minWidth: '90px',
                           }}
                         >
                           금액
@@ -2321,8 +2331,8 @@ export default function Expense() {
                         <th
                           style={{
                             textAlign: 'center',
-                            width: '10%',
-                            minWidth: '100px',
+                            width: '8%',
+                            minWidth: '80px',
                           }}
                         >
                           지급액
@@ -2330,8 +2340,8 @@ export default function Expense() {
                         {isManagerMode && status === 'SUBMITTED' && (
                           <th
                             style={{
-                              width: '8%',
-                              minWidth: '80px',
+                              width: '6%',
+                              minWidth: '60px',
                               textAlign: 'center',
                             }}
                           >
@@ -2340,8 +2350,8 @@ export default function Expense() {
                         )}
                         <th
                           style={{
-                            width: '5%',
-                            minWidth: '60px',
+                            width: '4%',
+                            minWidth: '50px',
                             textAlign: 'center',
                           }}
                         >
@@ -2488,13 +2498,13 @@ export default function Expense() {
                                   row.amount || 0
                                 ).toLocaleString()}
                               </td>
-                              <td
-                                style={{
-                                  textAlign: 'center',
-                                  verticalAlign: 'middle',
-                                }}
-                              >
-                                {isManagerMode && status === 'SUBMITTED' && (
+                              {isManagerMode && status === 'SUBMITTED' && (
+                                <td
+                                  style={{
+                                    textAlign: 'center',
+                                    verticalAlign: 'middle',
+                                  }}
+                                >
                                   <input
                                     type="checkbox"
                                     checked={row.managerConfirmed || false}
@@ -2515,8 +2525,8 @@ export default function Expense() {
                                       height: '18px',
                                     }}
                                   />
-                                )}
-                              </td>
+                                </td>
+                              )}
                               <td
                                 style={{
                                   textAlign: 'center',
