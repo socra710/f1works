@@ -2624,7 +2624,7 @@ export default function Expense() {
                                       minWidth: '100px',
                                     }}
                                   >
-                                    항목
+                                    항목 *
                                   </th>
                                   <th
                                     style={{
@@ -2633,7 +2633,7 @@ export default function Expense() {
                                       minWidth: '130px',
                                     }}
                                   >
-                                    날짜
+                                    날짜 *
                                   </th>
                                   <th
                                     style={{
@@ -2694,11 +2694,44 @@ export default function Expense() {
                                       >
                                         법인
                                       </td>
-                                      <td style={{ textAlign: 'center' }}>
-                                        {categoryName}
+                                      <td>
+                                        <select
+                                          value={row.category || ''}
+                                          onChange={(e) =>
+                                            updateRow(
+                                              originalIdx,
+                                              'category',
+                                              e.target.value
+                                            )
+                                          }
+                                          className="select-field"
+                                          disabled={isInputDisabled()}
+                                        >
+                                          <option value="">선택</option>
+                                          {categories.map((cat) => (
+                                            <option
+                                              key={cat.code}
+                                              value={cat.code}
+                                            >
+                                              {cat.name}
+                                            </option>
+                                          ))}
+                                        </select>
                                       </td>
-                                      <td style={{ textAlign: 'center' }}>
-                                        {row.date}
+                                      <td>
+                                        <input
+                                          type="date"
+                                          value={row.date}
+                                          onChange={(e) =>
+                                            updateRow(
+                                              originalIdx,
+                                              'date',
+                                              e.target.value
+                                            )
+                                          }
+                                          className="input-field"
+                                          disabled={isInputDisabled()}
+                                        />
                                       </td>
                                       <td>{row.merchant || '-'}</td>
                                       <td>

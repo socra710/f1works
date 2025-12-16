@@ -37,6 +37,7 @@ export default function Works() {
     const savedTab = localStorage.getItem('selectedTab');
     return savedTab || '업무';
   });
+  const [notificationVisible, setNotificationVisible] = useState(false);
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -107,7 +108,7 @@ export default function Works() {
       } finally {
         setChecked(true);
       }
-    }, 500);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -290,6 +291,43 @@ export default function Works() {
     },
   ];
 
+  // 상단 알림 배너 설정
+  const topNotification = {
+    id: 'notification-20251213-tetris', // 공지마다 고유 ID (날짜-내용 형식 권장)
+    type: 'info', // 'info', 'warning', 'success', 'error'
+    message:
+      '🎉 테트리스 게임이 새롭게 출시되었습니다! 게임 메뉴에서 즐겨보세요.',
+    link: '/games/tetris',
+    linkText: '지금 플레이하기',
+  };
+
+  // 닫힌 공지 확인 및 알림 표시 여부 설정
+  useEffect(() => {
+    if (topNotification && topNotification.id) {
+      const dismissedNotifications = JSON.parse(
+        localStorage.getItem('dismissedNotifications') || '[]'
+      );
+      const isDismissed = dismissedNotifications.includes(topNotification.id);
+      setNotificationVisible(!isDismissed);
+    }
+  }, []);
+
+  const handleDismissNotification = () => {
+    setNotificationVisible(false);
+    if (topNotification && topNotification.id) {
+      const dismissedNotifications = JSON.parse(
+        localStorage.getItem('dismissedNotifications') || '[]'
+      );
+      if (!dismissedNotifications.includes(topNotification.id)) {
+        dismissedNotifications.push(topNotification.id);
+        localStorage.setItem(
+          'dismissedNotifications',
+          JSON.stringify(dismissedNotifications)
+        );
+      }
+    }
+  };
+
   const handleNavigate = (path) => {
     if (path.startsWith('https://')) {
       window.open(path, '_blank');
@@ -450,6 +488,34 @@ export default function Works() {
           </p>
         </div>
       </header>
+
+      {/* Notification Banner */}
+      {notificationVisible && (
+        <div
+          className={`notification-banner notification-${topNotification.type}`}
+        >
+          <div className="notification-content">
+            <span className="notification-message">
+              {topNotification.message}
+            </span>
+            {topNotification.link && (
+              <button
+                className="notification-link"
+                onClick={() => handleNavigate(topNotification.link)}
+              >
+                {topNotification.linkText}
+              </button>
+            )}
+          </div>
+          <button
+            className="notification-close"
+            onClick={handleDismissNotification}
+            aria-label="알림 닫기"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Features Grid */}
       <section className="features-section">
