@@ -239,8 +239,7 @@ export default function Works() {
     {
       date: '2025.12.16',
       title: '배차 신청 UI/UX 개선',
-      description:
-        '배차 신청 페이지의 UI/UX가 더욱 직관적으로 개선되었습니다',
+      description: '배차 신청 페이지의 UI/UX가 더욱 직관적으로 개선되었습니다',
     },
     {
       date: '2025.12.13',
@@ -270,14 +269,22 @@ export default function Works() {
       title: '차량 정보 업데이트',
       description: '배차 시스템의 차량 정보가 최신화되었습니다',
     },
-    {
-      date: '2025.01.01',
-      title: '모니터 신청 화면 추가',
-      description: '모니터 대여 신청 및 현황 확인 기능이 추가되었습니다',
-    },
+    // {
+    //   date: '2025.01.01',
+    //   title: '모니터 신청 화면 추가',
+    //   description: '모니터 대여 신청 및 현황 확인 기능이 추가되었습니다',
+    // },
   ];
 
   const notices = [
+    {
+      date: '2025.12.17',
+      title: '경비 청구 안내',
+      content:
+        '12월분 경비청구부터는 온라인 경비청구와 병행으로 작성 부탁드립니다.\n\n📍 온라인 경비청구 이용 방법:\n1. F1Works 확장 프로그램 다운로드\n2. 확장 프로그램에서 로그인\n3. 통합 포털 아이콘 클릭으로 이동\n\n⚠️ 사용자 정보가 필수적으로 필요하여 F1Works 로그인 상태에서만 가능합니다.',
+      link: 'https://chromewebstore.google.com/detail/f1works-extensions/ljpcdbbmboicadbkkkobjpnfgdaickjj?authuser=0&hl=ko',
+      isLink: true,
+    },
     {
       date: '2025.12.12',
       title: '카카오 광고 게재 안내',
