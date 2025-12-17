@@ -42,12 +42,8 @@ const Wordle = () => {
           content="유명한 게임을 따라 만든 클론게임입니다."
         />
         <meta
-          property="og:image"
-          content="https://f1lab.co.kr:444/mail_sign/wordle.jpg"
-        />
-        <meta
           property="og:url"
-          content={`https://codefeat.netlify.app/games/wordle`}
+          content={`https://f1works.netlify.app/games/wordle`}
         />
       </Helmet>
 

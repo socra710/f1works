@@ -1160,6 +1160,15 @@ const Tetris = () => {
     
       <Helmet>
         <title>테트리스 게임</title>
+        <meta property="og:title" content="테트리스 게임" />
+        <meta
+          property="og:description"
+          content="5분 동안 최대한 많은 점수를 획득하세요! 시간이 지날수록 블록이 빨라지고, 회색 블록이 추가되어 난이도가 상승합니다."
+        />
+        <meta
+          property="og:url"
+          content={`https://f1works.netlify.app/games/tetris`}
+        />
       </Helmet>
       <div className="tetris-main">
         <div className="tetris-header">
