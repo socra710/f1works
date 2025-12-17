@@ -17,7 +17,8 @@ export default function Car() {
   const [isOpen, setIsOpen] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [carStatus, setCarStatus] = useState('운행 가능');
-  const [carStatusDesc, setCarStatusDesc] = useState('배차 요청 후 담당자 확인');
+  const [carStatusDesc, setCarStatusDesc] =
+    useState('배차 요청 후 담당자 확인');
 
   useEffect(() => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -314,7 +315,7 @@ export default function Car() {
   // 출발일/복귀일 기반 상태 계산 함수
   const calculateCarStatus = (useDateFrom, useDateTo) => {
     const today = getStringToDate();
-    
+
     if (!useDateFrom || !useDateTo) {
       return { status: '운행 가능', desc: '배차 요청 후 담당자 확인' };
     }
@@ -392,7 +393,10 @@ export default function Car() {
         // 첫번째 배차 데이터로 상태 업데이트
         if (e.data.length > 0) {
           const firstItem = e.data[0];
-          const statusInfo = calculateCarStatus(firstItem.USE_DATE_FROM, firstItem.USE_DATE_TO);
+          const statusInfo = calculateCarStatus(
+            firstItem.USE_DATE_FROM,
+            firstItem.USE_DATE_TO
+          );
           setCarStatus(statusInfo.status);
           setCarStatusDesc(statusInfo.desc);
         }
@@ -409,7 +413,9 @@ export default function Car() {
           // 신청번호
           td = document.createElement('td');
           td.innerHTML =
-            '<a href="javascript:void(0)" class="aTagDispatCh" style="cursor:pointer;color:#667eea;">' + item.DISPATCH_NO + '</a>';
+            '<a href="javascript:void(0)" class="aTagDispatCh" style="cursor:pointer;color:#667eea;">' +
+            item.DISPATCH_NO +
+            '</a>';
           tr.append(td);
 
           // 신청일
@@ -577,14 +583,7 @@ export default function Car() {
           property="og:description"
           content="F1Soft 회사 업무 차량 배차 신청하는 화면입니다."
         />
-        <meta
-          property="og:image"
-          content="https://f1lab.co.kr:444/mail_sign/sign_logo01.jpg"
-        />
-        <meta
-          property="og:url"
-          content={`https://codefeat.netlify.app/works/dispatch`}
-        />
+        <meta property="og:url" content={`https://f1works.netlify.app/`} />
       </Helmet>
       <div className={`${styles['car-shell']} ${styles['div-car']}`}>
         {loading ? (
@@ -602,11 +601,7 @@ export default function Car() {
               zIndex: 9999,
             }}
           >
-            <ClipLoader
-              color="#667eea"
-              loading={loading}
-              size={120}
-            />
+            <ClipLoader color="#667eea" loading={loading} size={120} />
           </div>
         ) : (
           <>
@@ -620,8 +615,14 @@ export default function Car() {
                     후에는 이동거리와 주유 정보를 빠짐없이 업데이트하세요.
                   </p>
                   <div className={styles['hero-meta']}>
-                    <span className={`${styles['chip']} ${styles['chip--solid']}`}>245로 4279 · 카니발</span>
-                    <span className={styles['chip']}>하이패스 · 주유카드 구비</span>
+                    <span
+                      className={`${styles['chip']} ${styles['chip--solid']}`}
+                    >
+                      245로 4279 · 카니발
+                    </span>
+                    <span className={styles['chip']}>
+                      하이패스 · 주유카드 구비
+                    </span>
                     <span className={styles['chip']}>실시간 신청 · 수정</span>
                   </div>
                 </div>
@@ -629,12 +630,16 @@ export default function Car() {
                   <div className={styles['stat-card']}>
                     <p className={styles['stat-label']}>현재 상태</p>
                     <p className={styles['stat-value']}>{carStatus}</p>
-                    <small className={styles['stat-desc']}>{carStatusDesc}</small>
+                    <small className={styles['stat-desc']}>
+                      {carStatusDesc}
+                    </small>
                   </div>
                   <div className={styles['stat-card']}>
                     <p className={styles['stat-label']}>필수 체크</p>
                     <p className={styles['stat-value']}>출발·복귀 시간</p>
-                    <small className={styles['stat-desc']}>유량/주차 위치 기재</small>
+                    <small className={styles['stat-desc']}>
+                      유량/주차 위치 기재
+                    </small>
                   </div>
                 </div>
               </section>
@@ -674,7 +679,10 @@ export default function Car() {
                   {/* <button id="helpDispatch" className="btnHelp btn-ghost">
                     도움말
                   </button> */}
-                  <button id="openDispatch" className={`${styles['btn']} ${styles['btn-elevated']}`}>
+                  <button
+                    id="openDispatch"
+                    className={`${styles['btn']} ${styles['btn-elevated']}`}
+                  >
                     배차 신청
                   </button>
                 </div>
@@ -732,7 +740,8 @@ export default function Car() {
                       </p>
                       <ul>
                         <li>
-                          신청은 1일 전에 신청하되 급한 용무에 한해 당일 배차 가능
+                          신청은 1일 전에 신청하되 급한 용무에 한해 당일 배차
+                          가능
                           <mark>(단, 선배차된 사용자 우선)</mark>
                         </li>
                         <li>
@@ -740,8 +749,8 @@ export default function Car() {
                           책꽂이, 최정욱 부장 자리 옆 칸막이
                         </li>
                         <li>
-                          사용 후 특이사항에 주차위치 기재, 출발전과 복귀후 반드시
-                          이동거리 및 유량(%)을 체크할 것.
+                          사용 후 특이사항에 주차위치 기재, 출발전과 복귀후
+                          반드시 이동거리 및 유량(%)을 체크할 것.
                         </li>
                         <li>
                           주유 및 주차비는 영수증 첨부하여 개별 경비 청구할 것.
@@ -752,8 +761,8 @@ export default function Car() {
                           과태료 납부할 것.
                         </li>
                         <li>
-                          차량에 이상 발생<mark>(파손, 사고, 고장증세 등)</mark>시
-                          특이사항에 기재할 것.
+                          차량에 이상 발생<mark>(파손, 사고, 고장증세 등)</mark>
+                          시 특이사항에 기재할 것.
                         </li>
                         <li>
                           <b>사용 후 키를 반드시 관리팀에 반납할 것.</b>
@@ -763,20 +772,25 @@ export default function Car() {
                           </mark>
                         </li>
                         <li>
-                          <b>차량내 금연</b>해주시고 <b>연비 운전</b> 부탁드립니다.
+                          <b>차량내 금연</b>해주시고 <b>연비 운전</b>{' '}
+                          부탁드립니다.
                           <mark>
-                            (차간거리 충분히 유지, 탄력운전, 급출발 및 급제동 지양 등)
+                            (차간거리 충분히 유지, 탄력운전, 급출발 및 급제동
+                            지양 등)
                           </mark>
                         </li>
                         <li>
                           <b>출발 및 복귀</b> 시간을 정확하게 입력 부탁드립니다.
                           <mark>
-                            (복귀 시간이 다음날을 넘어갈 경우 복귀일을 정확하게 입력할것.)
+                            (복귀 시간이 다음날을 넘어갈 경우 복귀일을 정확하게
+                            입력할것.)
                           </mark>
                         </li>
                       </ul>
                     </div>
-                    <div className={`${styles['info-card']} ${styles['info-spec']}`}>
+                    <div
+                      className={`${styles['info-card']} ${styles['info-spec']}`}
+                    >
                       <p>
                         <b>🚗 차량 정보</b>
                       </p>
@@ -791,7 +805,8 @@ export default function Car() {
                         <li>연월식 : 18년 5월식(19년형)</li>
                         <li>주행거리 : 98,000KM</li>
                         <li>
-                          구매처 : K CAR 안양직영점(이성원 차량평가사,0501-13740-3514)
+                          구매처 : K CAR 안양직영점(이성원
+                          차량평가사,0501-13740-3514)
                         </li>
                         <li>구매일 : 2022년 8월 30일</li>
                         <li>
@@ -815,7 +830,9 @@ export default function Car() {
                 <hr style={{ margin: '0 0 1rem 0' }} />
 
                 <div className={styles['form-row']}>
-                  <div className={`${styles['field']} ${styles['field--full']}`}>
+                  <div
+                    className={`${styles['field']} ${styles['field--full']}`}
+                  >
                     <label htmlFor="dispatchNo">
                       <b>신청번호</b>
                     </label>
@@ -915,15 +932,15 @@ export default function Car() {
 
                 <div className={styles['form-row']}>
                   <div className={styles['field']}>
-                  <label htmlFor="locationName">
-                    <b>출장지</b>
-                  </label>
-                  <input
-                    type="text"
-                    id="locationName"
-                    name="locationName"
-                    required
-                  />
+                    <label htmlFor="locationName">
+                      <b>출장지</b>
+                    </label>
+                    <input
+                      type="text"
+                      id="locationName"
+                      name="locationName"
+                      required
+                    />
                   </div>
                 </div>
 
@@ -972,8 +989,10 @@ export default function Car() {
                   </div>
                 </div>
 
-                <div id="div03"  className={styles['form-row']}>
-                  <div className={`${styles['field']} ${styles['field--full']}`}>
+                <div id="div03" className={styles['form-row']}>
+                  <div
+                    className={`${styles['field']} ${styles['field--full']}`}
+                  >
                     <label htmlFor="bigo">
                       <b>정비이력 등 특이사항</b>
                     </label>

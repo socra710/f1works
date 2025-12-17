@@ -52,8 +52,8 @@ function ModalContents({ title, children, ...props }) {
             <i
               style={{
                 position: 'absolute',
-                top: '4px',
-                right: '10px',
+                top: '15px',
+                right: '30px',
                 cursor: 'pointer',
                 fontSize: '24px',
                 fontFamily: 'sans-serif',

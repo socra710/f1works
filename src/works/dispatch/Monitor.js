@@ -1,31 +1,27 @@
-import './Monitor.css';
+﻿import styles from './Monitor.module.css';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async'; // 추가
-import ClipLoader from 'react-spinners/ClipLoader'; //설치한 cliploader을 import한다
+import { Helmet } from 'react-helmet-async';
+import ClipLoader from 'react-spinners/ClipLoader';
 
 import ModalHelp from '../components/ModalHelp2';
 
 export default function Monitor() {
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-
   const navigate = useNavigate();
 
   const [isMobile, setIsMobile] = useState(false);
   const [authUser, setAuthUser] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const [useDateFrom, setUseDateFrom] = useState('');
+  const [useDateTo, setUseDateTo] = useState('');
 
   useEffect(() => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (isMobile) {
-      setIsMobile(true);
-    } else {
-      setIsMobile(false);
-    }
+    setIsMobile(isMobile);
 
     setTimeout(() => {
-      // 처음 컴포넌트가 마운트될 때 체크
       if (isMobile) {
         setAuthUser('m');
       } else {
@@ -43,25 +39,20 @@ export default function Monitor() {
       script.async = true;
       document.body.appendChild(script);
     }, 500);
-  }, [isMobile, navigate]);
-
-  // 아래 함수 선언 이후에 이벤트 바인딩 useEffect를 배치하여
-  // 의존성 배열의 참조 초기화 문제를 방지합니다.
+  }, [navigate]);
 
   const getStringToDate = () => {
     const curDate = new Date();
     const year = curDate.getFullYear();
     const month = curDate.getMonth() + 1;
     const day = curDate.getDate();
-
-    const convertDate =
+    return (
       year +
       '-' +
       ('00' + month.toString()).slice(-2) +
       '-' +
-      ('00' + day.toString()).slice(-2);
-
-    return convertDate;
+      ('00' + day.toString()).slice(-2)
+    );
   };
 
   const getStringToDateTime = () => {
@@ -71,15 +62,13 @@ export default function Monitor() {
     const day = curDate.getDate();
     const hour = curDate.getHours();
     const minute = curDate.getMinutes();
-
-    const convertDateTime =
+    return (
       year +
       ('00' + month.toString()).slice(-2) +
       ('00' + day.toString()).slice(-2) +
       ('00' + hour.toString()).slice(-2) +
-      ('00' + minute.toString()).slice(-2);
-
-    return convertDateTime;
+      ('00' + minute.toString()).slice(-2)
+    );
   };
 
   const onSetDefault = useCallback(() => {
@@ -95,7 +84,7 @@ export default function Monitor() {
 
   const onModifyForm = useCallback(
     (ele) => {
-      var myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
+      const myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
       const query =
         'factoryCode=000001&userId=' +
         myId +
@@ -167,7 +156,7 @@ export default function Monitor() {
   );
 
   const onViewDispatch = useCallback(() => {
-    var myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
+    const myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
     const query =
       'factoryCode=000001&userId=' +
       myId +
@@ -208,38 +197,40 @@ export default function Monitor() {
           .setAttribute('style', 'background-color:#808080');
         document.querySelector(`#supNoA-263`).innerHTML = '미사용';
 
-        for (var i = 0; i < e.data.length; i++) {
+        for (let i = 0; i < e.data.length; i++) {
           const item = e.data[i];
 
-          let tr = document.createElement('tr');
+          const tr = document.createElement('tr');
 
           let td = document.createElement('td');
           td.innerHTML = i + 1;
           tr.append(td);
 
-          // 신청번호
           td = document.createElement('td');
+          td.setAttribute('style', 'text-align:center;');
           td.innerHTML =
-            '<a href="#" class="aTagDispatCh">' + item.DISPATCH_NO + '</a>';
+            '<a href="#" class="aTagDispatCh" style="cursor:pointer;color:#667eea;">' +
+            item.DISPATCH_NO +
+            '</a>';
           tr.append(td);
 
-          // 신청일
           td = document.createElement('td');
+          td.setAttribute('style', 'text-align:center;');
           td.innerHTML = item.APP_DATE;
           tr.append(td);
 
-          // 관리번호
           td = document.createElement('td');
+          td.setAttribute('style', 'text-align:center;');
           td.innerHTML = item.APP_NO;
           tr.append(td);
 
-          // 사용일
           td = document.createElement('td');
+          td.setAttribute('style', 'text-align:center;');
           td.innerHTML = item.USE_DATE_FROM + ' (' + item.USE_TIME_FROM + ')';
           tr.append(td);
 
-          // 사용일
           td = document.createElement('td');
+          td.setAttribute('style', 'text-align:center;');
           td.innerHTML = item.USE_DATE_TO + ' (' + item.USE_TIME_TO + ')';
           tr.append(td);
 
@@ -249,6 +240,7 @@ export default function Monitor() {
           tr.append(td);
 
           td = document.createElement('td');
+          td.setAttribute('style', 'text-align:center;');
           td.innerHTML = item.RIDE_USER_NAME;
           tr.append(td);
 
@@ -267,41 +259,37 @@ export default function Monitor() {
               .querySelector(`#supNo${item.APP_NO}`)
               .setAttribute('style', '');
             document.querySelector(`#supNo${item.APP_NO}`).innerHTML = '사용중';
-
-            // document.querySelector(`#supNoModal${item.APP_NO}`).setAttribute('style', '');
-            // document.querySelector(`#supNoModal${item.APP_NO}`).innerHTML = '사용중';
           }
         }
 
         document.querySelectorAll('.aTagDispatCh').forEach((target) =>
-          target.addEventListener('click', function (evt) {
+          target.addEventListener('click', function () {
             document.querySelector('#lightbox').style.display = 'block';
             onModifyForm(this);
           })
         );
       });
-  }, [authUser, API_BASE_URL]);
-
-  const [useDateFrom, setUseDateFrom] = useState('');
-  const [useDateTo, setUseDateTo] = useState('');
+  }, [authUser, API_BASE_URL, onModifyForm]);
 
   const changeDateFrom = (event) => {
     const newDateFrom = event.target.value;
     setUseDateFrom(newDateFrom);
-
-    // Additional logic to update useDateTo based on useDateFrom if needed
-    const newDateTo = newDateFrom;
-    setUseDateTo(newDateTo);
+    setUseDateTo(newDateFrom);
   };
 
-  // 함수 선언 이후 배치된 이벤트 바인딩 useEffect
   useEffect(() => {
     if (!authUser) {
       return;
     }
 
-    var openDispatch = document.querySelector('#openDispatch');
-    openDispatch.addEventListener('click', function (event) {
+    const openDispatch = document.querySelector('#openDispatch');
+    const closeDispatch = document.querySelector('#closeDispatch');
+    const helpDispatch = document.querySelector('#helpDispatch');
+    const formDispatch = document.querySelector('#formDispatch');
+    const modifyDispatch = document.querySelector('#btnModify');
+    const deleteDispatch = document.querySelector('#btnDelete');
+
+    const handleOpen = () => {
       document.querySelector('#lightbox').style.display = 'block';
       document.querySelector('#formDispatch').reset();
       onSetDefault();
@@ -317,26 +305,23 @@ export default function Monitor() {
         .setAttribute('style', 'visibility:hidden');
 
       document.getElementById('myForm').style.display = 'block';
-    });
+    };
 
-    var closeDispatch = document.querySelector('#closeDispatch');
-    closeDispatch.addEventListener('click', function (event) {
+    const handleClose = () => {
       document.querySelector('#lightbox').style.display = 'none';
       document.getElementById('myForm').style.display = 'none';
-    });
+    };
 
-    var helpDispatch = document.querySelector('#helpDispatch');
-    helpDispatch.addEventListener('click', function (event) {
-      document.querySelector('#btn-help').click();
+    const handleHelp = () => {
+      document.querySelector('#btn-help')?.click();
       setIsOpen(true);
-    });
+    };
 
-    var formDispatch = document.querySelector('#formDispatch');
-    formDispatch.addEventListener('submit', async function (event) {
+    const handleSubmit = async (event) => {
       event.preventDefault();
 
       try {
-        var myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
+        const myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
         const query =
           '' +
           'factoryCode=000001' +
@@ -385,7 +370,7 @@ export default function Monitor() {
               return;
             }
 
-            var x = document.getElementById('snackbar');
+            const x = document.getElementById('snackbar');
             x.className = 'show';
             x.innerHTML = '모니터가 신청 되었습니다.';
 
@@ -401,14 +386,13 @@ export default function Monitor() {
       } catch (error) {
         console.log(error);
       }
-    });
+    };
 
-    var modifyDispatch = document.querySelector('#btnModify');
-    modifyDispatch.addEventListener('click', function (event) {
+    const handleModify = (event) => {
       event.preventDefault();
 
       try {
-        var myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
+        const myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
         const query =
           '' +
           'factoryCode=000001' +
@@ -457,7 +441,7 @@ export default function Monitor() {
               return;
             }
 
-            var x = document.getElementById('snackbar');
+            const x = document.getElementById('snackbar');
             x.className = 'show';
             x.innerHTML = '수정 되었습니다.';
 
@@ -473,16 +457,17 @@ export default function Monitor() {
       } catch (error) {
         console.log(error);
       }
-    });
+    };
 
-    var deleteDispatch = document.querySelector('#btnDelete');
-    deleteDispatch.addEventListener('click', function (event) {
+    const handleDelete = (event) => {
       event.preventDefault();
 
-      var isConfirmed = window.confirm('모니터 신청 내역을 삭제하시겠습니까?');
+      const isConfirmed = window.confirm(
+        '모니터 신청 내역을 삭제하시겠습니까?'
+      );
       if (isConfirmed) {
         try {
-          var myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
+          const myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
           const query =
             '' +
             'factoryCode=000001' +
@@ -531,7 +516,7 @@ export default function Monitor() {
                 return;
               }
 
-              var x = document.getElementById('snackbar');
+              const x = document.getElementById('snackbar');
               x.className = 'show';
               x.innerHTML = '삭제 되었습니다.';
 
@@ -547,13 +532,27 @@ export default function Monitor() {
         } catch (error) {
           console.log(error);
         }
-      } else {
-        event.preventDefault();
       }
-    });
+    };
+
+    openDispatch?.addEventListener('click', handleOpen);
+    closeDispatch?.addEventListener('click', handleClose);
+    helpDispatch?.addEventListener('click', handleHelp);
+    formDispatch?.addEventListener('submit', handleSubmit);
+    modifyDispatch?.addEventListener('click', handleModify);
+    deleteDispatch?.addEventListener('click', handleDelete);
 
     onViewDispatch();
-  }, [authUser, API_BASE_URL]);
+
+    return () => {
+      openDispatch?.removeEventListener('click', handleOpen);
+      closeDispatch?.removeEventListener('click', handleClose);
+      helpDispatch?.removeEventListener('click', handleHelp);
+      formDispatch?.removeEventListener('submit', handleSubmit);
+      modifyDispatch?.removeEventListener('click', handleModify);
+      deleteDispatch?.removeEventListener('click', handleDelete);
+    };
+  }, [authUser, API_BASE_URL, onSetDefault, onViewDispatch]);
 
   return (
     <>
@@ -564,202 +563,198 @@ export default function Monitor() {
           property="og:description"
           content="F1Soft 회사 업무 모니터 신청하는 화면입니다."
         />
-        <meta
-          property="og:image"
-          content="https://f1lab.co.kr:444/mail_sign/sign_logo01.jpg"
-        />
-        <meta
-          property="og:url"
-          content={`https://codefeat.netlify.app/works/dispatch`}
-        />
+        <meta property="og:url" content={`https://f1works.netlify.app/`} />
       </Helmet>
-      <div className="div-monitor">
+      <div className={`${styles['car-shell']} ${styles['div-car']}`}>
         {loading ? (
-          <section className="container">
-            <ClipLoader
-              color="#f88c6b"
-              loading={loading} //useState로 관리
-              size={150}
-            />
-          </section>
+          <div className={styles.loaderContainer}>
+            <ClipLoader color="#667eea" loading={loading} size={120} />
+          </div>
         ) : (
           <>
-            <main style={{ padding: '0', maxWidth: 'max-content' }}>
-              <div
-                className="bottom-div-kakao"
-                style={{
-                  justifyContent: 'center',
-                  margin: '5px auto',
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  zIndex: 1000, // 다른 요소 위에 배치
-                  backgroundColor: '#fff', // 배경색 (필요에 따라 설정)
-                }}
-              >
-                <ins
-                  className="kakao_ad_area"
-                  data-ad-unit="DAN-rcLaDXdMxv9mHsky"
-                  data-ad-width="728"
-                  data-ad-height="90"
-                ></ins>
-              </div>
-              <div
-                className="bottom-div-kakao-mobile"
-                style={{
-                  justifyContent: 'center',
-                  margin: '5px auto',
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  zIndex: 1000, // 다른 요소 위에 배치
-                  backgroundColor: '#fff', // 배경색 (필요에 따라 설정)
-                }}
-              >
-                <ins
-                  className="kakao_ad_area"
-                  data-ad-unit="DAN-F48lGg5Zh7muOpDY"
-                  data-ad-width="320"
-                  data-ad-height="50"
-                ></ins>
-              </div>
-              <section className="pc_exp">
-                <div className="div-space-between" style={{ width: '100%' }}>
-                  <aside style={{ width: '60%', minHeight: '310px' }}>
-                    <p>
-                      <sup>필독</sup>
-                      <b>휴대용 모니터 사용 지침</b>
-                    </p>
-                    <ul>
-                      <li>예약신청한 이후에 사용 가능</li>
-                      <li>
-                        다른 사용자를 위해 <b>3일을 초과</b>하는 예약 자제
-                      </li>
-                      <li>사용 후 케이블 등 부속과 함께 케이스에 보관</li>
-                      <li>
-                        <b>제품 이상</b> 발견 시 관리팀에 문의
-                      </li>
-                      <li>
-                        사용자 부주의로 파손 시 <b>본인 부담</b>으로 수리 또는
-                        구매
-                      </li>
-                    </ul>
-                  </aside>
-                  <aside style={{ width: '40%', minHeight: '310px' }}>
-                    <p>
-                      <b>모니터 정보</b>
-                    </p>
-                    <ul>
-                      <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
-                      <li>
-                        관리번호 : <b>A-261</b>
-                        <sup
-                          id="supNoA-261"
-                          style={{ backgroundColor: '#808080' }}
-                        >
-                          미사용
-                        </sup>
-                      </li>
-                      <br></br>
-                      <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
-                      <li>
-                        관리번호 : <b>A-262</b>
-                        <sup
-                          id="supNoA-262"
-                          style={{ backgroundColor: '#808080' }}
-                        >
-                          미사용
-                        </sup>
-                      </li>
-                      <br></br>
-                      <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
-                      <li>
-                        관리번호 : <b>A-263</b>
-                        <sup
-                          id="supNoA-263"
-                          style={{ backgroundColor: '#808080' }}
-                        >
-                          미사용
-                        </sup>
-                      </li>
-                    </ul>
-                  </aside>
+            <main className={styles['car-content']}>
+              <section className={styles['dispatch-hero']}>
+                <div className={styles['dispatch-hero__text']}>
+                  <h1 className={styles['hero-title']}>휴대용 모니터 신청</h1>
+                  <p className={styles['hero-sub']}>
+                    출장지나 외근지에서도 듀얼 화면을 편하게 사용할 수 있도록
+                    모니터를 사전 예약해 주세요. <br />
+                    사용 후에는 케이스/케이블을 함께 반납해 주세요.
+                  </p>
+                  <div className={styles['hero-meta']}>
+                    <span
+                      className={`${styles['chip']} ${styles['chip--solid']}`}
+                    >
+                      제우스랩 P15A 3대 운영
+                    </span>
+                    <span className={styles['chip']}>신청 후 승인 사용</span>
+                    <span className={styles['chip']}>최대 3일 예약 권장</span>
+                  </div>
+                </div>
+                <div className={styles['dispatch-hero__status']}>
+                  <div className={styles['stat-card']}>
+                    <p className={styles['stat-label']}>신청/반납 규칙</p>
+                    <p className={styles['stat-value']}>최대 3일</p>
+                    <small className={styles['stat-desc']}>
+                      장기 예약은 제한될 수 있습니다.
+                    </small>
+                  </div>
+                  <div className={styles['stat-card']}>
+                    <p className={styles['stat-label']}>사용 후 필수</p>
+                    <p className={styles['stat-value']}>케이스+케이블 반납</p>
+                    <small className={styles['stat-desc']}>
+                      이상 발견 시 관리팀에 바로 알림.
+                    </small>
+                  </div>
                 </div>
               </section>
-              <div className="div-space-between2">
-                <i className="infoI">
-                  💡 작성된 신청 내역은 <b>신청번호</b>를 클릭하여 수정할 수
+
+              {!isMobile && (
+                <div className={styles['info-grid']}>
+                  <div className={styles['info-card']}>
+                  <p>
+                    <sup>필독</sup>
+                    <b>휴대용 모니터 사용 지침</b>
+                  </p>
+                  <ul>
+                    <li>예약 신청 후 사용 가능합니다.</li>
+                    <li>
+                      다른 사용자를 위해 <b>3일 초과 예약</b>은 자제해 주세요.
+                    </li>
+                    <li>
+                      사용 후 케이블 등 부속을 케이스에 함께 보관해 주세요.
+                    </li>
+                    <li>
+                      <b>제품 이상</b> 발견 시 관리팀에 즉시 문의해 주세요.
+                    </li>
+                    <li>
+                      사용자 부주의 파손 시 <b>본인 부담</b>으로 수리 또는
+                      구매합니다.
+                    </li>
+                  </ul>
+                </div>
+                <div
+                  className={`${styles['info-card']} ${styles['info-spec']}`}
+                >
+                  <p>
+                    <b>모니터 정보</b>
+                  </p>
+                  <ul>
+                    <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
+                    <li>
+                      관리번호 : <b>A-261</b>
+                      <sup
+                        id="supNoA-261"
+                        style={{
+                          backgroundColor: '#808080',
+                          marginLeft: '6px',
+                        }}
+                      >
+                        미사용
+                      </sup>
+                    </li>
+                    <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
+                    <li>
+                      관리번호 : <b>A-262</b>
+                      <sup
+                        id="supNoA-262"
+                        style={{
+                          backgroundColor: '#808080',
+                          marginLeft: '6px',
+                        }}
+                      >
+                        미사용
+                      </sup>
+                    </li>
+                    <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
+                    <li>
+                      관리번호 : <b>A-263</b>
+                      <sup
+                        id="supNoA-263"
+                        style={{
+                          backgroundColor: '#808080',
+                          marginLeft: '6px',
+                        }}
+                      >
+                        미사용
+                      </sup>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              )}
+
+              <div className={styles['ad-row']}>
+                <div className={`${styles['ad-card']} ${styles['pc-ad']}`}>
+                  <ins
+                    className="kakao_ad_area"
+                    data-ad-unit="DAN-rcLaDXdMxv9mHsky"
+                    data-ad-width="728"
+                    data-ad-height="90"
+                  ></ins>
+                </div>
+                <div className={`${styles['ad-card']} ${styles['mobile-ad']}`}>
+                  <ins
+                    className="kakao_ad_area"
+                    data-ad-unit="DAN-F48lGg5Zh7muOpDY"
+                    data-ad-width="320"
+                    data-ad-height="50"
+                  ></ins>
+                </div>
+              </div>
+
+              <div className={styles['dispatch-toolbar']}>
+                <i className={styles['infoI']}>
+                  💡 작성된 신청 내역은 <b>신청번호*</b>를 클릭하여 수정할 수
                   있습니다.
                 </i>
-                <div
-                  style={{ justifyContent: 'space-between', display: 'flex' }}
-                >
+                <div className={styles['toolbar-actions']}>
+                  <button
+                    id="helpDispatch"
+                    className={`${styles['btnHelp']} ${styles['btn-ghost']}`}
+                  >
+                    신청 안내
+                  </button>
                   <button
                     id="openDispatch"
-                    className="btn"
-                    style={{ marginRight: '5px' }}
+                    className={`${styles['btn']} ${styles['btn-elevated']}`}
                   >
                     모니터 신청
                   </button>
-                  <button
-                    id="helpDispatch"
-                    className="btnHelp"
-                    style={{ fontSize: '13px' }}
-                  >
-                    도움말
-                  </button>
                 </div>
               </div>
+
               <section>
-                <table className="table_style">
-                  <thead>
-                    <tr>
-                      <th>No</th>
-                      <th className="importantCell">신청번호</th>
-                      <th>신청일</th>
-                      <th>관리번호</th>
-                      <th>사용일 (시간)</th>
-                      <th>종료일 (시간)</th>
-                      <th>출장지</th>
-                      <th>사용자</th>
-                      <th>특이사항</th>
-                    </tr>
-                    {/* <tr>
-                      <th rowSpan="2" colSpan="1">No</th>
-                      <th rowSpan="2" colSpan="1" className="importantCell">신청번호</th>
-                      <th rowSpan="2" colSpan="1">신청일</th>
-                      <th className="thparent" rowSpan="1" colSpan="2">사용일</th>
-                      <th className="thparent" rowSpan="1" colSpan="2">사용시간</th>
-                      <th rowSpan="2" colSpan="1">출장지</th>
-                      <th rowSpan="2" colSpan="1">이동거리</th>
-                      <th className="thparent" rowSpan="1" colSpan="2">유량(%)</th>
-                      <th rowSpan="2" colSpan="1">주유여부(경유)</th>
-                      <th rowSpan="2" colSpan="1">운전자</th>
-                      <th rowSpan="2" colSpan="1">주차구역</th>
-                      <th rowSpan="2" colSpan="1">정비이력 등 특이사항</th>
-                    </tr>
-                    <tr>
-                      <th className="thchild" style={{ backgroundColor: '#fafafa', borderTopLeftRadius: '0', textAlign: 'center' }}>출발</th>
-                      <th className="thchild" style={{ backgroundColor: '#fafafa', borderTopRightRadius: '0' }}>복귀</th>
-                      <th className="thchild" style={{ backgroundColor: '#fafafa', borderTopLeftRadius: '0' }}>출발</th>
-                      <th className="thchild" style={{ backgroundColor: '#fafafa', borderTopRightRadius: '0' }}>복귀</th>
-                      <th className="thchild" style={{ backgroundColor: '#fafafa', borderTopLeftRadius: '0' }}>출발</th>
-                      <th className="thchild" style={{ backgroundColor: '#fafafa', borderTopRightRadius: '0' }}>복귀</th>
-                    </tr> */}
-                  </thead>
-                  <tbody id="tbDispatch"></tbody>
-                </table>
+                <div className={styles['table-wrapper']}>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>No</th>
+                        <th>신청번호*</th>
+                        <th>신청일</th>
+                        <th>관리번호</th>
+                        <th>사용일 (시간)</th>
+                        <th>종료일 (시간)</th>
+                        <th>출장지</th>
+                        <th>사용자</th>
+                        <th>특이사항</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbDispatch"></tbody>
+                  </table>
+                </div>
               </section>
             </main>
-            <div className="form-popup" id="myForm">
-              <form id="formDispatch" className="form-container">
-                <h3>모니터 신청</h3>
-                <hr style={{ margin: '0 0 1rem 0' }} />
 
-                <div className="div-space-between">
-                  <div style={{ marginRight: '5px', width: '100%' }}>
+            <div className={styles['form-popup']} id="myForm">
+              <form id="formDispatch" className={styles['form-container']}>
+                <h3>모니터 신청</h3>
+                <hr className={styles['form-separator']} />
+
+                <div className={styles['form-row']}>
+                  <div
+                    className={`${styles['field']} ${styles['field--full']}`}
+                  >
                     <label htmlFor="dispatchNo">
                       <b>신청번호</b>
                     </label>
@@ -771,7 +766,10 @@ export default function Monitor() {
                       readOnly
                     />
                   </div>
-                  <div style={{ marginRight: '5px', width: '100%' }}>
+                </div>
+
+                <div className={styles['form-row']}>
+                  <div className={styles.field}>
                     <label htmlFor="appDate">
                       <b>신청일</b>
                     </label>
@@ -783,10 +781,7 @@ export default function Monitor() {
                       readOnly
                     />
                   </div>
-                </div>
-
-                <div className="div-space-between">
-                  <div style={{ marginRight: '5px', width: '100%' }}>
+                  <div className={styles.field}>
                     <label htmlFor="appNo">
                       <b>모니터 선택</b>
                     </label>
@@ -797,7 +792,10 @@ export default function Monitor() {
                       <option value="A-263">A-263(P15A)</option>
                     </select>
                   </div>
-                  <div style={{ width: '100%' }}>
+                </div>
+
+                <div className={styles['form-row']}>
+                  <div className={styles.field}>
                     <label htmlFor="rideUserName">
                       <b>사용자</b>
                     </label>
@@ -808,20 +806,30 @@ export default function Monitor() {
                       required
                     />
                   </div>
+                  <div className={styles.field}>
+                    <label htmlFor="locationName">
+                      <b>출장지</b>
+                    </label>
+                    <input
+                      type="text"
+                      id="locationName"
+                      name="locationName"
+                      required
+                    />
+                  </div>
                 </div>
 
-                <div className="div-space-between">
-                  <div style={{ marginRight: '5px', width: '100%' }}>
+                <div className={styles['form-row']}>
+                  <div className={styles.field}>
                     <label htmlFor="useDate">
                       <b>사용일</b>
                     </label>
-                    <div className="div-space-between">
+                    <div className={styles['inline-row']}>
                       <input
                         type="date"
                         placeholder="출발"
                         id="useDateFrom"
                         name="useDateFrom"
-                        style={{ marginRight: '5px' }}
                         onChange={changeDateFrom}
                         defaultValue={useDateFrom}
                         required
@@ -836,18 +844,16 @@ export default function Monitor() {
                       />
                     </div>
                   </div>
-
-                  <div style={{ width: '100%' }}>
+                  <div className={styles.field}>
                     <label htmlFor="useTime">
                       <b>사용시간</b>
                     </label>
-                    <div className="div-space-between">
+                    <div className={styles['inline-row']}>
                       <input
                         type="time"
                         placeholder="출발"
                         id="useTimeFrom"
                         name="useTimeFrom"
-                        style={{ marginRight: '5px' }}
                         required
                       />
                       <input
@@ -861,34 +867,23 @@ export default function Monitor() {
                   </div>
                 </div>
 
-                <label htmlFor="locationName">
-                  <b>출장지</b>
-                </label>
-                <input
-                  type="text"
-                  id="locationName"
-                  name="locationName"
-                  required
-                />
-
-                <div id="div01" className="div-space-between">
-                  <div style={{ marginRight: '5px', width: '100%' }}>
+                <div id="div01" className={styles['form-row']}>
+                  <div className={styles.field}>
                     <label htmlFor="distance">
                       <b>이동거리</b>
                     </label>
                     <input type="text" id="distance" name="distance" />
                   </div>
-                  <div style={{ width: '100%' }}>
+                  <div className={styles.field}>
                     <label htmlFor="flux">
                       <b>유량(%)</b>
                     </label>
-                    <div className="div-space-between">
+                    <div className={styles['inline-row']}>
                       <input
                         type="number"
                         placeholder="출발"
                         id="fluxFrom"
                         name="fluxFrom"
-                        style={{ marginRight: '5px' }}
                         min="0"
                       />
                       <input
@@ -902,14 +897,14 @@ export default function Monitor() {
                   </div>
                 </div>
 
-                <div id="div02" className="div-space-between">
-                  <div style={{ marginRight: '5px', width: '100%' }}>
+                <div id="div02" className={styles['form-row']}>
+                  <div className={styles.field}>
                     <label htmlFor="oilingYn">
                       <b>주유여부(경유)</b>
                     </label>
                     <input type="text" id="oilingYn" name="oilingYn" />
                   </div>
-                  <div style={{ width: '100%' }}>
+                  <div className={styles.field}>
                     <label htmlFor="parkingArea">
                       <b>주차구역</b>
                     </label>
@@ -917,52 +912,60 @@ export default function Monitor() {
                   </div>
                 </div>
 
-                <div id="div03">
-                  <label htmlFor="bigo">
-                    <b>특이사항</b>
-                  </label>
-                  <textarea
-                    id="bigo"
-                    name="bigo"
-                    rows="3"
-                    style={{ resize: 'none' }}
-                  ></textarea>
+                <div id="div03" className={styles['form-row']}>
+                  <div className={`${styles.field} ${styles['field--full']}`}>
+                    <label htmlFor="bigo">
+                      <b>특이사항</b>
+                    </label>
+                    <textarea
+                      id="bigo"
+                      name="bigo"
+                      rows="3"
+                      className={styles['textarea-lg']}
+                    ></textarea>
+                  </div>
                 </div>
 
-                <button
-                  type="button"
-                  id="btnDelete"
-                  className="btn"
-                  style={{ display: 'none', float: 'right' }}
+                <div
+                  className={styles['form-row']}
+                  style={{ justifyContent: 'flex-end' }}
                 >
-                  삭제하기
-                </button>
-                <button
-                  id="closeDispatch"
-                  type="button"
-                  className="btn cancel"
-                  style={{ float: 'right' }}
-                >
-                  닫기
-                </button>
-                <button
-                  type="submit"
-                  id="btnSave"
-                  className="btn"
-                  style={{ float: 'right' }}
-                >
-                  신청하기
-                </button>
-                <button
-                  type="button"
-                  id="btnModify"
-                  className="btn"
-                  style={{ display: 'none', float: 'right' }}
-                >
-                  수정하기
-                </button>
+                  <div className={styles['toolbar-actions']}>
+                    <button
+                      type="button"
+                      id="btnDelete"
+                      className={`${styles['btn']} ${styles.cancel}`}
+                      style={{ display: 'none' }}
+                    >
+                      삭제하기
+                    </button>
+                    <button
+                      id="closeDispatch"
+                      type="button"
+                      className={`${styles['btn']} ${styles.cancel}`}
+                    >
+                      닫기
+                    </button>
+                    <button
+                      type="submit"
+                      id="btnSave"
+                      className={styles['btn']}
+                    >
+                      신청하기
+                    </button>
+                    <button
+                      type="button"
+                      id="btnModify"
+                      className={styles['btn']}
+                      style={{ display: 'none' }}
+                    >
+                      수정하기
+                    </button>
+                  </div>
+                </div>
               </form>
             </div>
+
             <ModalHelp isOpen={isOpen} />
             <div id="snackbar">Some text some message..</div>
             <div id="lightbox">
