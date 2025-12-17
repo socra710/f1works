@@ -1,11 +1,17 @@
-
 /* Layout shells inspired by expense pages */
 
 .car-shell {
   min-height: 100vh;
-  background:
-    radial-gradient(1200px 600px at 10% 0%, rgba(90, 117, 230, 0.06), transparent 60%),
-    radial-gradient(1000px 500px at 90% 20%, rgba(122, 86, 181, 0.06), transparent 65%),
+  background: radial-gradient(
+      1200px 600px at 10% 0%,
+      rgba(90, 117, 230, 0.06),
+      transparent 60%
+    ),
+    radial-gradient(
+      1000px 500px at 90% 20%,
+      rgba(122, 86, 181, 0.06),
+      transparent 65%
+    ),
     linear-gradient(135deg, #f9fbff 0%, #f3f6fd 100%);
   padding: 16px;
   box-sizing: border-box;
@@ -13,11 +19,12 @@
 
 .car-content {
   width: 100%;
+  max-width: 1600px;
   margin: 0 auto;
   background: #fff;
   border: 1px solid #e6e9f0;
   border-radius: 14px;
-  box-shadow: 0 10px 28px rgba(26, 45, 87, 0.10);
+  box-shadow: 0 10px 28px rgba(26, 45, 87, 0.1);
   padding: 1.5rem 1.25rem;
   box-sizing: border-box;
   position: relative;
@@ -29,8 +36,17 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.06) 60%, rgba(255, 255, 255, 0) 100%);
-  mask-image: radial-gradient(circle at 20% 20%, rgba(0, 0, 0, 0.5), transparent 55%);
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.08) 0%,
+    rgba(118, 75, 162, 0.06) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  mask-image: radial-gradient(
+    circle at 20% 20%,
+    rgba(0, 0, 0, 0.5),
+    transparent 55%
+  );
 }
 
 .dispatch-hero {
@@ -195,7 +211,11 @@
 .info-card {
   border: 1px solid rgba(102, 126, 234, 0.16);
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.05) 0%,
+    rgba(118, 75, 162, 0.05) 100%
+  );
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
   padding: 1.25rem 1.35rem;
   min-height: 0;
@@ -560,6 +580,19 @@
   margin-right: -1.25rem;
 }
 
+.chip {
+  background: #eef2ff;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.4rem 0.7rem;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .chip--solid {
   background: #667eea;
   color: #fff;
@@ -610,7 +643,7 @@
     width: 100%;
     gap: 0.5rem;
   }
-  
+
   .toolbar-actions > button {
     flex: 1;
   }
@@ -679,6 +712,7 @@
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 0.9rem;
   align-items: start;
+  justify-content: flex-end;
 }
 
 @media screen and (max-width: 767px) {

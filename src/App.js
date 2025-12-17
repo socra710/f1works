@@ -7,7 +7,6 @@ import { ToastProvider } from './common/Toast';
 // import Home from './home/Home';
 import Works from './works/index';
 import Notice from './works/Notice';
-import Dispatch from './works/dispatch/Dispatch';
 import Car from './works/dispatch/Car';
 import Monitor from './works/dispatch/Monitor';
 import Expense from './works/expense/Expense';
@@ -28,7 +27,6 @@ function App() {
           <Route path="/" element={<Works />}></Route>
           <Route path="/works" element={<Works />}></Route>
           <Route path="/works/notice" element={<Works />}></Route>
-          <Route path="/works/dispatch" element={<Dispatch />}></Route>
           <Route path="/works/dispatch/car" element={<Car />}></Route>
           <Route path="/works/dispatch/monitor" element={<Monitor />}></Route>
           <Route

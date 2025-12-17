@@ -134,6 +134,7 @@ export default function Works() {
         icon: '🖥️',
         path: '/works/dispatch/monitor',
         category: '업무',
+        isUpdated: true,
       },
       {
         title: '일정 관리',
@@ -238,8 +239,9 @@ export default function Works() {
   const updates = [
     {
       date: '2025.12.16',
-      title: '배차 신청 UI/UX 개선',
-      description: '배차 신청 페이지의 UI/UX가 더욱 직관적으로 개선되었습니다',
+      title: '배차/모니터 신청 UI/UX 개선',
+      description:
+        '배차/모니터 신청 페이지의 UI/UX가 더욱 직관적으로 개선되었습니다',
     },
     {
       date: '2025.12.13',
