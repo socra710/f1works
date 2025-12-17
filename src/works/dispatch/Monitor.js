@@ -184,18 +184,22 @@ export default function Monitor() {
           ele.firstChild.remove();
         }
 
-        document
-          .querySelector(`#supNoA-261`)
-          .setAttribute('style', 'background-color:#808080');
-        document.querySelector(`#supNoA-261`).innerHTML = '미사용';
-        document
-          .querySelector(`#supNoA-262`)
-          .setAttribute('style', 'background-color:#808080');
-        document.querySelector(`#supNoA-262`).innerHTML = '미사용';
-        document
-          .querySelector(`#supNoA-263`)
-          .setAttribute('style', 'background-color:#808080');
-        document.querySelector(`#supNoA-263`).innerHTML = '미사용';
+        // 모바일에서는 이 요소들이 없으므로 체크 후 업데이트
+        const supNo261 = document.querySelector(`#supNoA-261`);
+        if (supNo261) {
+          supNo261.setAttribute('style', 'background-color:#808080');
+          supNo261.innerHTML = '미사용';
+        }
+        const supNo262 = document.querySelector(`#supNoA-262`);
+        if (supNo262) {
+          supNo262.setAttribute('style', 'background-color:#808080');
+          supNo262.innerHTML = '미사용';
+        }
+        const supNo263 = document.querySelector(`#supNoA-263`);
+        if (supNo263) {
+          supNo263.setAttribute('style', 'background-color:#808080');
+          supNo263.innerHTML = '미사용';
+        }
 
         for (let i = 0; i < e.data.length; i++) {
           const item = e.data[i];
@@ -255,10 +259,11 @@ export default function Monitor() {
             Number(item.USE_DATE_FROM_CHECK) <= Number(getStringToDateTime()) &&
             Number(getStringToDateTime()) <= Number(item.USE_DATE_TO_CHECK)
           ) {
-            document
-              .querySelector(`#supNo${item.APP_NO}`)
-              .setAttribute('style', '');
-            document.querySelector(`#supNo${item.APP_NO}`).innerHTML = '사용중';
+            const supNoElement = document.querySelector(`#supNo${item.APP_NO}`);
+            if (supNoElement) {
+              supNoElement.setAttribute('style', '');
+              supNoElement.innerHTML = '사용중';
+            }
           }
         }
 
