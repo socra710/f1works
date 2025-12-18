@@ -184,7 +184,10 @@ export default function Feed() {
 
               <section className={styles.feedSection}>
                 <div className={styles.sectionHeader}>
-                  <h2 className={styles.sectionTitle}>👋 지난 뉴스</h2>
+                  <h2 className={styles.sectionTitle}>
+                    👋 지난 뉴스
+                    <span className={styles.sectionBadge}>최신순</span>
+                  </h2>
                 </div>
 
                 <div className={styles.newsGrid}>
