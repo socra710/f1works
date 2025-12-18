@@ -146,6 +146,63 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
+/* 밤에는 기본 구름 숨김 */
+.game-canvas.night::before {
+  display: none;
+}
+
+/* 봄: 밝은 푸른 하늘 + 신록색 풀 */
+.game-canvas.season-spring {
+  background: linear-gradient(to bottom, #87ceeb 0%, #e0f6ff 40%, #c1ffc1 100%);
+}
+
+/* 여름: 맑고 밝은 파란 하늘 + 노란 햇빛 + 초록색 풀 */
+.game-canvas.season-summer {
+  background: linear-gradient(
+    to bottom,
+    #4fb3e5 0%,
+    #87ceeb 30%,
+    #ffd700 45%,
+    #b0e57c 100%
+  );
+}
+
+/* 시즌별 야간 배경 */
+.game-canvas.season-spring.night {
+  background: linear-gradient(to bottom, #0b1b3f 0%, #1b3a6b 45%, #1f3f2a 100%);
+}
+.game-canvas.season-summer.night {
+  background: linear-gradient(to bottom, #0a1931 0%, #102a43 55%, #1f4d2e 100%);
+}
+.game-canvas.season-autumn.night {
+  background: linear-gradient(to bottom, #2a0e0e 0%, #402018 55%, #2f241c 100%);
+}
+.game-canvas.season-winter.night {
+  background: linear-gradient(to bottom, #0e1a2b 0%, #243b55 50%, #d9e6f2 100%);
+}
+
+/* 가을: 주황/빨강 하늘 + 갈색 톤 + 갈색 흙 */
+.game-canvas.season-autumn {
+  background: linear-gradient(
+    to bottom,
+    #ff8c42 0%,
+    #ffb347 35%,
+    #daa520 65%,
+    #8b6f47 100%
+  );
+}
+
+/* 겨울: 회색 하늘 + 흰 눈 덮인 지면 */
+.game-canvas.season-winter {
+  background: linear-gradient(
+    to bottom,
+    #b0c4de 0%,
+    #e0e6ff 40%,
+    #f0f8ff 80%,
+    #e8e8e8 100%
+  );
+}
+
 /* 시즌 오버레이 공통 */
 .season-layer {
   position: absolute;
@@ -153,16 +210,37 @@
   pointer-events: none;
 }
 
-/* 봄: 새싹이 바닥 근처에 살짝 흔들림 */
-.season-spring .sprout {
+/* 봄: 꽃잎이 떨어지는 효과 */
+.season-spring .petal {
   position: absolute;
-  bottom: 52px;
-  font-size: 18px;
-  animation: sproutWiggle 2s ease-in-out infinite;
+  top: -30px;
+  font-size: 20px;
+  animation: petalFall 8s linear infinite;
 }
-@keyframes sproutWiggle {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
+@keyframes petalFall {
+  0% {
+    transform: translateY(-30px) translateX(0) rotate(-15deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  25% {
+    transform: translateY(100px) translateX(30px) rotate(60deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(210px) translateX(-20px) rotate(-40deg);
+    opacity: 0.9;
+  }
+  75% {
+    transform: translateY(315px) translateX(25px) rotate(90deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(420px) translateX(-10px) rotate(180deg);
+    opacity: 0;
+  }
 }
 
 /* 여름: 비 (가느다란 빗줄기) */
@@ -171,21 +249,21 @@
   top: -20px;
   width: 2px;
   height: 18px;
-  background: rgba(255,255,255,0.6);
+  background: rgba(255, 255, 255, 0.6);
   animation: rainFall 2s linear infinite;
 }
 @keyframes rainFall {
-  0% { 
-    transform: translateY(-20px) translateX(0) rotate(15deg); 
-    opacity: 0.2; 
+  0% {
+    transform: translateY(-20px) translateX(0) rotate(15deg);
+    opacity: 0.2;
   }
   50% {
     transform: translateY(200px) translateX(10px) rotate(15deg);
     opacity: 0.7;
   }
-  100% { 
-    transform: translateY(420px) translateX(-5px) rotate(15deg); 
-    opacity: 0.4; 
+  100% {
+    transform: translateY(420px) translateX(-5px) rotate(15deg);
+    opacity: 0.4;
   }
 }
 
@@ -197,9 +275,9 @@
   animation: leafFall 5s linear infinite;
 }
 @keyframes leafFall {
-  0% { 
-    transform: translateY(-30px) translateX(0) rotate(-10deg); 
-    opacity: 0; 
+  0% {
+    transform: translateY(-30px) translateX(0) rotate(-10deg);
+    opacity: 0;
   }
   25% {
     transform: translateY(100px) translateX(15px) rotate(40deg);
@@ -213,9 +291,9 @@
     transform: translateY(310px) translateX(20px) rotate(60deg);
     opacity: 0.8;
   }
-  100% { 
-    transform: translateY(420px) translateX(-5px) rotate(90deg); 
-    opacity: 0.5; 
+  100% {
+    transform: translateY(420px) translateX(-5px) rotate(90deg);
+    opacity: 0.5;
   }
 }
 
@@ -227,9 +305,9 @@
   animation: snowFall 5s linear infinite;
 }
 @keyframes snowFall {
-  0% { 
-    transform: translateY(-20px) translateX(0); 
-    opacity: 0.4; 
+  0% {
+    transform: translateY(-20px) translateX(0);
+    opacity: 0.4;
   }
   25% {
     transform: translateY(100px) translateX(-15px);
@@ -243,9 +321,9 @@
     transform: translateY(315px) translateX(-8px);
     opacity: 0.8;
   }
-  100% { 
-    transform: translateY(420px) translateX(5px); 
-    opacity: 0.6; 
+  100% {
+    transform: translateY(420px) translateX(5px);
+    opacity: 0.6;
   }
 }
 
@@ -261,12 +339,295 @@
   opacity: 0.7;
 }
 
+/* 계절별 구름 레이어 */
+.clouds-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.clouds-layer .cloud {
+  position: absolute;
+  top: 30px;
+  font-size: 40px;
+  animation: clouds 20s linear infinite;
+  pointer-events: none;
+}
+
+/* 봄: 밝은 구름 (3개) */
+.clouds-layer.spring .cloud {
+  opacity: 0.6;
+}
+
+/* 여름: 적은 구름 (2개, 밝음) */
+.clouds-layer.summer .cloud {
+  opacity: 0.5;
+  font-size: 45px;
+}
+
+/* 가을: 중간 정도의 구름 (4개) */
+.clouds-layer.autumn .cloud {
+  opacity: 0.65;
+  font-size: 38px;
+}
+
+/* 겨울: 많은 구름 (5개, 회색) */
+.clouds-layer.winter .cloud {
+  opacity: 0.8;
+  font-size: 42px;
+}
+
+/* 태양 (여름 시즌: 맑을 때만 노출) */
+.game-canvas.season-summer.sunny::after {
+  content: '☀️';
+  position: absolute;
+  top: 20px;
+  right: 40px;
+  font-size: 60px;
+  z-index: 1;
+  animation: sunShine 3s ease-in-out infinite;
+}
+
+/* 달 (겨울 시즌: 야간에만) */
+.game-canvas.season-winter.night::after {
+  content: '🌙';
+  position: absolute;
+  top: 20px;
+  right: 40px;
+  font-size: 50px;
+  z-index: 1;
+  opacity: 0.8;
+}
+
+@keyframes sunShine {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 10px rgba(255, 255, 0, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgba(255, 255, 0, 0.8));
+  }
+}
+
 @keyframes clouds {
   0% {
     transform: translateX(0);
   }
   100% {
     transform: translateX(-50%);
+  }
+}
+
+/* ========== 새로운 효과들 ========== */
+
+/* 1. 별 반짝임 효과 */
+.effects-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.star {
+  position: absolute;
+  font-size: 24px;
+  z-index: 2;
+}
+
+.star.twinkle {
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 2. 햇빛 광선 */
+.sun-ray {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 400px;
+  height: 400px;
+  background: conic-gradient(
+    from var(--ray-angle),
+    rgba(255, 255, 0, 0.4) 0deg,
+    rgba(255, 255, 0, 0.3) 15deg,
+    rgba(255, 255, 0, 0.15) 30deg,
+    transparent 50deg
+  );
+  transform-origin: top right;
+  animation: rayShine 4s ease-in-out infinite;
+  z-index: 1;
+  border-radius: 50%;
+}
+
+@keyframes rayShine {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* 3. 무지개 */
+.rainbow {
+  position: absolute;
+  bottom: 70px;
+  left: 12%;
+  width: 300px;
+  height: 150px;
+  background: linear-gradient(
+    90deg,
+    #ff0000 0%,
+    #ff7f00 14%,
+    #ffff00 28%,
+    #00ff00 42%,
+    #0000ff 56%,
+    #4b0082 70%,
+    #9400d3 100%
+  );
+  border-radius: 300px 300px 0 0 / 150px 150px 0 0;
+  opacity: 0.75;
+  animation: rainbowAppear 6s ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes rainbowAppear {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.6;
+  }
+  80% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* 4. 바람 효과 강화 */
+.wind-leaf {
+  position: absolute;
+  top: -30px;
+  font-size: 18px;
+  animation: windLeafFall 3s ease-in infinite;
+  opacity: 0.7;
+}
+
+@keyframes windLeafFall {
+  0% {
+    transform: translateY(-30px) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(150px) translateX(60px) rotate(180deg);
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(420px) translateX(100px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* 5. 번개 플래시 */
+.lightning-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.8) 0%,
+    rgba(255, 255, 200, 0.4) 30%,
+    transparent 70%
+  );
+  animation: lightningFlash 0.2s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes lightningFlash {
+  0%,
+  90%,
+  100% {
+    opacity: 0;
+  }
+  95% {
+    opacity: 1;
+  }
+}
+
+/* 6. 안개 */
+.fog-layer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(200, 200, 200, 0.15) 50%,
+    rgba(200, 200, 200, 0.3) 100%
+  );
+  animation: fogSwift 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.fog-layer.winter-fog {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(220, 230, 240, 0.2) 50%,
+    rgba(220, 230, 240, 0.4) 100%
+  );
+}
+
+@keyframes fogSwift {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* 7. 배경 새들 */
+.background-birds {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bg-bird {
+  position: absolute;
+  font-size: 28px;
+  opacity: 0.6;
+  filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.2));
+  animation: bgBirdFly linear infinite;
+  z-index: 15;
+}
+
+@keyframes bgBirdFly {
+  0% {
+    transform: translateX(200px) translateY(0);
+  }
+  50% {
+    transform: translateX(0px) translateY(-20px);
+  }
+  100% {
+    transform: translateX(-200px) translateY(0);
   }
 }
 
@@ -280,7 +641,8 @@
 }
 
 @keyframes running {
-  0%, 100% {
+  0%,
+  100% {
     transform: scaleX(1);
   }
   50% {
@@ -293,7 +655,7 @@
   line-height: 1;
   z-index: 9;
   pointer-events: none;
-  filter: blur(0.4px) drop-shadow(1px 1px 2px rgba(0,0,0,0.2));
+  filter: blur(0.4px) drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.2));
 }
 
 .obstacle {
@@ -305,7 +667,8 @@
 }
 
 @keyframes obstacleShake {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(-2deg);
   }
   50% {
@@ -322,7 +685,8 @@
 }
 
 @keyframes birdFly {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) rotate(-5deg);
   }
   50% {
@@ -339,6 +703,30 @@
   border-top: 3px solid #654321;
   animation: groundMove 3s linear infinite;
   overflow: hidden;
+}
+
+/* 봄: 신록색 풀 */
+.game-canvas.season-spring .ground {
+  background: linear-gradient(to bottom, #9acd32 0%, #7cb342 100%);
+  border-top-color: #7cb342;
+}
+
+/* 여름: 습기 있는 갈색 흙 (비 효과) */
+.game-canvas.season-summer .ground {
+  background: linear-gradient(to bottom, #8b7355 0%, #654321 100%);
+  border-top-color: #4a3728;
+}
+
+/* 가을: 갈색 건조한 흙 */
+.game-canvas.season-autumn .ground {
+  background: linear-gradient(to bottom, #a0826d 0%, #6b5344 100%);
+  border-top-color: #5c4033;
+}
+
+/* 겨울: 흰 눈 덮인 지면 */
+.game-canvas.season-winter .ground {
+  background: linear-gradient(to bottom, #f5f5f5 0%, #e8e8e8 100%);
+  border-top-color: #e0e0e0;
 }
 
 @keyframes groundMove {
@@ -360,6 +748,23 @@
   white-space: nowrap;
 }
 
+/* 계절별 지면 패턴 */
+.game-canvas.season-spring .ground::before {
+  content: '🌱 🌱 🌱 🌱 🌱 🌱 🌱 🌱 🌱 🌱 🌱 🌱 🌱 🌱 🌱 🌱';
+}
+
+.game-canvas.season-summer .ground::before {
+  content: '💧 💧 💧 💧 💧 💧 💧 💧 💧 💧 💧 💧 💧 💧 💧 💧';
+}
+
+.game-canvas.season-autumn .ground::before {
+  content: '🍂 🍂 🍂 🍂 🍂 🍂 🍂 🍂 🍂 🍂 🍂 🍂 🍂 🍂 🍂 🍂';
+}
+
+.game-canvas.season-winter .ground::before {
+  content: '❄️ ❄️ ❄️ ❄️ ❄️ ❄️ ❄️ ❄️ ❄️ ❄️ ❄️ ❄️ ❄️ ❄️ ❄️ ❄️';
+}
+
 /* 게임 오버 화면 */
 .ground-pattern {
   position: absolute;
@@ -368,8 +773,11 @@
   height: 100%;
   width: 200%;
   /* 더 은은한 대각선 스트라이프 패턴 */
-  background-image:
-    repeating-linear-gradient(135deg, rgba(255,255,255,0.06) 0 6px, transparent 6px 12px);
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.06) 0 6px,
+    transparent 6px 12px
+  );
   background-size: 24px 100%;
   animation: patternMove 2.2s linear infinite;
   opacity: 0.22; /* 눈에 덜 피로한 저대비 */
@@ -377,8 +785,12 @@
 }
 
 @keyframes patternMove {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 .game-over-overlay {
@@ -390,7 +802,7 @@
     position: absolute;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 0 4px rgba(255,255,255,0.6);
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.6);
     pointer-events: none;
   }
   bottom: 0;
@@ -443,7 +855,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
