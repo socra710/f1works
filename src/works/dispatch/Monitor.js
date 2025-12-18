@@ -573,7 +573,7 @@ export default function Monitor() {
       <div className={`${styles['car-shell']} ${styles['div-car']}`}>
         {loading ? (
           <div className={styles.loaderContainer}>
-            <ClipLoader color="#667eea" loading={loading} size={120} />
+            <ClipLoader color="#667eea" loading={loading} size={100} />
           </div>
         ) : (
           <>
@@ -617,76 +617,76 @@ export default function Monitor() {
               {!isMobile && (
                 <div className={styles['info-grid']}>
                   <div className={styles['info-card']}>
-                  <p>
-                    <sup>필독</sup>
-                    <b>휴대용 모니터 사용 지침</b>
-                  </p>
-                  <ul>
-                    <li>예약 신청 후 사용 가능합니다.</li>
-                    <li>
-                      다른 사용자를 위해 <b>3일 초과 예약</b>은 자제해 주세요.
-                    </li>
-                    <li>
-                      사용 후 케이블 등 부속을 케이스에 함께 보관해 주세요.
-                    </li>
-                    <li>
-                      <b>제품 이상</b> 발견 시 관리팀에 즉시 문의해 주세요.
-                    </li>
-                    <li>
-                      사용자 부주의 파손 시 <b>본인 부담</b>으로 수리 또는
-                      구매합니다.
-                    </li>
-                  </ul>
+                    <p>
+                      <sup>필독</sup>
+                      <b>휴대용 모니터 사용 지침</b>
+                    </p>
+                    <ul>
+                      <li>예약 신청 후 사용 가능합니다.</li>
+                      <li>
+                        다른 사용자를 위해 <b>3일 초과 예약</b>은 자제해 주세요.
+                      </li>
+                      <li>
+                        사용 후 케이블 등 부속을 케이스에 함께 보관해 주세요.
+                      </li>
+                      <li>
+                        <b>제품 이상</b> 발견 시 관리팀에 즉시 문의해 주세요.
+                      </li>
+                      <li>
+                        사용자 부주의 파손 시 <b>본인 부담</b>으로 수리 또는
+                        구매합니다.
+                      </li>
+                    </ul>
+                  </div>
+                  <div
+                    className={`${styles['info-card']} ${styles['info-spec']}`}
+                  >
+                    <p>
+                      <b>모니터 정보</b>
+                    </p>
+                    <ul>
+                      <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
+                      <li>
+                        관리번호 : <b>A-261</b>
+                        <sup
+                          id="supNoA-261"
+                          style={{
+                            backgroundColor: '#808080',
+                            marginLeft: '6px',
+                          }}
+                        >
+                          미사용
+                        </sup>
+                      </li>
+                      <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
+                      <li>
+                        관리번호 : <b>A-262</b>
+                        <sup
+                          id="supNoA-262"
+                          style={{
+                            backgroundColor: '#808080',
+                            marginLeft: '6px',
+                          }}
+                        >
+                          미사용
+                        </sup>
+                      </li>
+                      <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
+                      <li>
+                        관리번호 : <b>A-263</b>
+                        <sup
+                          id="supNoA-263"
+                          style={{
+                            backgroundColor: '#808080',
+                            marginLeft: '6px',
+                          }}
+                        >
+                          미사용
+                        </sup>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
-                <div
-                  className={`${styles['info-card']} ${styles['info-spec']}`}
-                >
-                  <p>
-                    <b>모니터 정보</b>
-                  </p>
-                  <ul>
-                    <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
-                    <li>
-                      관리번호 : <b>A-261</b>
-                      <sup
-                        id="supNoA-261"
-                        style={{
-                          backgroundColor: '#808080',
-                          marginLeft: '6px',
-                        }}
-                      >
-                        미사용
-                      </sup>
-                    </li>
-                    <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
-                    <li>
-                      관리번호 : <b>A-262</b>
-                      <sup
-                        id="supNoA-262"
-                        style={{
-                          backgroundColor: '#808080',
-                          marginLeft: '6px',
-                        }}
-                      >
-                        미사용
-                      </sup>
-                    </li>
-                    <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
-                    <li>
-                      관리번호 : <b>A-263</b>
-                      <sup
-                        id="supNoA-263"
-                        style={{
-                          backgroundColor: '#808080',
-                          marginLeft: '6px',
-                        }}
-                      >
-                        미사용
-                      </sup>
-                    </li>
-                  </ul>
-                </div>
-              </div>
               )}
 
               <div className={styles['ad-row']}>

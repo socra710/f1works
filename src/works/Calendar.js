@@ -182,9 +182,9 @@ export default function Calendar() {
       {loading ? (
         <section className="section-calendar">
           <ClipLoader
-            color="#f88c6b"
+            color="#667eea"
             loading={loading} //useState로 관리
-            size={150}
+            size={100}
           />
         </section>
       ) : (
@@ -268,7 +268,11 @@ export default function Calendar() {
                 </article>
                 <div
                   className="bottom-div-kakao-calendar"
-                  style={{ justifyContent: 'center', margin: '0 auto', display: isMobile || innerWidth < 767 ? 'none' : 'block' }}
+                  style={{
+                    justifyContent: 'center',
+                    margin: '0 auto',
+                    display: isMobile || innerWidth < 767 ? 'none' : 'block',
+                  }}
                 >
                   <ins
                     className="kakao_ad_area"
