@@ -601,7 +601,7 @@ export default function Car() {
               zIndex: 9999,
             }}
           >
-            <ClipLoader color="#667eea" loading={loading} size={120} />
+            <ClipLoader color="#667eea" loading={loading} size={100} />
           </div>
         ) : (
           <>

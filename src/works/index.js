@@ -318,12 +318,12 @@ export default function Works() {
 
   // 상단 알림 배너 설정
   const topNotification = {
-    id: 'notification-20251213-tetris', // 공지마다 고유 ID (날짜-내용 형식 권장)
+    id: 'notification-20251218-expense', // 공지마다 고유 ID (날짜-내용 형식 권장)
     type: 'info', // 'info', 'warning', 'success', 'error'
     message:
-      '🎉 테트리스 게임이 새롭게 출시되었습니다! 게임 메뉴에서 즐겨보세요.',
-    link: '/games/tetris',
-    linkText: '지금 플레이하기',
+      '경비 청구(베타) 기능이 추가되었습니다! 12월은 베타 기간이니 기존 방식과 병행해 주세요.',
+    link: '/works/expense',
+    linkText: '지금 이용하기',
   };
 
   // 닫힌 공지 확인 및 알림 표시 여부 설정

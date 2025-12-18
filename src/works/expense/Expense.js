@@ -634,6 +634,12 @@ export default function Expense() {
             fetchFuelSettings(data.month, userId);
           }
 
+          setUserEfficiency(data.userEfficiency || 15);
+
+          const calculatedBaseEfficiency =
+            Math.round((data.userEfficiency || 15) * 0.85 * 10) / 10;
+          setBaseEfficiency(calculatedBaseEfficiency);
+
           setRows(
             data.rows.map((row) => ({
               rowId: row.rowId || null,
@@ -1471,7 +1477,7 @@ export default function Expense() {
               zIndex: 9999,
             }}
           >
-            <ClipLoader color="#f88c6b" loading={isLoading} size={120} />
+            <ClipLoader color="#667eea" loading={isLoading} size={100} />
           </div>
         </section>
       </div>

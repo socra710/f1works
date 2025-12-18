@@ -429,7 +429,7 @@ export default function ExpenseManagement() {
             zIndex: 9999,
           }}
         >
-          <ClipLoader color="#f88c6b" loading={isLoading} size={120} />
+          <ClipLoader color="#667eea" loading={isLoading} size={100} />
         </div>
       </div>
     );
