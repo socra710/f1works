@@ -77,8 +77,8 @@ const ModalOk = ({
         '클론 게임 "오늘의 단어"를 즐겨보세요! 🎮 단어 추리 게임의 재미를 느껴보세요. 🧠🔍\n\n' +
         generateEmojiGrid(),
       link: {
-        webUrl: 'https://codefeat.store/games/wordle', // 공유할 링크 URL
-        mobileWebUrl: 'https://codefeat.store/games/wordle', // 모바일에서 열릴 링크 URL (선택 사항)
+        webUrl: 'https://f1works.netlify.app/games/wordle', // 공유할 링크 URL
+        mobileWebUrl: 'https://f1works.netlify.app/games/wordle', // 모바일에서 열릴 링크 URL (선택 사항)
       },
       serverCallbackArgs: {
         // 콜백 파라미터 설정
@@ -94,7 +94,7 @@ const ModalOk = ({
     navigator.clipboard.writeText(
       '클론 게임 "오늘의 단어"를 즐겨보세요! 🎮 단어 추리 게임의 재미를 느껴보세요. 🧠🔍\n\n' +
         generateEmojiGrid() +
-        '\n👉 https://codefeat.store/games/wordle'
+        '\n👉 https://f1works.netlify.app/games/wordle'
     );
 
     toast.info('복사되었습니다.\n원하는 곳에 붙여넣기(Ctrl+V)해주세요.', {

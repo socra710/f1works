@@ -818,6 +818,30 @@ export default function Works() {
 
       <footer className="works-footer">
         <p>© 2025 F1Works는 직원들의 업무 효율성 향상을 위해 만들어졌습니다.</p>
+        {/* <a
+          href="https://www.buymeacoffee.com/socra710"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            position: 'absolute',
+            right: 12,
+            top: '50%',
+            transform: 'translateY(-50%)',
+          }}
+        >
+          <button
+            style={{
+              background: '#FFDD00',
+              border: 'none',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+            }}
+          >
+            ☕ 커피 한 잔 보내기
+          </button>
+        </a> */}
       </footer>
     </div>
   );

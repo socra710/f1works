@@ -785,6 +785,7 @@
   text-align: center;
   padding: 14px 8px;
   margin-top: 18px;
+  position: relative;
 }
 
 .works-footer p {
