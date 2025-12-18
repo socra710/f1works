@@ -126,6 +126,12 @@
   margin-right: auto;
 }
 
+@media screen and (max-width: 1500px) {
+  .newsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media screen and (max-width: 1200px) {
   .newsGrid {
     grid-template-columns: repeat(2, 1fr);

@@ -95,7 +95,7 @@ export default function Feed() {
           ) : (
             <>
               <section className={styles.feedSection}>
-                <div className={styles.adBanner}>
+                <div className={styles.sectionHeader}>
                   <iframe
                     src="https://coupa.ng/ceU5PI"
                     width="100%"
@@ -103,11 +103,9 @@ export default function Feed() {
                     frameBorder="0"
                     scrolling="no"
                     referrerPolicy="unsafe-url"
-                    browsingTopics
+                    browsingtopics="true"
                   ></iframe>
                 </div>
-              </section>
-              <section className={styles.feedSection}>
                 <div className={styles.sectionHeader}>
                   <h2 className={styles.sectionTitle}>
                     🔥 인기있는 뉴스
@@ -169,7 +167,7 @@ export default function Feed() {
                             frameBorder="0"
                             scrolling="no"
                             referrerPolicy="unsafe-url"
-                            browsingTopics
+                            browsingtopics="true"
                           ></iframe>
                           <p className={styles.adDisclaimer}>
                             이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른
