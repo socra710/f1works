@@ -1,6 +1,25 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from 'react';
 import { Helmet } from 'react-helmet-async';
 import './Runner.css';
+
+// 컴포넌트
+import BackgroundEffects from './components/BackgroundEffects';
+import PlayerCharacter from './components/PlayerCharacter';
+import GameObstacles from './components/GameObstacles';
+import ParticleEffects from './components/ParticleEffects';
+
+// 훅
+import { useCommonElements } from './hooks/useCommonElements';
+
+// 유틸리티
+import { playJumpSound } from './utils/audioUtils';
+import { getSeasonEffects, randomDifferentIndex } from './utils/seasonUtils';
 
 const GRAVITY = 0.6;
 const JUMP_STRENGTH = -20;
@@ -11,33 +30,32 @@ const PLAYER_SIZE = 50;
 const GROUND_HEIGHT = 50;
 // 러닝 바운스 효과 상수
 const BOBBING_AMPLITUDE = 3; // 2~3px 권장
-const BOBBING_FREQUENCY = 5; // 빠르게 흔들림(Hz 유사)
+const BOBBING_FREQUENCY = 4; // 빠르게 흔들림(Hz 유사)
 // 시즌 배경
 const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
 
 // 장애물 종류
 const OBSTACLE_TYPES = [
-  { id: 'rock', emoji: '🪨', height: 50, width: 30 },
+  { id: 'rock', emoji: '💣', height: 50, width: 30 },
   { id: 'cactus', emoji: '🌵', height: 80, width: 35 },
   { id: 'tree', emoji: '🌲', height: 90, width: 35 },
   { id: 'fire', emoji: '🔥', height: 55, width: 30 },
-  { id: 'cone', emoji: '🚧', height: 45, width: 30 },
+  { id: 'cone', emoji: '🚧', height: 45, width: 35 },
+  { id: 'barrel', emoji: '🛢️', height: 60, width: 30 },
+  { id: 'bush', emoji: '🌿', height: 50, width: 30 },
 ];
-
-// 랜덤 시즌 선택 헬퍼 (현재 인덱스와 다른 값 반환)
-const randomDifferentIndex = (current) => {
-  let newIndex;
-  do {
-    newIndex = Math.floor(Math.random() * SEASONS.length);
-  } while (newIndex === current);
-  return newIndex;
-};
 
 // 캐릭터 목록
 const CHARACTERS = [
   { id: 'cat', name: '🐱', emoji: '🐱' },
   { id: 'dog', name: '🐶', emoji: '🐶' },
-  { id: 'rabbit', name: '🐰', emoji: '🐰' },
+  // { id: 'lion', name: '🦁', emoji: '🦁' },
+  // { id: 'rabbit', name: '🐰', emoji: '🐰' },
+  // { id: 'devil', name: '👿', emoji: '👿' },
+  // { id: 'ghost', name: '👻', emoji: '👻' },
+  // { id: 'alien', name: '👽', emoji: '👽' },
+  // { id: 'robot', name: '🤖', emoji: '🤖' },
+  // { id: 'panda', name: '🐼', emoji: '🐼' },
 ];
 
 const Runner = () => {
@@ -54,7 +72,7 @@ const Runner = () => {
   const [jumpCount, setJumpCount] = useState(0);
   const [gameSpeed, setGameSpeed] = useState(BASE_GAME_SPEED);
   const [seasonIndex, setSeasonIndex] = useState(0);
-  
+
   const gameLoopRef = useRef(null);
   const scoreIntervalRef = useRef(null);
   const obstacleIntervalRef = useRef(null);
@@ -64,34 +82,21 @@ const Runner = () => {
   // 러닝 바운스 계산용
   const bobTimeRef = useRef(0);
   const bobOffsetRef = useRef(0);
-  const lastTsRef = useRef(typeof performance !== 'undefined' ? performance.now() : 0);
+  const lastTsRef = useRef(
+    typeof performance !== 'undefined' ? performance.now() : 0
+  );
   // 지면 여부 (state 지연 없이 즉시 판단용)
   const isOnGroundRef = useRef(true);
   // 파티클 스폰 간격 관리
   const particleCooldownRef = useRef(0);
 
-  // 시즌별 요소 생성 (재렌더링 시에도 고정)
-  const seasonElements = useMemo(() => ({
-    spring: Array.from({ length: 12 }).map((_, i) => ({
-      id: `spr-${i}`,
-      left: `${i * 8}%`
-    })),
-    summer: Array.from({ length: 30 }).map((_, i) => ({
-      id: `rain-${i}`,
-      left: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 2}s`
-    })),
-    autumn: Array.from({ length: 15 }).map((_, i) => ({
-      id: `leaf-${i}`,
-      left: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 3}s`
-    })),
-    winter: Array.from({ length: 20 }).map((_, i) => ({
-      id: `snow-${i}`,
-      left: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 4}s`
-    }))
-  }), []);
+  // 훅으로 공통 엘리먼트 가져오기
+  const commonElements = useCommonElements();
+
+  // 시즌별 배경 이펙트 조합 (낮/밤 + 최대 2개 이펙트)
+  const seasonEffects = useMemo(() => {
+    return getSeasonEffects(seasonIndex, SEASONS);
+  }, [seasonIndex]);
 
   // 로컬 스토리지에서 최고 점수 불러오기
   useEffect(() => {
@@ -100,6 +105,7 @@ const Runner = () => {
       setHighScore(parseInt(savedHighScore, 10));
     }
   }, []);
+
 
   // 캐릭터 선택
   const selectCharacter = (character) => {
@@ -124,7 +130,8 @@ const Runner = () => {
     setGameSpeed(BASE_GAME_SPEED);
     setSeasonIndex(Math.floor(Math.random() * SEASONS.length));
     isOnGroundRef.current = true;
-    lastTsRef.current = typeof performance !== 'undefined' ? performance.now() : 0;
+    lastTsRef.current =
+      typeof performance !== 'undefined' ? performance.now() : 0;
   };
 
   // 점프 (더블 점프 가능)
@@ -133,6 +140,7 @@ const Runner = () => {
       playerVelocityRef.current = Math.abs(JUMP_STRENGTH); // 위로 점프
       setIsJumping(true);
       setJumpCount((prev) => prev + 1);
+      playJumpSound(); // 점프 효과음 재생
     }
   }, [gameState, jumpCount]);
 
@@ -175,13 +183,13 @@ const Runner = () => {
     scoreIntervalRef.current = setInterval(() => {
       setScore((prev) => {
         const newScore = prev + 1;
-        // 100점마다 속도 증가
-        if (newScore % 100 === 0) {
+        // 50점마다 속도 증가
+        if (newScore % 50 === 0) {
           setGameSpeed((prevSpeed) => prevSpeed + SPEED_INCREASE_PER_LEVEL);
         }
-        // 200점마다 시즌 변경
+        // 100점마다 시즌 변경 (중복 방지)
         if (newScore % 200 === 0) {
-          setSeasonIndex((prevIdx) => randomDifferentIndex(prevIdx));
+          setSeasonIndex((prevIdx) => randomDifferentIndex(prevIdx, SEASONS.length));
         }
         return newScore;
       });
@@ -189,7 +197,8 @@ const Runner = () => {
 
     // 장애물 생성 (랜덤 간격)
     const spawnObstacle = () => {
-      const randomType = OBSTACLE_TYPES[Math.floor(Math.random() * OBSTACLE_TYPES.length)];
+      const randomType =
+        OBSTACLE_TYPES[Math.floor(Math.random() * OBSTACLE_TYPES.length)];
       const newObstacle = {
         id: Date.now(),
         x: 800,
@@ -198,14 +207,18 @@ const Runner = () => {
         width: randomType.width,
       };
       setObstacles((prev) => [...prev, newObstacle]);
-      
-      // 다음 장애물 생성까지 랜덤 간격 (1초 ~ 2초)
-      const nextInterval = 1000 + Math.random() * 1000;
+
+      // 속도에 비례하여 간격 조정 (난이도 밸런스 유지)
+      // 속도가 빨라지면 간격도 짧아지되, 약간의 난이도 증가
+      const speedRatio = gameSpeed / BASE_GAME_SPEED;
+      const adjustedRatio = Math.pow(speedRatio, 0.85); // 속도 2배 → 간격 1.8배
+      const baseInterval = 800 + Math.random() * 800; // 0.8초 ~ 1.6초
+      const nextInterval = baseInterval * adjustedRatio;
       obstacleIntervalRef.current = setTimeout(spawnObstacle, nextInterval);
     };
-    
+
     // 첫 장애물 생성
-    obstacleIntervalRef.current = setTimeout(spawnObstacle, 1500);
+    obstacleIntervalRef.current = setTimeout(spawnObstacle, 1200);
 
     // 날아다니는 새 생성 (랜덤 간격)
     const spawnBird = () => {
@@ -217,12 +230,15 @@ const Runner = () => {
         size: 40,
       };
       setBirds((prev) => [...prev, newBird]);
-      
-      // 다음 새 생성까지 랜덤 간격 (2.5초 ~ 4초)
-      const nextInterval = 2500 + Math.random() * 1500;
+
+      // 속도에 비례하여 새 생성 간격도 조정
+      const speedRatio = gameSpeed / BASE_GAME_SPEED;
+      const adjustedRatio = Math.pow(speedRatio, 0.85);
+      const baseInterval = 2500 + Math.random() * 1500; // 2.5초 ~ 4초
+      const nextInterval = baseInterval * adjustedRatio;
       birdIntervalRef.current = setTimeout(spawnBird, nextInterval);
     };
-    
+
     // 첫 새 생성
     birdIntervalRef.current = setTimeout(spawnBird, 4000);
 
@@ -230,15 +246,16 @@ const Runner = () => {
     const gameLoop = () => {
       // 시간 경과 계산 (초)
       const now = typeof performance !== 'undefined' ? performance.now() : 0;
-      const dt = now && lastTsRef.current ? (now - lastTsRef.current) / 1000 : 1 / 60;
+      const dt =
+        now && lastTsRef.current ? (now - lastTsRef.current) / 1000 : 1 / 60;
       lastTsRef.current = now || lastTsRef.current;
 
-      // 플레이어 위치 업데이트
+      // 플레이어 위치 업데이트 (dt 기반 물리)
       setPlayerY((prevY) => {
         // 중력 적용 (아래로 떨어지도록)
-        playerVelocityRef.current -= GRAVITY;
-        const newY = prevY + playerVelocityRef.current;
-        
+        playerVelocityRef.current -= GRAVITY * dt * 60;
+        const newY = prevY + playerVelocityRef.current * dt * 60;
+
         // 바닥에 닿았을 때
         if (newY <= 0) {
           playerVelocityRef.current = 0;
@@ -258,16 +275,22 @@ const Runner = () => {
         // 시간 진행은 고정 dt 누적, 바운스 주파수만 속도에 비례
         bobTimeRef.current += dt;
         const effectiveFrequency = BOBBING_FREQUENCY * Math.max(1, gameSpeed);
-        bobOffsetRef.current = Math.sin(bobTimeRef.current * effectiveFrequency) * BOBBING_AMPLITUDE;
+        bobOffsetRef.current =
+          Math.sin(bobTimeRef.current * effectiveFrequency) * BOBBING_AMPLITUDE;
       } else {
         bobOffsetRef.current = 0;
       }
 
       // 러너 잔상 업데이트: 최근 위치 6개 유지
       if (gameState === 'playing') {
-        const playerBottomNow = GROUND_HEIGHT + playerYRef.current + (isOnGroundRef.current ? bobOffsetRef.current : 0);
+        const playerBottomNow =
+          GROUND_HEIGHT +
+          playerYRef.current +
+          (isOnGroundRef.current ? bobOffsetRef.current : 0);
         setGhosts((prev) => {
-          const next = [{ bottom: playerBottomNow, leftOffset: 0 }].concat(prev);
+          const next = [{ bottom: playerBottomNow, leftOffset: 0 }].concat(
+            prev
+          );
           return next.slice(0, 6);
         });
       } else {
@@ -275,9 +298,15 @@ const Runner = () => {
       }
 
       // 먼지 파티클 스폰 및 이동 업데이트
-      particleCooldownRef.current = Math.max(0, particleCooldownRef.current - dt);
+      particleCooldownRef.current = Math.max(
+        0,
+        particleCooldownRef.current - dt
+      );
       const spawnInterval = Math.max(0.03, 0.08 / Math.max(1, gameSpeed));
-      const shouldSpawn = gameState === 'playing' && isOnGroundRef.current && particleCooldownRef.current <= 0;
+      const shouldSpawn =
+        gameState === 'playing' &&
+        isOnGroundRef.current &&
+        particleCooldownRef.current <= 0;
       setParticles((prev) => {
         const updated = prev
           .map((p) => ({
@@ -314,7 +343,7 @@ const Runner = () => {
         const newObstacles = prevObstacles
           .map((obstacle) => ({
             ...obstacle,
-            x: obstacle.x - gameSpeed,
+            x: obstacle.x - gameSpeed * dt * 60,
           }))
           .filter((obstacle) => obstacle.x > -obstacle.width);
 
@@ -326,7 +355,7 @@ const Runner = () => {
         const newBirds = prevBirds
           .map((bird) => ({
             ...bird,
-            x: bird.x - (gameSpeed * 1.2), // 새는 조금 더 빠르게
+            x: bird.x - gameSpeed * 1.2 * dt * 60, // 새는 조금 더 빠르게
           }))
           .filter((bird) => bird.x > -bird.size);
 
@@ -420,7 +449,10 @@ const Runner = () => {
           property="og:description"
           content="캐릭터를 선택하고 장애물을 점프로 피하는 러너 게임입니다."
         />
-        <meta property="og:url" content="https://codefeat.netlify.app/games/runner" />
+        <meta
+          property="og:url"
+          content="https://codefeat.netlify.app/games/runner"
+        />
       </Helmet>
 
       <div className="runner-game">
@@ -466,41 +498,48 @@ const Runner = () => {
         {(gameState === 'playing' || gameState === 'gameOver') && (
           <div className="game-container">
             <div
-              className={`game-canvas season-${SEASONS[seasonIndex]}`}
+              className={`game-canvas season-${seasonEffects.season} ${
+                seasonEffects.isNight ? 'night' : 'day'
+              }`}
               onClick={() => gameState === 'playing' && jump()}
               onTouchStart={() => gameState === 'playing' && jump()}
             >
-              {/* 시즌 오버레이 */}
-              {SEASONS[seasonIndex] === 'spring' && (
-                <div className="season-layer spring">
-                  {seasonElements.spring.map((item) => (
-                    <span key={item.id} className="sprout" style={{ left: item.left }}>🌱</span>
+              {/* 기본 이펙트 렌더링 */}
+              {seasonEffects.base === 'sun' && (
+                <div className="sky-object sun">☀️</div>
+              )}
+              {seasonEffects.base === 'moon' && (
+                <div className="sky-object moon">🌙</div>
+              )}
+              {seasonEffects.base === 'clouds' && (
+                <div className="clouds-layer">
+                  {commonElements.clouds.map((cloud) => (
+                    <span
+                      key={cloud.id}
+                      className="cloud"
+                      style={{
+                        left: cloud.left,
+                        top: cloud.top,
+                        animationDelay: cloud.delay,
+                        animationDuration: cloud.duration,
+                      }}
+                    >
+                      {cloud.emoji}
+                    </span>
                   ))}
                 </div>
               )}
-              {SEASONS[seasonIndex] === 'summer' && (
-                <div className="season-layer summer">
-                  {seasonElements.summer.map((item) => (
-                    <span 
-                      key={item.id} 
-                      className="raindrop" 
-                      style={{ 
-                        left: item.left,
-                        animationDelay: item.delay
-                      }} 
-                    />
-                  ))}
-                </div>
-              )}
-              {SEASONS[seasonIndex] === 'autumn' && (
+              {seasonEffects.base === 'leaves' && (
                 <div className="season-layer autumn">
-                  {seasonElements.autumn.map((item) => (
-                    <span 
-                      key={item.id} 
-                      className="leaf" 
-                      style={{ 
+                  {commonElements.leaves.map((item) => (
+                    <span
+                      key={item.id}
+                      className="leaf"
+                      style={{
                         left: item.left,
-                        animationDelay: item.delay
+                        animationDelay: item.delay,
+                        animationDuration: item.duration,
+                        '--leaf-x': item.left,
                       }}
                     >
                       🍁
@@ -508,15 +547,17 @@ const Runner = () => {
                   ))}
                 </div>
               )}
-              {SEASONS[seasonIndex] === 'winter' && (
+              {seasonEffects.base === 'snow' && (
                 <div className="season-layer winter">
-                  {seasonElements.winter.map((item) => (
-                    <span 
-                      key={item.id} 
-                      className="snowflake" 
-                      style={{ 
+                  {commonElements.snow.map((item) => (
+                    <span
+                      key={item.id}
+                      className="snowflake"
+                      style={{
                         left: item.left,
-                        animationDelay: item.delay
+                        animationDelay: item.delay,
+                        animationDuration: item.duration,
+                        '--snow-x': item.left,
                       }}
                     >
                       ❄️
@@ -524,84 +565,175 @@ const Runner = () => {
                   ))}
                 </div>
               )}
+
+              {/* 추가 이펙트 렌더링 */}
+              {seasonEffects.extra === 'petals' && (
+                <div className="season-layer spring">
+                  {commonElements.petals.map((item) => (
+                    <span
+                      key={item.id}
+                      className="petal"
+                      style={{
+                        left: item.left,
+                        animationDelay: item.delay,
+                        animationDuration: item.duration,
+                        '--petal-x': item.left,
+                      }}
+                    >
+                      🌸
+                    </span>
+                  ))}
+                </div>
+              )}
+              {seasonEffects.extra === 'stars' && (
+                <div className="effects-layer">
+                  {commonElements.stars.map((star) => (
+                    <span
+                      key={star.id}
+                      className="star twinkle"
+                      style={{
+                        left: star.left,
+                        top: star.top,
+                        animationDelay: star.delay,
+                      }}
+                    >
+                      ⭐
+                    </span>
+                  ))}
+                </div>
+              )}
+              {seasonEffects.extra === 'rain' && (
+                <div className="season-layer summer">
+                  {commonElements.rain.map((item) => (
+                    <span
+                      key={item.id}
+                      className="raindrop"
+                      style={{
+                        left: item.left,
+                        animationDelay: item.delay,
+                        '--rain-x': item.left,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+              {seasonEffects.extra === 'clouds' && (
+                <div className="clouds-layer">
+                  {commonElements.clouds.map((cloud) => (
+                    <span
+                      key={cloud.id}
+                      className="cloud"
+                      style={{
+                        left: cloud.left,
+                        top: cloud.top,
+                        animationDelay: cloud.delay,
+                        animationDuration: cloud.duration,
+                      }}
+                    >
+                      {cloud.emoji}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {seasonEffects.extra === 'leaves' && (
+                <div className="season-layer autumn">
+                  {commonElements.leaves.map((item) => (
+                    <span
+                      key={item.id}
+                      className="leaf"
+                      style={{
+                        left: item.left,
+                        animationDelay: item.delay,
+                        animationDuration: item.duration,
+                        '--leaf-x': item.left,
+                      }}
+                    >
+                      🍁
+                    </span>
+                  ))}
+                </div>
+              )}
+              {seasonEffects.extra === 'snow' && (
+                <div className="season-layer winter">
+                  {commonElements.snow.map((item) => (
+                    <span
+                      key={item.id}
+                      className="snowflake"
+                      style={{
+                        left: item.left,
+                        animationDelay: item.delay,
+                        animationDuration: item.duration,
+                        '--snow-x': item.left,
+                      }}
+                    >
+                      ❄️
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* 특수 이펙트 렌더링 (단독 연출) */}
+              {seasonEffects.special === 'lightning' && (
+                <div className="effects-layer">
+                  {commonElements.lightning.map((lightning) => (
+                    <div
+                      key={lightning.id}
+                      className="lightning-flash"
+                      style={{
+                        animationDelay: lightning.delay,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+              {seasonEffects.special === 'sleet' && (
+                <div className="season-layer winter">
+                  {commonElements.sleet.map((item) => (
+                    <span
+                      key={item.id}
+                      className="sleet"
+                      style={{
+                        left: item.left,
+                        animationDelay: item.delay,
+                        '--sleet-x': item.left,
+                      }}
+                    >
+                      🌨️
+                    </span>
+                  ))}
+                </div>
+              )}
+
               {/* 플레이어 */}
-              {/* 잔상 */}
-              {ghosts.map((g, idx) => (
-                <div
-                  key={`ghost-${idx}`}
-                  className="ghost"
-                  style={{
-                    left: `${100 - idx * 6}px`,
-                    bottom: `${g.bottom}px`,
-                    fontSize: `${PLAYER_SIZE}px`,
-                    opacity: `${Math.max(0.1, 0.35 - idx * 0.05)}`,
-                  }}
-                >
-                  {selectedCharacter.emoji}
-                </div>
-              ))}
-              <div
-                className="player"
-                style={{
-                  bottom: `${GROUND_HEIGHT + playerY + ((gameState === 'playing' && isOnGroundRef.current) ? bobOffsetRef.current : 0)}px`,
-                  fontSize: `${PLAYER_SIZE}px`,
-                }}
-              >
-                {selectedCharacter.emoji}
-              </div>
+              <PlayerCharacter
+                selectedCharacter={selectedCharacter}
+                playerY={playerY}
+                bobOffset={
+                  gameState === 'playing' && isOnGroundRef.current
+                    ? bobOffsetRef.current
+                    : 0
+                }
+                ghosts={ghosts}
+              />
 
-              {/* 장애물 */}
-              {obstacles.map((obstacle) => (
-                <div
-                  key={obstacle.id}
-                  className="obstacle"
-                  style={{
-                    left: `${obstacle.x}px`,
-                    bottom: `${GROUND_HEIGHT}px`,
-                    fontSize: `${obstacle.height}px`,
-                  }}
-                >
-                  {obstacle.type.emoji}
-                </div>
-              ))}
-
-              {/* 날아다니는 새 */}
-              {birds.map((bird) => (
-                <div
-                  key={bird.id}
-                  className="bird"
-                  style={{
-                    left: `${bird.x}px`,
-                    bottom: `${bird.y}px`,
-                    fontSize: `${bird.size}px`,
-                  }}
-                >
-                  {bird.emoji}
-                </div>
-              ))}
+              {/* 장애물 및 새 */}
+              <GameObstacles obstacles={obstacles} birds={birds} />
 
               {/* 바닥 */}
               <div className="ground">
                 <div
                   className="ground-pattern"
-                  style={{ animationDuration: `${Math.max(0.6, 2 / Math.max(1, gameSpeed))}s` }}
+                  style={{
+                    animationDuration: `${Math.max(
+                      0.6,
+                      2 / Math.max(1, gameSpeed)
+                    )}s`,
+                  }}
                 />
               </div>
 
               {/* 먼지 파티클 */}
-              {particles.map((p) => (
-                <div
-                  key={p.id}
-                  className="particle"
-                  style={{
-                    left: `${p.x}px`,
-                    bottom: `${p.y}px`,
-                    width: `${p.size}px`,
-                    height: `${p.size}px`,
-                    opacity: p.opacity,
-                  }}
-                />
-              ))}
+              <ParticleEffects particles={particles} />
             </div>
 
             {gameState === 'gameOver' && (
@@ -612,7 +744,10 @@ const Runner = () => {
                   {score === highScore && score > 0 && (
                     <p className="new-record">🎉 새로운 최고 기록!</p>
                   )}
-                  <button className="restart-btn" onClick={() => setGameState('menu')}>
+                  <button
+                    className="restart-btn"
+                    onClick={() => setGameState('menu')}
+                  >
                     다시 시작
                   </button>
                 </div>

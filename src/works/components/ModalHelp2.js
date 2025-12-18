@@ -55,7 +55,7 @@ const ModalHelp2 = (props) => {
           Help
         </button>
       </ModalOpenButton>
-      <ModalContents title="도움말">
+      <ModalContents title="도움말" maxWidth="md" fullWidth>
         <hr
           style={{
             margin: '0.5rem 0 1rem 0',
