@@ -16,7 +16,7 @@ export const useCommonElements = () => {
         id: `cloud-${i}`,
         left: `${100 + Math.random() * 10}%`,
         top: `${5 + Math.random() * 25}%`,
-        delay: `${i * 2 + Math.random() * 1.5}s`, // 더 빠른 진입
+        delay: `${i * 2 + Math.random() * 2}s`, // 더 빠른 진입
         duration: `${16 + Math.random() * 8}s`,
         emoji: cloudTypes[Math.floor(Math.random() * cloudTypes.length)],
         };

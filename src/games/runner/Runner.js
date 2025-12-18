@@ -183,12 +183,12 @@ const Runner = () => {
     scoreIntervalRef.current = setInterval(() => {
       setScore((prev) => {
         const newScore = prev + 1;
-        // 100점마다 속도 증가
-        if (newScore % 100 === 0) {
+        // 50점마다 속도 증가
+        if (newScore % 50 === 0) {
           setGameSpeed((prevSpeed) => prevSpeed + SPEED_INCREASE_PER_LEVEL);
         }
         // 100점마다 시즌 변경 (중복 방지)
-        if (newScore % 150 === 0) {
+        if (newScore % 200 === 0) {
           setSeasonIndex((prevIdx) => randomDifferentIndex(prevIdx, SEASONS.length));
         }
         return newScore;
