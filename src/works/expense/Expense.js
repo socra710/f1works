@@ -634,6 +634,12 @@ export default function Expense() {
             fetchFuelSettings(data.month, userId);
           }
 
+          setUserEfficiency(data.userEfficiency || 15);
+
+          const calculatedBaseEfficiency =
+            Math.round((data.userEfficiency || 15) * 0.85 * 10) / 10;
+          setBaseEfficiency(calculatedBaseEfficiency);
+
           setRows(
             data.rows.map((row) => ({
               rowId: row.rowId || null,
