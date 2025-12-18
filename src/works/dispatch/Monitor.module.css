@@ -158,7 +158,7 @@
 .dispatch-hero__status {
   display: flex;
   gap: 0.9rem;
-  align-items: start;
+  align-items: flex-start;
   justify-content: flex-end;
 }
 
