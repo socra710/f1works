@@ -41,7 +41,7 @@
   border: 2px solid rgba(255, 215, 0, 0.5);
 }
 
-/* 메뉴 화면 */
+/* 硫붾돱 ?붾㈃ */
 .runner-menu {
   max-width: 600px;
   margin: 0 auto;
@@ -130,7 +130,7 @@
   font-size: 1.1rem;
 }
 
-/* 게임 화면 */
+/* 寃뚯엫 ?붾㈃ */
 .game-container {
   max-width: 800px;
   margin: 0 auto;
@@ -146,17 +146,17 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
-/* 밤에는 기본 구름 숨김 */
+/* 諛ㅼ뿉??湲곕낯 援щ쫫 ?④? */
 .game-canvas.night::before {
   display: none;
 }
 
-/* 봄: 밝은 푸른 하늘 + 신록색 풀 */
+/* 遊? 諛앹? ?몃Ⅸ ?섎뒛 + ?좊줉??? */
 .game-canvas.season-spring {
   background: linear-gradient(to bottom, #87ceeb 0%, #e0f6ff 40%, #c1ffc1 100%);
 }
 
-/* 여름: 맑고 밝은 파란 하늘 + 노란 햇빛 + 초록색 풀 */
+/* ?щ쫫: 留묎퀬 諛앹? ?뚮? ?섎뒛 + ?몃? ?뉖튆 + 珥덈줉??? */
 .game-canvas.season-summer {
   background: linear-gradient(
     to bottom,
@@ -167,7 +167,7 @@
   );
 }
 
-/* 시즌별 야간 배경 */
+/* ?쒖쫵蹂??쇨컙 諛곌꼍 */
 .game-canvas.season-spring.night {
   background: linear-gradient(to bottom, #0b1b3f 0%, #1b3a6b 45%, #1f3f2a 100%);
 }
@@ -181,7 +181,7 @@
   background: linear-gradient(to bottom, #0e1a2b 0%, #243b55 50%, #d9e6f2 100%);
 }
 
-/* 가을: 주황/빨강 하늘 + 갈색 톤 + 갈색 흙 */
+/* 媛?? 二쇳솴/鍮④컯 ?섎뒛 + 媛덉깋 ??+ 媛덉깋 ??*/
 .game-canvas.season-autumn {
   background: linear-gradient(
     to bottom,
@@ -192,7 +192,7 @@
   );
 }
 
-/* 겨울: 회색 하늘 + 흰 눈 덮인 지면 */
+/* 寃⑥슱: ?뚯깋 ?섎뒛 + ??????씤 吏硫?*/
 .game-canvas.season-winter {
   background: linear-gradient(
     to bottom,
@@ -203,83 +203,47 @@
   );
 }
 
-/* 시즌 오버레이 공통 */
+/* ?쒖쫵 ?ㅻ쾭?덉씠 怨듯넻 */
 .season-layer {
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
 
-/* 봄: 꽃잎이 떨어지는 효과 */
+/* 遊? 苑껋옂???⑥뼱吏???④낵 */
 .season-spring .petal {
   position: absolute;
   top: -30px;
   font-size: 20px;
   animation: petalFall 8s linear infinite;
 }
-
-/* 꽃잎 착지 효과 */
-.season-spring .petal::after {
-  content: '🌸';
-  position: fixed;
-  bottom: 50px;
-  left: var(--petal-x, 0);
-  font-size: 18px;
-  opacity: 0;
-  animation: petalLand 8s linear infinite;
-  pointer-events: none;
-}
-
 @keyframes petalFall {
   0% {
-    transform: translateY(-30px) translateX(0) rotate(-15deg);
+    transform: translateY(-30px) translateX(100px) rotate(-15deg);
     opacity: 0;
   }
   15% {
     opacity: 1;
   }
   25% {
-    transform: translateY(100px) translateX(30px) rotate(60deg);
+    transform: translateY(100px) translateX(60px) rotate(60deg);
     opacity: 1;
   }
   50% {
-    transform: translateY(210px) translateX(-20px) rotate(-40deg);
+    transform: translateY(210px) translateX(20px) rotate(-40deg);
     opacity: 0.9;
   }
   75% {
-    transform: translateY(315px) translateX(25px) rotate(90deg);
+    transform: translateY(315px) translateX(-30px) rotate(90deg);
     opacity: 0.8;
   }
   100% {
-    transform: translateY(420px) translateX(-10px) rotate(180deg);
+    transform: translateY(420px) translateX(-80px) rotate(180deg);
     opacity: 0;
   }
 }
 
-@keyframes petalLand {
-  0% {
-    opacity: 0;
-    transform: scale(1) rotate(0deg);
-  }
-  85% {
-    opacity: 0;
-    transform: scale(1) rotate(0deg);
-  }
-  88% {
-    opacity: 0.8;
-    transform: scale(1.2) rotate(90deg);
-  }
-  92% {
-    opacity: 0.6;
-    transform: scale(0.9) rotate(180deg);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.8) rotate(270deg);
-  }
-}
-
-/* 여름: 비 (가느다란 빗줄기) */
+/* ?щ쫫: 鍮?(媛?먮떎? 鍮쀬쨪湲? */
 .season-summer .raindrop {
   position: absolute;
   top: -20px;
@@ -288,22 +252,9 @@
   background: rgba(255, 255, 255, 0.6);
   animation: rainFall 2s linear infinite;
 }
-
-/* 빗방울 착지 효과 */
-.season-summer .raindrop::after {
-  content: '💧';
-  position: fixed;
-  bottom: 50px;
-  left: var(--rain-x, 0);
-  font-size: 12px;
-  opacity: 0;
-  animation: rainSplash 2s linear infinite;
-  pointer-events: none;
-}
-
 @keyframes rainFall {
   0% {
-    transform: translateY(-20px) translateX(0) rotate(15deg);
+    transform: translateY(-20px) translateX(50px) rotate(15deg);
     opacity: 0.2;
   }
   50% {
@@ -311,265 +262,124 @@
     opacity: 0.7;
   }
   100% {
-    transform: translateY(420px) translateX(-5px) rotate(15deg);
+    transform: translateY(420px) translateX(-40px) rotate(15deg);
     opacity: 0.4;
   }
 }
 
-@keyframes rainSplash {
-  0% {
-    opacity: 0;
-    transform: scale(0.5);
-  }
-  90% {
-    opacity: 0;
-    transform: scale(0.5);
-  }
-  92% {
-    opacity: 0.9;
-    transform: scale(1.5);
-  }
-  96% {
-    opacity: 0.5;
-    transform: scale(2);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1);
-  }
-}
-
-/* 가을: 단풍 잎 떨어짐 */
+/* 媛?? ?⑦뭾 ???⑥뼱吏?*/
 .season-autumn .leaf {
   position: absolute;
   top: -30px;
   font-size: 20px;
   animation: leafFall 5s linear infinite;
 }
-
-/* 낙엽 착지 효과 */
-.season-autumn .leaf::after {
-  content: '🍂';
-  position: fixed;
-  bottom: 50px;
-  left: var(--leaf-x, 0);
-  font-size: 16px;
-  opacity: 0;
-  animation: leafPile 5s linear infinite;
-  pointer-events: none;
-}
-
 @keyframes leafFall {
   0% {
-    transform: translateY(-30px) translateX(0) rotate(-10deg);
+    transform: translateY(-30px) translateX(80px) rotate(-10deg);
     opacity: 0;
   }
   25% {
-    transform: translateY(100px) translateX(15px) rotate(40deg);
+    transform: translateY(100px) translateX(50px) rotate(40deg);
     opacity: 1;
   }
   50% {
-    transform: translateY(200px) translateX(-10px) rotate(-20deg);
+    transform: translateY(200px) translateX(20px) rotate(-20deg);
     opacity: 0.9;
   }
   75% {
-    transform: translateY(310px) translateX(20px) rotate(60deg);
+    transform: translateY(310px) translateX(-10px) rotate(60deg);
     opacity: 0.8;
   }
   100% {
-    transform: translateY(420px) translateX(-5px) rotate(90deg);
+    transform: translateY(420px) translateX(-60px) rotate(90deg);
     opacity: 0.5;
   }
 }
 
-@keyframes leafPile {
-  0% {
-    opacity: 0;
-    transform: scale(1) rotate(0deg);
-  }
-  80% {
-    opacity: 0;
-    transform: scale(1) rotate(0deg);
-  }
-  83% {
-    opacity: 0.7;
-    transform: scale(1.3) rotate(-45deg);
-  }
-  87% {
-    opacity: 0.5;
-    transform: scale(1.1) rotate(90deg);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.9) rotate(180deg);
-  }
-}
-
-/* 겨울: 눈송이 */
+/* 寃⑥슱: ?덉넚??*/
 .season-winter .snowflake {
   position: absolute;
   top: -20px;
   font-size: 16px;
   animation: snowFall 5s linear infinite;
 }
-
-/* 눈송이 착지 효과 */
-.season-winter .snowflake::after {
-  content: '❄️';
-  position: fixed;
-  bottom: 50px;
-  left: var(--snow-x, 0);
-  font-size: 14px;
-  opacity: 0;
-  animation: snowPile 5s linear infinite;
-  pointer-events: none;
-}
-
 @keyframes snowFall {
   0% {
-    transform: translateY(-20px) translateX(0);
+    transform: translateY(-20px) translateX(60px);
     opacity: 0.4;
   }
   25% {
-    transform: translateY(100px) translateX(-15px);
+    transform: translateY(100px) translateX(30px);
     opacity: 0.7;
   }
   50% {
-    transform: translateY(210px) translateX(10px);
+    transform: translateY(210px) translateX(0);
     opacity: 0.9;
   }
   75% {
-    transform: translateY(315px) translateX(-8px);
+    transform: translateY(315px) translateX(-30px);
     opacity: 0.8;
   }
   100% {
-    transform: translateY(420px) translateX(5px);
+    transform: translateY(420px) translateX(-60px);
     opacity: 0.6;
   }
 }
 
-@keyframes snowPile {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  82% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  85% {
-    opacity: 0.8;
-    transform: scale(1.4);
-  }
-  90% {
-    opacity: 0.6;
-    transform: scale(1.6);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.2);
-  }
-}
-
-/* 겨울: 눈비(sleet) 효과 */
-.season-winter .sleet {
+/* 援щ쫫 ?좊땲硫붿씠??*/
+.game-canvas::before {
+  content: '?곻툘 ?곻툘 ?곻툘 ?곻툘 ?곻툘 ?곻툘 ?곻툘 ?곻툘';
   position: absolute;
-  top: -20px;
-  font-size: 18px;
-  animation: sleetFall 3s linear infinite;
+  top: 30px;
+  left: 0;
+  font-size: 40px;
+  white-space: nowrap;
+  animation: clouds 20s linear infinite;
+  opacity: 0.7;
 }
 
-/* 눈비 착지 효과 */
-.season-winter .sleet::after {
-  content: '💦';
-  position: fixed;
-  bottom: 50px;
-  left: var(--sleet-x, 0);
-  font-size: 14px;
-  opacity: 0;
-  animation: sleetSplash 3s linear infinite;
-  pointer-events: none;
-}
-
-@keyframes sleetFall {
-  0% {
-    transform: translateY(-20px) translateX(0) rotate(10deg);
-    opacity: 0.3;
-  }
-  40% {
-    transform: translateY(150px) translateX(8px) rotate(10deg);
-    opacity: 0.8;
-  }
-  100% {
-    transform: translateY(420px) translateX(-3px) rotate(10deg);
-    opacity: 0.5;
-  }
-}
-
-@keyframes sleetSplash {
-  0% {
-    opacity: 0;
-    transform: scale(0.6);
-  }
-  88% {
-    opacity: 0;
-    transform: scale(0.6);
-  }
-  91% {
-    opacity: 0.9;
-    transform: scale(1.6);
-  }
-  95% {
-    opacity: 0.4;
-    transform: scale(2.2);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.4);
-  }
-}
-
-/* 계절별 구름 레이어 */
+/* 怨꾩젅蹂?援щ쫫 ?덉씠??*/
 .clouds-layer {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 1;
 }
 
 .clouds-layer .cloud {
   position: absolute;
+  top: 30px;
   font-size: 40px;
   animation: clouds 20s linear infinite;
   pointer-events: none;
 }
 
-/* 봄: 밝은 구름 (3개) */
+/* 遊? 諛앹? 援щ쫫 (3媛? */
 .clouds-layer.spring .cloud {
   opacity: 0.6;
 }
 
-/* 여름: 적은 구름 (2개, 밝음) */
+/* ?щ쫫: ?곸? 援щ쫫 (2媛? 諛앹쓬) */
 .clouds-layer.summer .cloud {
   opacity: 0.5;
   font-size: 45px;
 }
 
-/* 가을: 중간 정도의 구름 (4개) */
+/* 媛?? 以묎컙 ?뺣룄??援щ쫫 (4媛? */
 .clouds-layer.autumn .cloud {
   opacity: 0.65;
   font-size: 38px;
 }
 
-/* 겨울: 많은 구름 (5개, 회색) */
+/* 寃⑥슱: 留롮? 援щ쫫 (5媛? ?뚯깋) */
 .clouds-layer.winter .cloud {
   opacity: 0.8;
   font-size: 42px;
 }
 
-/* 태양 (여름 시즌: 맑을 때만 노출) */
+/* ?쒖뼇 (?щ쫫 ?쒖쫵: 留묒쓣 ?뚮쭔 ?몄텧) */
 .game-canvas.season-summer.sunny::after {
-  content: '☀️';
+  content: '?截?;
   position: absolute;
   top: 20px;
   right: 40px;
@@ -578,9 +388,9 @@
   animation: sunShine 3s ease-in-out infinite;
 }
 
-/* 달 (겨울 시즌: 야간에만) */
+/* ??(寃⑥슱 ?쒖쫵: ?쇨컙?먮쭔) */
 .game-canvas.season-winter.night::after {
-  content: '🌙';
+  content: '?뙔';
   position: absolute;
   top: 20px;
   right: 40px;
@@ -601,16 +411,16 @@
 
 @keyframes clouds {
   0% {
-    transform: translateX(0);
+    transform: translateX(100vw);
   }
   100% {
-    transform: translateX(calc(-100vw - 300px));
+    transform: translateX(-100%);
   }
 }
 
-/* ========== 새로운 효과들 ========== */
+/* ========== ?덈줈???④낵??========== */
 
-/* 1. 별 반짝임 효과 */
+/* 1. 蹂?諛섏쭩???④낵 */
 .effects-layer {
   position: absolute;
   inset: 0;
@@ -637,7 +447,7 @@
   }
 }
 
-/* 2. 햇빛 광선 */
+/* 2. ?뉖튆 愿묒꽑 */
 .sun-ray {
   position: absolute;
   top: 0;
@@ -667,7 +477,7 @@
   }
 }
 
-/* 3. 무지개 */
+/* 3. 臾댁?媛?*/
 .rainbow {
   position: absolute;
   bottom: 70px;
@@ -705,7 +515,7 @@
   }
 }
 
-/* 4. 바람 효과 강화 */
+/* 4. 諛붾엺 ?④낵 媛뺥솕 */
 .wind-leaf {
   position: absolute;
   top: -30px;
@@ -735,7 +545,7 @@
   }
 }
 
-/* 5. 번개 플래시 */
+/* 5. 踰덇컻 ?뚮옒??*/
 .lightning-flash {
   position: absolute;
   inset: 0;
@@ -760,7 +570,7 @@
   }
 }
 
-/* 6. 안개 */
+/* 6. ?덇컻 */
 .fog-layer {
   position: absolute;
   inset: 0;
@@ -793,7 +603,7 @@
   }
 }
 
-/* 7. 배경 새들 */
+/* 7. 諛곌꼍 ?덈뱾 */
 .background-birds {
   position: absolute;
   inset: 0;
@@ -892,28 +702,28 @@
   background: linear-gradient(to bottom, #8b7355 0%, #654321 100%);
   border-top: 3px solid #654321;
   animation: groundMove 3s linear infinite;
-  overflow: hidden;
+  overflow: visible; /* ???④낵媛 蹂댁씠?꾨줉 */
 }
 
-/* 봄: 신록색 풀 */
+/* 遊? ?좊줉??? */
 .game-canvas.season-spring .ground {
   background: linear-gradient(to bottom, #9acd32 0%, #7cb342 100%);
   border-top-color: #7cb342;
 }
 
-/* 여름: 습기 있는 갈색 흙 (비 효과) */
+/* ?щ쫫: ?듦린 ?덈뒗 媛덉깋 ??(鍮??④낵) */
 .game-canvas.season-summer .ground {
   background: linear-gradient(to bottom, #8b7355 0%, #654321 100%);
   border-top-color: #4a3728;
 }
 
-/* 가을: 갈색 건조한 흙 */
+/* 媛?? 媛덉깋 嫄댁“????*/
 .game-canvas.season-autumn .ground {
   background: linear-gradient(to bottom, #a0826d 0%, #6b5344 100%);
   border-top-color: #5c4033;
 }
 
-/* 겨울: 흰 눈 덮인 지면 */
+/* 寃⑥슱: ??????씤 吏硫?*/
 .game-canvas.season-winter .ground {
   background: linear-gradient(to bottom, #f5f5f5 0%, #e8e8e8 100%);
   border-top-color: #e0e0e0;
@@ -928,14 +738,48 @@
   }
 }
 
-/* 게임 오버 화면 */
+/* 諛붾떏 ?⑦꽩 */
+  content: '?뙼 占??뙼 ?뙵 ?뙼 ?뙵 ?뙼 ?뙵 ?뙼 ?뙵 ?뙼 ?뙵 ?뙼 ?뙵 ?뙼 ?뙵';
+  position: absolute;
+  top: -20px;
+  left: 0;
+  font-size: 20px;
+  white-space: nowrap;
+}
+
+/* 怨꾩젅蹂?吏硫??⑦꽩 */
+  content: '?뙴 ?뙹 ?뙸 ?뙴 ?뙹 ?뙸 ?뙴 ?뙹 ?뙸 ?뙴 ?뙹 ?뙸 ?뙴 ?뙹 ?뙸 ?뙴';
+  font-size: 18px;
+}
+
+  content: '?뙻 ?쬀 ?뙻 ?쬀 ?뙻 ?쬀 ?뙻 ?쬀 ?뙻 ?쬀 ?뙻 ?쬀 ?뙻 ?쬀 ?뙻 ?쬀';
+  font-size: 18px;
+}
+
+  content: '?뛾 ?뛼 ?뛻 ?뛾 ?뛼 ?뛻 ?뛾 ?뛼 ?뛻 ?뛾 ?뛼 ?뛻 ?뛾 ?뛼 ?뛻 ?뛾';
+  font-size: 18px;
+}
+
+  content: '???꾬툘 ?뤄툘 ?꾬툘 ???꾬툘 ?뤄툘 ?꾬툘 ???꾬툘 ?뤄툘 ?꾬툘 ???꾬툘 ?뤄툘 ?꾬툘';
+  font-size: 18px;
+}
+
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* 寃뚯엫 ?ㅻ쾭 ?붾㈃ */
 .ground-pattern {
   position: absolute;
   left: 0;
   bottom: 0;
   height: 100%;
   width: 200%;
-  /* 더 은은한 대각선 스트라이프 패턴 */
+  /* ???????媛곸꽑 ?ㅽ듃?쇱씠???⑦꽩 */
   background-image: repeating-linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.06) 0 6px,
@@ -943,7 +787,7 @@
   );
   background-size: 24px 100%;
   animation: patternMove 2.2s linear infinite;
-  opacity: 0.22; /* 눈에 덜 피로한 저대비 */
+  opacity: 0.22; /* ?덉뿉 ???쇰줈????鍮?*/
   pointer-events: none;
 }
 
@@ -1050,7 +894,7 @@
   transform: translateY(0);
 }
 
-/* 반응형 디자인 */
+/* 諛섏쓳???붿옄??*/
 @media (max-width: 768px) {
   .runner-header h1 {
     font-size: 2rem;
