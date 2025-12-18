@@ -15,6 +15,7 @@ import SpecialItems from './works/expense/SpecialItems';
 import ExpenseSummary from './works/expense/ExpenseSummary';
 import Wordle from './games/wordle/Wordle';
 import Tetris from './games/tetris/Tetris';
+import Runner from './games/runner/Runner';
 import Feed from './feed/index';
 import Calendar from './works/Calendar';
 import NotFound from './NotFound';
@@ -52,6 +53,7 @@ function App() {
           {/* <Route path="/works/dispatch/:id" element={<Dispatch />}></Route> */}
           <Route path="/games/wordle" element={<Wordle />}></Route>
           <Route path="/games/tetris" element={<Tetris />}></Route>
+          <Route path="/games/runner" element={<Runner />}></Route>
           <Route path="/feed" element={<Feed />}></Route>
           <Route path="*" element={<NotFound />}></Route>
         </Routes>

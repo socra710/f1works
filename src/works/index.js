@@ -198,6 +198,7 @@ export default function Works() {
         icon: '📰',
         path: '/feed',
         category: '뉴스',
+        isUpdated: true,
       },
     ],
     []
@@ -239,9 +240,9 @@ export default function Works() {
   const updates = [
     {
       date: '2025.12.16',
-      title: '배차/모니터 신청 UI/UX 개선',
+      title: '배차/모니터/뉴스피드 UI/UX 개선',
       description:
-        '배차/모니터 신청 페이지의 UI/UX가 더욱 직관적으로 개선되었습니다',
+        '배차/모니터/뉴스피드 페이지의 UI/UX가 더욱 직관적으로 개선되었습니다',
     },
     {
       date: '2025.12.13',
@@ -818,6 +819,30 @@ export default function Works() {
 
       <footer className="works-footer">
         <p>© 2025 F1Works는 직원들의 업무 효율성 향상을 위해 만들어졌습니다.</p>
+        {/* <a
+          href="https://www.buymeacoffee.com/socra710"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            position: 'absolute',
+            right: 12,
+            top: '50%',
+            transform: 'translateY(-50%)',
+          }}
+        >
+          <button
+            style={{
+              background: '#FFDD00',
+              border: 'none',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+            }}
+          >
+            ☕ 커피 한 잔 보내기
+          </button>
+        </a> */}
       </footer>
     </div>
   );
