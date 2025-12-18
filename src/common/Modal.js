@@ -37,7 +37,13 @@ function ModalOpenButton({ children: child }) {
 function ModalContentsBase(props) {
   const [isOpen, setIsOpen] = useContext(ModalContext);
   return (
-    <Dialog open={isOpen} onClose={() => setIsOpen(false)} {...props}>
+    <Dialog
+      open={isOpen}
+      onClose={() => setIsOpen(false)}
+      maxWidth={props.maxWidth || 'sm'}
+      fullWidth={props.fullWidth !== false}
+      {...props}
+    >
       {props.children}
     </Dialog>
   );
