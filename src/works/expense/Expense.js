@@ -620,19 +620,20 @@ export default function Expense() {
       if (result.success === 'true' && result.data) {
         const data = result.data;
 
+        // ID 기준 조회인 경우 또는 month가 설정되지 않았다면 월 정보 설정
+        if (data.month && (isIdBasedQuery || !month)) {
+          setMonth(data.month);
+
+          // 유류비 설정 불러오기
+          fetchFuelSettings(data.month, userId);
+        }
+
         // 조회된 데이터가 있으면 (제출된 데이터 또는 임시저장된 서버 데이터)
         if (data.rows && data.rows.length > 0) {
           setUserName(data.userName);
           setMemo(data.memo || '');
           setStatus(data.status || 'DRAFT');
           setManagerChecked(!!data.managerChecked);
-
-          // month가 설정되지 않았다면 (ID 기준 조회인 경우) 월 정보 설정
-          if (!month && data.month) {
-            setMonth(data.month);
-            // 유류비 설정 불러오기
-            fetchFuelSettings(data.month, userId);
-          }
 
           setUserEfficiency(data.userEfficiency || 15);
 
@@ -1393,6 +1394,73 @@ export default function Expense() {
     }
   };
 
+  /** 제출없음 처리 */
+  const handleNoSubmit = async () => {
+    // 유효성 검사
+    if (!month) {
+      showToast('청구 월 정보가 없습니다.', 'warning');
+      return;
+    }
+
+    if (!userId) {
+      showToast('사용자 정보가 없습니다.', 'warning');
+      return;
+    }
+
+    // 제출없음 확인 다이얼로그
+    showDialog({
+      title: '제출없음 확인',
+      message:
+        '해당 월의 경비 청구가 없음으로 처리되며, 자동으로 승인됩니다.\n\n계속하시겠습니까?',
+      okText: '확인',
+      cancelText: '취소',
+      onOk: () => submitNoExpense(),
+    });
+  };
+
+  const submitNoExpense = async () => {
+    const formData = new FormData();
+    formData.append('factoryCode', '000001');
+    formData.append('month', month);
+    formData.append('userId', atob(userId));
+    formData.append('userName', userName);
+    formData.append('memo', memo || '제출 내역 없음');
+    formData.append('status', 'NOT_SUBMITTED'); // 제출없음 상태
+    formData.append('userEfficiency', userEfficiency);
+
+    // 빈 행 배열 전송 (제출 내역이 없으므로)
+    // 서버에서 빈 배열도 처리할 수 있도록 rows[0] 최소한 전송
+    formData.append('rows[0].type', 'expense');
+    formData.append('rows[0].category', '');
+    formData.append('rows[0].date', '');
+    formData.append('rows[0].description', '제출 내역 없음');
+    formData.append('rows[0].amount', '0');
+    formData.append('rows[0].people', '0');
+    formData.append('rows[0].pay', '0');
+
+    // API 호출로 제출없음 처리
+    try {
+      const response = await fetch(`${API_BASE_URL}/jvWorksSetExpense`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (result.success === 'true') {
+        // 임시 저장 데이터 삭제
+        localStorage.removeItem(`expense_temp_${month}_${userId}`);
+        showToast('제출없음으로 처리되었습니다. (자동 승인)', 'success');
+        setTimeout(() => navigate('/works'), 1500);
+      } else {
+        showToast(result.message || '', 'error');
+      }
+    } catch (error) {
+      console.error('제출없음 처리 실패:', error);
+      showToast('제출없음 처리 중 오류가 발생했습니다.', 'error');
+    }
+  };
+
   // 관리자 전용: 승인/반려 처리
   const handleApprove = async () => {
     showDialog({
@@ -1405,9 +1473,12 @@ export default function Expense() {
   };
 
   const handleReject = async () => {
+    const isApproved = status === 'APPROVED';
     showDialog({
       title: '반려 확인',
-      message: '반려 사유를 입력하세요:',
+      message: isApproved
+        ? '승인된 경비를 반려하면 사용자가 다시 수정할 수 있습니다.\n\n반려 사유를 입력하세요:'
+        : '반려 사유를 입력하세요:',
       hasInput: true,
       inputPlaceholder: '반려 사유',
       okText: '반려',
@@ -1508,14 +1579,16 @@ export default function Expense() {
           <div className="header-right">
             {isManagerMode && (
               <>
-                {status === 'SUBMITTED' &&
+                {(status === 'SUBMITTED' || status === 'COMPLETED') &&
                   !managerChecked &&
                   isIdBasedQuery &&
                   !proxyMode && (
                     <>
-                      <button onClick={handleApprove} className="btn-approve">
-                        승인
-                      </button>
+                      {status === 'SUBMITTED' && (
+                        <button onClick={handleApprove} className="btn-approve">
+                          승인
+                        </button>
+                      )}
                       <button onClick={handleReject} className="btn-reject">
                         반려
                       </button>
@@ -2805,7 +2878,7 @@ export default function Expense() {
 
         {/* 제출 버튼 */}
         <section className="expense-section">
-          {/* 일반 사용자: 임시저장/제출 버튼 */}
+          {/* 일반 사용자: 임시저장/제출/제출없음 버튼 */}
           {(status === 'DRAFT' || status === 'REJECTED') &&
             !managerChecked &&
             !isManagerMode && (
@@ -2816,6 +2889,14 @@ export default function Expense() {
                   className="btn-secondary"
                 >
                   임시 저장
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNoSubmit}
+                  className="btn-secondary"
+                  style={{ backgroundColor: '#6c757d', color: 'white' }}
+                >
+                  제출없음
                 </button>
                 <button
                   type="button"
