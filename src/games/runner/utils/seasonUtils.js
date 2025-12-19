@@ -90,6 +90,10 @@ export const getSeasonEffects = (seasonIndex, SEASONS) => {
   // 모든 시즌에서 랜덤으로 비 추가 (낮/밤 상관없이)
   if (hasRain && !effects.special) {
     effects.extra = 'rain';
+    // 비가 올 때 15% 확률로 번개 추가
+    if (Math.random() < 0.15) {
+      effects.special = 'lightning';
+    }
   }
 
   return effects;
