@@ -26,3 +26,5 @@ yarn-error.log*
 
 /backend
 TETRIS_API_GUIDE.md
+RUNNER_INTEGRATION_GUIDE.md
+SETUP_INSTRUCTIONS.md

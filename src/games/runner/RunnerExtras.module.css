@@ -1,0 +1,310 @@
+/* 스코어보드 스타일 */
+.runner-scoreboard {
+  background: transparent;
+  padding: 0;
+}
+
+.runner-scoreboard h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.3rem;
+  text-align: center;
+  color: #ffd700;
+}
+
+.runner-scoreboard .loading,
+.runner-scoreboard .empty {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 20px;
+  font-size: 0.9rem;
+}
+
+.score-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.score-list li {
+  display: grid;
+  grid-template-columns:
+    50px 150px 100px 65px
+    30px;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.score-list li:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(5px);
+}
+
+.score-list li:global(.rank-1) {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0.3),
+    rgba(255, 215, 0, 0.1)
+  );
+  border: 2px solid rgba(255, 215, 0, 0.5);
+}
+
+.score-list li:global(.rank-2) {
+  background: linear-gradient(
+    135deg,
+    rgba(192, 192, 192, 0.3),
+    rgba(192, 192, 192, 0.1)
+  );
+  border: 2px solid rgba(192, 192, 192, 0.5);
+}
+
+.score-list li:global(.rank-3) {
+  background: linear-gradient(
+    135deg,
+    rgba(205, 127, 50, 0.3),
+    rgba(205, 127, 50, 0.1)
+  );
+  border: 2px solid rgba(205, 127, 50, 0.5);
+}
+
+.score-list .rank {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #ffd700;
+  text-align: center;
+}
+
+.score-list .name {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.score-list .score {
+  font-weight: bold;
+  color: #ffd700;
+  white-space: nowrap;
+}
+
+.score-list .coins {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+.score-list .date {
+  font-size: 0.8rem;
+  opacity: 0.65;
+  white-space: nowrap;
+}
+
+/* 모달 스타일 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 400px;
+  width: 90%;
+  color: white;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-content h2 {
+  margin: 0 0 20px 0;
+  text-align: center;
+  font-size: 2rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  background: border-box;
+}
+
+.final-stats {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.final-stats p {
+  margin: 8px 0;
+  font-size: 1.1rem;
+}
+
+.final-stats strong {
+  color: #ffd700;
+  font-size: 1.3rem;
+}
+
+.save-info {
+  text-align: center;
+  margin-bottom: 20px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.save-info strong {
+  color: #ffd700;
+}
+
+.save-info small {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+}
+
+.limit-message {
+  background: rgba(128, 128, 128, 0.3);
+  border: 2px solid rgba(128, 128, 128, 0.5);
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  color: #b0b0b0;
+  font-weight: 500;
+  font-size: 15px;
+  width: 366px;
+}
+
+.name-input-group {
+  margin-bottom: 20px;
+}
+
+.name-input-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.name-input-group input:focus {
+  outline: none;
+  border-color: #ffd700;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.name-input-group input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.modal-buttons button {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.btn-save:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+}
+
+.btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-cancel {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 게임 콘텐츠 레이아웃 */
+.runner-content {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.coins {
+  background: rgba(255, 215, 0, 0.3);
+  padding: 10px 20px;
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 215, 0, 0.5);
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .runner-content {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .runner-scoreboard {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .modal-content {
+    padding: 20px;
+  }
+
+  .modal-content h2 {
+    font-size: 1.5rem;
+  }
+}
