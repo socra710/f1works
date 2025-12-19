@@ -28,14 +28,16 @@ import { getSeasonEffects, randomDifferentIndex } from './utils/seasonUtils';
 // 캐릭터 이미지
 // import f1EmojiImage from './image/f1soft.png';
 import f1RunImage from './image/f1-run.png';
-const GRAVITY = 0.6;
+const GRAVITY = process.env.NODE_ENV === 'production' ? 0.6 : 0.3; // 개발 환경에서도 동일하게 조정
 const BASE_JUMP_STRENGTH = -20;
 const JUMP_STRENGTH =
   process.env.NODE_ENV === 'production'
     ? BASE_JUMP_STRENGTH / 1.5
-    : BASE_JUMP_STRENGTH;
+    : BASE_JUMP_STRENGTH / 1.5; // 개발 환경에서도 동일하게 조정
 const BASE_GAME_SPEED = 5; // 원래 값
 const SPEED_INCREASE_PER_LEVEL = 0.5;
+const SPEED_INCREASE_INTERVAL = 50; // 속도 증가 간격 (점수)
+const SPEED_INCREASE_SMOOTHNESS = 0.08; // 매 프레임마다 증가하는 양 (자연스럽게)
 const PLAYER_SIZE = 50;
 const GROUND_HEIGHT = 50;
 const BOBBING_AMPLITUDE = 3;
@@ -55,6 +57,9 @@ const OBSTACLE_TYPES = [
   { id: 'cone', emoji: '🚧', height: 45, width: 35 },
   { id: 'barrel', emoji: '🛢️', height: 60, width: 30 },
   { id: 'bush', emoji: '🌿', height: 50, width: 30 },
+  { id: 'rock2', emoji: '🪨', height: 40, width: 28 },
+  { id: 'bomb', emoji: '💥', height: 45, width: 32 },
+  { id: 'wall', emoji: '🧱', height: 70, width: 40 },
 ];
 
 // 캐릭터 목록
@@ -132,6 +137,12 @@ const Runner = () => {
   const isOnGroundRef = useRef(true);
   // 파티클 스폰 간격 관리
   const particleCooldownRef = useRef(0);
+  // 클릭 이펙트 쿨다운 관리
+  const clickCooldownRef = useRef(0);
+  // 게임 속도 ref (게임 루프에서 최신 값을 사용하기 위함)
+  const gameSpeedRef = useRef(BASE_GAME_SPEED);
+  // 시즌 이펙트 ref (부엉이/독수리 표시용)
+  const seasonEffectsRef = useRef({ isNight: false });
 
   // 훅으로 공통 엘리먼트 가져오기
   const commonElements = useCommonElements();
@@ -305,6 +316,36 @@ const Runner = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState, userId, coinCount, highScore, syncCoinBank]);
 
+  // 점수에 따라 속도를 부드럽게 증가
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const speedIncreaseInterval = setInterval(() => {
+      setGameSpeed((prevSpeed) => {
+        // 50점마다 0.5씩 증가하는 목표 속도 계산
+        const targetSpeed = BASE_GAME_SPEED + (score / SPEED_INCREASE_INTERVAL) * SPEED_INCREASE_PER_LEVEL;
+        const maxSpeed = BASE_GAME_SPEED + 20; // 최대 속도 제한 (최대 25배속)
+        const cappedTargetSpeed = Math.min(targetSpeed, maxSpeed);
+        
+        // 부드러운 전환: 목표 속도에 천천히 접근
+        const newSpeed = prevSpeed + (cappedTargetSpeed - prevSpeed) * SPEED_INCREASE_SMOOTHNESS;
+        return newSpeed;
+      });
+    }, 50); // 50ms마다 속도 업데이트
+
+    return () => clearInterval(speedIncreaseInterval);
+  }, [gameState, score]);
+
+  // gameSpeed 변화를 ref에 동기화
+  useEffect(() => {
+    gameSpeedRef.current = gameSpeed;
+  }, [gameSpeed]);
+
+  // seasonEffects 변화를 ref에 동기화 (부엉이/독수리 표시용)
+  useEffect(() => {
+    seasonEffectsRef.current = seasonEffects;
+  }, [seasonEffects]);
+
   // 캐릭터 선택
   const selectCharacter = (character) => {
     setSelectedCharacter(character);
@@ -339,62 +380,105 @@ const Runner = () => {
       setJumpCount((prev) => prev + 1);
       playJumpSound(); // 점프 효과음 재생
 
-      // 점프 시 모션 블러 생성
+      // 점프 시 모션 블러 생성 (랜덤 위치)
       const blurCount = 3 + Math.floor(Math.random() * 2);
       const newBlurs = [];
+      // 게임 화면의 랜덤 위치에 이펙트 생성
+      const randomLeft = 50 + Math.random() * 700; // 50px ~ 750px
+      const randomTop = 50 + Math.random() * 300; // 50px ~ 350px
       for (let i = 0; i < blurCount; i++) {
         newBlurs.push({
           id: Date.now() + Math.random(),
-          left: 100 + (Math.random() - 0.5) * 20,
-          top:
-            GROUND_HEIGHT +
-            playerYRef.current +
-            25 +
-            (Math.random() - 0.5) * 10,
+          left: randomLeft + (Math.random() - 0.5) * 40,
+          top: randomTop + (Math.random() - 0.5) * 40,
           delay: i * 0.05,
         });
       }
-      setMotionBlurs((prev) => [...prev, ...newBlurs]);
+      // 최대 20개로 제한
+      setMotionBlurs((prev) => [...prev, ...newBlurs].slice(-20));
 
-      // 점프 시작 시 발 부분에 먼지 생성 (착지 이펙트)
+      // 점프 시작 시 먼지 생성 (착지 이펙트) - 게임 화면 랜덤 위치
       if (jumpCount === 0) {
         const dustCount = 4 + Math.floor(Math.random() * 3);
         const newDusts = [];
+        // 게임 화면의 랜덤 위치에 이펙트 생성
+        const randomDustLeft = 100 + Math.random() * 600; // 100px ~ 700px
+        const randomDustTop = 100 + Math.random() * 250; // 100px ~ 350px
         for (let i = 0; i < dustCount; i++) {
           const angle = (i / dustCount) * Math.PI * 2 - Math.PI / 2;
           const power = 60 + Math.random() * 40;
           newDusts.push({
             id: Date.now() + Math.random(),
-            left: 100 - 5,
-            top: GROUND_HEIGHT,
+            left: randomDustLeft,
+            top: randomDustTop,
             burstX: Math.cos(angle) * power,
             burstY: Math.sin(angle) * power,
             size: 5 + Math.random() * 4,
             delay: 0,
           });
         }
-        setJumpDusts((prev) => [...prev, ...newDusts]);
+        // 최대 50개로 제한
+        setJumpDusts((prev) => [...prev, ...newDusts].slice(-50));
       }
     }
   }, [gameState, jumpCount]);
 
-  // 탭 비활성화 감지 - 게임 일시정지
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden && gameState === 'playing') {
-        // 탭이 비활성화되면 게임을 게임오버 상태로 전환
-        setGameState('gameOver');
-      }
-    };
+  // 마우스 클릭 시 이펙트 생성
+  const createClickEffect = useCallback((clientX, clientY) => {
+    // 쿨다운 체크 (0.1초마다 한 번씩만 생성 가능)
+    const now = performance.now();
+    if (now - clickCooldownRef.current < 100) {
+      return;
+    }
+    clickCooldownRef.current = now;
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    const gameContainer = document.querySelector(`.${styles['runner-game']}`);
+    if (!gameContainer) return;
 
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [gameState]);
+    const rect = gameContainer.getBoundingClientRect();
+    const offsetX = clientX - rect.left;
+    const offsetY = clientY - rect.top;
 
-  // 키보드 이벤트만 사용 (전역 클릭/터치는 금지)
+    // 게임 컨테이너 내부 클릭만 처리
+    if (offsetX < 0 || offsetY < 0 || offsetX > rect.width || offsetY > rect.height) {
+      return;
+    }
+
+    // 클릭 위치에 먼지 이펙트 생성 (개수 줄임)
+    const dustCount = 4 + Math.floor(Math.random() * 2); // 6~9 -> 4~5
+    const newDusts = [];
+    for (let i = 0; i < dustCount; i++) {
+      const angle = (i / dustCount) * Math.PI * 2;
+      const power = 60 + Math.random() * 40; // 80~140 -> 60~100
+      newDusts.push({
+        id: Date.now() + Math.random(),
+        left: offsetX,
+        top: offsetY,
+        burstX: Math.cos(angle) * power,
+        burstY: Math.sin(angle) * power,
+        size: 4 + Math.random() * 3, // 6~11 -> 4~7
+        delay: 0,
+      });
+    }
+    // 최대 50개로 제한
+    setJumpDusts((prev) => [...prev, ...newDusts].slice(-50));
+
+    // 클릭 위치에 모션 블러도 생성 (개수 줄임)
+    const blurCount = 2 + Math.floor(Math.random() * 2); // 4~5 -> 2~3
+    const newBlurs = [];
+    for (let i = 0; i < blurCount; i++) {
+      newBlurs.push({
+        id: Date.now() + Math.random(),
+        left: offsetX + (Math.random() - 0.5) * 30,
+        top: offsetY + (Math.random() - 0.5) * 30,
+        delay: i * 0.05,
+      });
+    }
+    // 최대 20개로 제한
+    setMotionBlurs((prev) => [...prev, ...newBlurs].slice(-20));
+  }, []);
+
+  // 키보드 이벤트 및 마우스 클릭 이벤트
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.code === 'Space' || e.code === 'ArrowUp') {
@@ -404,12 +488,19 @@ const Runner = () => {
         }
       }
     };
+
+    const handleMouseClick = (e) => {
+      createClickEffect(e.clientX, e.clientY);
+    };
+
     window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('click', handleMouseClick);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('click', handleMouseClick);
     };
-  }, [gameState, jump]);
+  }, [gameState, jump, createClickEffect]);
 
   // 게임 루프
   useEffect(() => {
@@ -433,11 +524,7 @@ const Runner = () => {
     scoreIntervalRef.current = setInterval(() => {
       setScore((prev) => {
         const newScore = prev + 1;
-        // 50점마다 속도 증가
-        if (newScore % 50 === 0) {
-          setGameSpeed((prevSpeed) => prevSpeed + SPEED_INCREASE_PER_LEVEL);
-        }
-        // 100점마다 시즌 변경 (중복 방지)
+        // 200점마다 시즌 변경 (중복 방지)
         if (newScore % 200 === 0) {
           setSeasonIndex((prevIdx) =>
             randomDifferentIndex(prevIdx, SEASONS.length)
@@ -449,14 +536,29 @@ const Runner = () => {
 
     // 장애물 생성 (랜덤 간격)
     const spawnObstacle = () => {
-      const randomType =
-        OBSTACLE_TYPES[Math.floor(Math.random() * OBSTACLE_TYPES.length)];
+      // 점수에 따라 어려운 장애물 출현 확률 증가 (더 빠르게 증가)
+      let randomType;
+      const rand = Math.random();
+      const difficultyFactor = Math.min(score / 300, 1.0); // 300점에서 100%, 150점에서 50%
+      
+      if (rand < difficultyFactor) {
+        // 높은 난이도: 뒤의 어려운 장애물들 선택
+        const hardObstacles = OBSTACLE_TYPES.slice(7); // 인덱스 7부터 끝까지
+        randomType = hardObstacles[Math.floor(Math.random() * hardObstacles.length)];
+      } else {
+        // 일반 난이도: 모든 장애물 중 선택
+        randomType = OBSTACLE_TYPES[Math.floor(Math.random() * OBSTACLE_TYPES.length)];
+      }
+      
+      // 장애물 크기에 더 큰 변형 (70%~130%)
+      const sizeVariation = 0.7 + Math.random() * 0.6;
+      
       const newObstacle = {
         id: Date.now(),
         x: 800,
         type: randomType,
-        height: randomType.height,
-        width: randomType.width,
+        height: Math.floor(randomType.height * sizeVariation),
+        width: Math.floor(randomType.width * sizeVariation),
       };
       setObstacles((prev) => [...prev, newObstacle]);
 
@@ -502,7 +604,7 @@ const Runner = () => {
 
       // 속도에 비례하여 간격 조정 (난이도 밸런스 유지)
       // 속도가 빨라지면 간격도 짧아지되, 약간의 난이도 증가
-      const speedRatio = gameSpeed / BASE_GAME_SPEED;
+      const speedRatio = gameSpeedRef.current / BASE_GAME_SPEED;
       const adjustedRatio = Math.pow(speedRatio, 0.85); // 속도 2배 → 간격 1.8배
       const baseInterval = 800 + Math.random() * 800; // 0.8초 ~ 1.6초
       const nextInterval = baseInterval * adjustedRatio;
@@ -518,14 +620,14 @@ const Runner = () => {
         id: Date.now(),
         x: 800,
         y: 80 + Math.random() * 150, // 80~230px 높이에서 랜덤
-        emoji: seasonEffects.isNight ? '🦉' : '🦅', // 밤 시즌에는 부엉이, 낮 시즌에는 독수리
+        emoji: seasonEffectsRef.current.isNight ? '🦉' : '🦅', // 밤 시즌에는 부엉이, 낮 시즌에는 독수리
         size: 40,
         speed: 1.0 + Math.random() * 0.6, // 1.0 ~ 1.6 랜덤 스피드
       };
       setBirds((prev) => [...prev, newBird]);
 
       // 속도에 비례하여 새 생성 간격도 조정
-      const speedRatio = gameSpeed / BASE_GAME_SPEED;
+      const speedRatio = gameSpeedRef.current / BASE_GAME_SPEED;
       const adjustedRatio = Math.pow(speedRatio, 0.85);
       const baseInterval = 2500 + Math.random() * 1500; // 2.5초 ~ 4초
       const nextInterval = baseInterval * adjustedRatio;
@@ -587,14 +689,15 @@ const Runner = () => {
       if (gameState === 'playing' && isOnGroundRef.current) {
         // 시간 진행은 고정 dt 누적, 바운스 주파수만 속도에 비례
         bobTimeRef.current += dt;
-        const effectiveFrequency = BOBBING_FREQUENCY * Math.max(1, gameSpeed);
+        const effectiveFrequency =
+          BOBBING_FREQUENCY * Math.max(1, gameSpeedRef.current);
         bobOffsetRef.current =
           Math.sin(bobTimeRef.current * effectiveFrequency) * BOBBING_AMPLITUDE;
       } else {
         bobOffsetRef.current = 0;
       }
 
-      // 러너 잔상 업데이트: 최근 위치 6개 유지
+      // 러너 잔상 업데이트: 최근 위치 4개 유지
       if (gameState === 'playing') {
         const playerBottomNow =
           GROUND_HEIGHT +
@@ -604,7 +707,7 @@ const Runner = () => {
           const next = [{ bottom: playerBottomNow, leftOffset: 0 }].concat(
             prev
           );
-          return next.slice(0, 6);
+          return next.slice(0, 5);
         });
       } else {
         setGhosts([]);
@@ -615,7 +718,7 @@ const Runner = () => {
         0,
         particleCooldownRef.current - dt
       );
-      const spawnInterval = Math.max(0.03, 0.08 / Math.max(1, gameSpeed));
+      const spawnInterval = Math.max(0.03, 0.08 / Math.max(1, gameSpeedRef.current));
       const shouldSpawn =
         gameState === 'playing' &&
         isOnGroundRef.current &&
@@ -640,7 +743,7 @@ const Runner = () => {
             id: Date.now() + Math.random(),
             x: baseX,
             y: baseY,
-            vx: 150 + 50 * Math.random() * Math.max(1, gameSpeed),
+            vx: 150 + 50 * Math.random() * Math.max(1, gameSpeedRef.current),
             vy: -20 - 20 * Math.random(),
             size,
             life: 0.5 + Math.random() * 0.3,
@@ -651,21 +754,22 @@ const Runner = () => {
         return updated.slice(-MAX_PARTICLES);
       });
 
-      // 모션 블러 업데이트 및 필터링
+      // 모션 블러 업데이트 및 필터링 (최대 20개로 제한)
       setMotionBlurs((prev) =>
         prev
           .filter((blur) => (blur.delay -= dt) > -0.4)
-          .slice(0, MAX_MOTION_BLURS)
+          .slice(-20)
       );
 
-      // 점프 먼지 이펙트 업데이트 및 필터링
+      // 점프 먼지 이펙트 업데이트 및 필터링 (최대 50개로 제한)
       setJumpDusts((prev) => {
         return prev
           .map((dust) => ({
             ...dust,
             age: (dust.age || 0) + dt,
           }))
-          .filter((dust) => dust.age < 0.6);
+          .filter((dust) => dust.age < 0.6)
+          .slice(-50);
       });
 
       // 장애물 이동 및 충돌 감지
@@ -673,7 +777,7 @@ const Runner = () => {
         const newObstacles = prevObstacles
           .map((obstacle) => ({
             ...obstacle,
-            x: obstacle.x - gameSpeed * dt * 60,
+            x: obstacle.x - gameSpeedRef.current * dt * 60,
           }))
           .filter((obstacle) => obstacle.x > -obstacle.width);
 
@@ -685,7 +789,7 @@ const Runner = () => {
         const newBirds = prevBirds
           .map((bird) => ({
             ...bird,
-            x: bird.x - gameSpeed * (bird.speed || 1.2) * dt * 60, // 개별 랜덤 스피드 적용
+            x: bird.x - gameSpeedRef.current * (bird.speed || 1.2) * dt * 60, // 개별 랜덤 스피드 적용
           }))
           .filter((bird) => bird.x > -bird.size);
 
@@ -697,7 +801,7 @@ const Runner = () => {
         const moved = prevCoins
           .map((coin) => ({
             ...coin,
-            x: coin.x - gameSpeed * (coin.speed || 1.2) * dt * 60,
+            x: coin.x - gameSpeedRef.current * (coin.speed || 1.2) * dt * 60,
           }))
           .filter((coin) => coin.x > -coin.size);
         return moved;
@@ -722,7 +826,7 @@ const Runner = () => {
         clearTimeout(birdIntervalRef.current);
       }
     };
-  }, [gameState, gameSpeed]);
+  }, [gameState]);
 
   // 충돌 감지 (별도 useEffect)
   useEffect(() => {
@@ -1140,6 +1244,7 @@ const Runner = () => {
                 isOnGround={isOnGroundRef.current}
                 runImage={f1RunImage}
                 ghosts={ghosts}
+                jumpCount={jumpCount}
               />
 
               {/* 장애물, 새, 코인 */}
