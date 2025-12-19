@@ -50,7 +50,8 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/com/api';
 
 // 장애물 종류
 const OBSTACLE_TYPES = [
-  { id: 'rock', emoji: '💣', height: 50, width: 30 },
+  { id: ' ', emoji: '💣', height: 50, width: 30 },
+  
   { id: 'cactus', emoji: '🌵', height: 80, width: 35 },
   { id: 'tree', emoji: '🌲', height: 90, width: 35 },
   { id: 'fire', emoji: '🔥', height: 55, width: 30 },
@@ -75,6 +76,7 @@ const CHARACTERS = [
   // { id: 'alien', name: '👽', emoji: '👽' },
   // { id: 'robot', name: '🤖', emoji: '🤖' },
   // { id: 'panda', name: '🐼', emoji: '🐼' },
+  // { id: 'panda', name: '💀', emoji: '💀' },
 ];
 
 const Runner = () => {
@@ -96,6 +98,7 @@ const Runner = () => {
   const [coinCount, setCoinCount] = useState(0);
   const [sessionCoins, setSessionCoins] = useState(0); // 현재 게임에서 획득한 코인
   const [hasLoadedServerCoins, setHasLoadedServerCoins] = useState(false);
+  const [isNewRecord, setIsNewRecord] = useState(false);
 
   // userId 생성: 테트리스와 동일하게 sessionStorage 'extensionLogin'을 우선 사용
   const [userId, setUserId] = useState('');
@@ -311,7 +314,7 @@ const Runner = () => {
   useEffect(() => {
     if (gameState !== 'gameOver') return;
     if (!userId) return;
-    const nameForServer = (playerName && playerName.trim()) || 'Auto';
+    const nameForServer = (playerName && playerName.trim()) || 'Runner' + Math.floor(Math.random() * 1000);
     syncCoinBank(userId, coinCount, highScore, nameForServer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState, userId, coinCount, highScore, syncCoinBank]);
@@ -371,6 +374,7 @@ const Runner = () => {
     isOnGroundRef.current = true;
     lastTsRef.current =
       typeof performance !== 'undefined' ? performance.now() : 0;
+    setIsNewRecord(false);
   };
 
   // 점프 (더블 점프 가능)
@@ -851,6 +855,7 @@ const Runner = () => {
           // 충돌 발생
           setGameState('gameOver');
           if (score > highScore) {
+            setIsNewRecord(true);
             setHighScore(score);
             localStorage.setItem('runnerHighScore', score.toString());
           }
@@ -874,6 +879,7 @@ const Runner = () => {
           // 새와 충돌 발생
           setGameState('gameOver');
           if (score > highScore) {
+            setIsNewRecord(true);
             setHighScore(score);
             localStorage.setItem('runnerHighScore', score.toString());
           }
@@ -1313,6 +1319,7 @@ const Runner = () => {
           showModal={showNameModal && gameState === 'gameOver'}
           score={score}
           coins={sessionCoins}
+          isNewRecord={isNewRecord}
           playerName={playerName}
           setPlayerName={setPlayerName}
           saveAttemptsLeft={saveAttemptsLeft}

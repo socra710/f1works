@@ -136,6 +136,8 @@
   color: white;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   animation: slideUp 0.3s ease;
+  position: relative; /* 컨페티 오버레이 기준 */
+  overflow: hidden;   /* 컨페티가 모달 바깥으로 넘치지 않도록 */
 }
 
 @keyframes slideUp {
@@ -157,6 +159,14 @@
   background: border-box;
 }
 
+.celebrate-banner {
+  text-align: center;
+  font-weight: 700;
+  color: #ffd700;
+  margin: 10px 0;
+  font-size: 1.2rem;
+}
+
 .final-stats {
   background: rgba(255, 255, 255, 0.1);
   padding: 15px;
@@ -173,6 +183,12 @@
 .final-stats strong {
   color: #ffd700;
   font-size: 1.3rem;
+}
+
+.new-record-text {
+  margin-top: 6px;
+  color: #ffd700;
+  font-weight: 600;
 }
 
 .save-info {
@@ -266,6 +282,79 @@
 
 .btn-cancel:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* 모달 내 폭죽 이펙트 */
+.modal-celebration {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 2; /* 모달 내용 위에 표시 */
+}
+
+.firework {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+.firework-ring {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9), transparent);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+  animation: ringPulse 1s ease-out forwards;
+  animation-delay: var(--delay, 0s);
+  opacity: 0;
+}
+
+@keyframes ringPulse {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  40% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(25);
+  }
+}
+
+.spark {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color, #fff);
+  box-shadow: 0 0 12px var(--color, #fff), 0 0 6px var(--color, #fff);
+  animation: sparkFly 1.4s ease-out forwards;
+  animation-delay: var(--delay, 0s);
+  opacity: 0;
+}
+
+@keyframes sparkFly {
+  0% {
+    opacity: 1;
+    transform: rotate(var(--angle)) translate(0) scale(1.2);
+  }
+  20% {
+    opacity: 1;
+    transform: rotate(var(--angle)) translate(calc(var(--burstDist) * 0.3)) scale(1);
+  }
+  70% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translate(var(--burstDist)) scale(0.2);
+  }
 }
 
 /* 게임 콘텐츠 레이아웃 */
