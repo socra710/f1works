@@ -6,7 +6,7 @@ import React, {
   useMemo,
 } from 'react';
 import { Helmet } from 'react-helmet-async';
-import './Runner.css';
+import styles from './Runner.module.css';
 
 // 컴포넌트
 // import BackgroundEffects from './components/BackgroundEffects';
@@ -68,6 +68,8 @@ const Runner = () => {
   const [birds, setBirds] = useState([]);
   const [ghosts, setGhosts] = useState([]); // 러너 잔상
   const [particles, setParticles] = useState([]); // 먼지 파티클
+  const [motionBlurs, setMotionBlurs] = useState([]); // 모션 블러 라인
+  const [jumpDusts, setJumpDusts] = useState([]); // 점프 착지 이펙트
   const [coins, setCoins] = useState([]); // 코인 목록
   const [jumpCount, setJumpCount] = useState(0);
   const [gameSpeed, setGameSpeed] = useState(BASE_GAME_SPEED);
@@ -130,6 +132,8 @@ const Runner = () => {
     setBirds([]);
     setGhosts([]);
     setParticles([]);
+    setMotionBlurs([]);
+    setJumpDusts([]);
     setCoins([]);
     setJumpCount(0);
     setGameSpeed(BASE_GAME_SPEED);
@@ -145,6 +149,43 @@ const Runner = () => {
       playerVelocityRef.current = Math.abs(JUMP_STRENGTH); // 위로 점프
       setJumpCount((prev) => prev + 1);
       playJumpSound(); // 점프 효과음 재생
+
+      // 점프 시 모션 블러 생성
+      const blurCount = 3 + Math.floor(Math.random() * 2);
+      const newBlurs = [];
+      for (let i = 0; i < blurCount; i++) {
+        newBlurs.push({
+          id: Date.now() + Math.random(),
+          left: 100 + (Math.random() - 0.5) * 20,
+          top:
+            GROUND_HEIGHT +
+            playerYRef.current +
+            25 +
+            (Math.random() - 0.5) * 10,
+          delay: i * 0.05,
+        });
+      }
+      setMotionBlurs((prev) => [...prev, ...newBlurs]);
+
+      // 점프 시작 시 발 부분에 먼지 생성 (착지 이펙트)
+      if (jumpCount === 0) {
+        const dustCount = 4 + Math.floor(Math.random() * 3);
+        const newDusts = [];
+        for (let i = 0; i < dustCount; i++) {
+          const angle = (i / dustCount) * Math.PI * 2 - Math.PI / 2;
+          const power = 60 + Math.random() * 40;
+          newDusts.push({
+            id: Date.now() + Math.random(),
+            left: 100 - 5,
+            top: GROUND_HEIGHT,
+            burstX: Math.cos(angle) * power,
+            burstY: Math.sin(angle) * power,
+            size: 5 + Math.random() * 4,
+            delay: 0,
+          });
+        }
+        setJumpDusts((prev) => [...prev, ...newDusts]);
+      }
     }
   }, [gameState, jumpCount]);
 
@@ -214,8 +255,8 @@ const Runner = () => {
       };
       setObstacles((prev) => [...prev, newObstacle]);
 
-      // 장애물 위 코인 스폰 (랜덤): 30% 확률로 1개 또는 2개 생성
-      const shouldSpawnCoins = Math.random() < 0.3;
+      // 장애물 위 코인 스폰 (랜덤): 20% 확률로 1개 또는 2개 생성
+      const shouldSpawnCoins = Math.random() < 0.2;
       if (shouldSpawnCoins) {
         const coinsToSpawn = [];
         const baseHeight = newObstacle.height; // 지면 기준 높이
@@ -306,6 +347,27 @@ const Runner = () => {
         // 바닥에 닿았을 때
         if (newY <= 0) {
           playerVelocityRef.current = 0;
+
+          // 착지 시 먼지 이펙트 생성
+          if (!isOnGroundRef.current && prevY > 10) {
+            const dustCount = 5 + Math.floor(Math.random() * 3);
+            const newDusts = [];
+            for (let i = 0; i < dustCount; i++) {
+              const angle = (i / dustCount) * Math.PI * 2 - Math.PI / 2;
+              const power = 50 + Math.random() * 50;
+              newDusts.push({
+                id: Date.now() + Math.random(),
+                left: 100 - 5,
+                top: GROUND_HEIGHT,
+                burstX: Math.cos(angle) * power,
+                burstY: Math.sin(angle) * power,
+                size: 4 + Math.random() * 5,
+                delay: 0,
+              });
+            }
+            setJumpDusts((prev) => [...prev, ...newDusts]);
+          }
+
           setJumpCount(0); // 바닥에 닿으면 점프 카운트 리셋
           isOnGroundRef.current = true;
           playerYRef.current = 0;
@@ -368,7 +430,7 @@ const Runner = () => {
           particleCooldownRef.current = spawnInterval;
           const baseX = 100 + 20; // 캐릭터 약간 뒤
           const baseY = GROUND_HEIGHT + 8; // 발 근처
-          const size = 4 + Math.random() * 3;
+          const size = 6 + Math.random() * 4;
           const newParticle = {
             id: Date.now() + Math.random(),
             x: baseX,
@@ -377,11 +439,26 @@ const Runner = () => {
             vy: -20 - 20 * Math.random(), // 약간 위로 튐
             size,
             life: 0.5 + Math.random() * 0.3,
-            opacity: 0.6,
+            opacity: 0.8,
           };
           updated.push(newParticle);
         }
         return updated;
+      });
+
+      // 모션 블러 업데이트 및 필터링
+      setMotionBlurs((prev) =>
+        prev.filter((blur) => (blur.delay -= dt) > -0.4)
+      );
+
+      // 점프 먼지 이펙트 업데이트 및 필터링
+      setJumpDusts((prev) => {
+        return prev
+          .map((dust) => ({
+            ...dust,
+            age: (dust.age || 0) + dt,
+          }))
+          .filter((dust) => dust.age < 0.6);
       });
 
       // 장애물 이동 및 충돌 감지
@@ -542,38 +619,42 @@ const Runner = () => {
         />
       </Helmet>
 
-      <div className="runner-game">
-        <div className="runner-header">
-          <h1>🏃 러너 게임</h1>
-          <div className="runner-scores">
-            <div className="score">점수: {score}</div>
-            <div className="speed">속도: {gameSpeed.toFixed(1)}x</div>
-            <div className="high-score">최고점수: {highScore}</div>
-            <div className="coins">코인: {coinCount} 💰</div>
+      <div className={styles['runner-game']}>
+        <div className={styles['runner-header']}>
+          <h1 className={styles.title}>🏃 러너 게임</h1>
+          <div className={styles['runner-scores']}>
+            <div className={styles.score}>점수: {score}</div>
+            <div className={styles.speed}>속도: {gameSpeed.toFixed(1)}x</div>
+            <div className={styles['high-score']}>최고점수: {highScore}</div>
+            <div className={styles.coins}>코인: {coinCount} 💰</div>
           </div>
         </div>
 
         {gameState === 'menu' && (
-          <div className="runner-menu">
-            <h2>캐릭터를 선택하세요</h2>
-            <div className="character-selection">
+          <div className={styles['runner-menu']}>
+            <h2 className={styles.subtitle}>캐릭터를 선택하세요</h2>
+            <div className={styles['character-selection']}>
               {CHARACTERS.map((character) => (
                 <button
                   key={character.id}
-                  className={`character-btn ${
-                    selectedCharacter.id === character.id ? 'selected' : ''
+                  className={`${styles['character-btn']} ${
+                    selectedCharacter.id === character.id ? styles.selected : ''
                   }`}
                   onClick={() => selectCharacter(character)}
                 >
-                  <span className="character-emoji">{character.emoji}</span>
-                  <span className="character-name">{character.name}</span>
+                  <span className={styles['character-emoji']}>
+                    {character.emoji}
+                  </span>
+                  <span className={styles['character-name']}>
+                    {character.name}
+                  </span>
                 </button>
               ))}
             </div>
-            <button className="start-btn" onClick={startGame}>
+            <button className={styles['start-btn']} onClick={startGame}>
               게임 시작
             </button>
-            <div className="instructions">
+            <div className={styles.instructions}>
               <p>💡 스페이스바, 클릭 또는 터치로 점프!</p>
               <p>⭐ 공중에서 한 번 더 점프 가능! (더블 점프)</p>
               <p>장애물을 피하며 최대한 오래 달리세요!</p>
@@ -584,11 +665,11 @@ const Runner = () => {
         )}
 
         {(gameState === 'playing' || gameState === 'gameOver') && (
-          <div className="game-container">
+          <div className={styles['game-container']}>
             <div
-              className={`game-canvas season-${seasonEffects.season} ${
-                seasonEffects.isNight ? 'night' : 'day'
-              }`}
+              className={`${styles['game-canvas']} season-${
+                seasonEffects.season
+              } ${seasonEffects.isNight ? 'night' : 'day'}`}
               onClick={() => gameState === 'playing' && jump()}
               onTouchStart={() => gameState === 'playing' && jump()}
             >
@@ -812,9 +893,9 @@ const Runner = () => {
               />
 
               {/* 바닥 */}
-              <div className="ground">
+              <div className={styles.ground}>
                 <div
-                  className="ground-pattern"
+                  className={styles['ground-pattern']}
                   style={{
                     animationDuration: `${Math.max(
                       0.6,
@@ -826,18 +907,54 @@ const Runner = () => {
 
               {/* 먼지 파티클 */}
               <ParticleEffects particles={particles} />
+
+              {/* 모션 블러 (속도선) */}
+              {motionBlurs.map((blur) => (
+                <div
+                  key={blur.id}
+                  className="motion-blur"
+                  style={{
+                    left: `${blur.left}px`,
+                    top: `${blur.top}px`,
+                    animationDelay: `${blur.delay}s`,
+                  }}
+                />
+              ))}
+
+              {/* 점프 착지 먼지 */}
+              {jumpDusts.map((dust) => {
+                const progress = Math.min(1, (dust.age || 0) / 0.6);
+                const scale = 1 - progress * 0.7;
+                const opacity = Math.max(0, 1 - progress);
+                const offsetX = dust.burstX * progress;
+                const offsetY = dust.burstY * progress;
+                return (
+                  <div
+                    key={dust.id}
+                    className="jump-dust"
+                    style={{
+                      left: `${dust.left}px`,
+                      top: `${dust.top}px`,
+                      width: `${dust.size}px`,
+                      height: `${dust.size}px`,
+                      transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
+                      opacity: opacity,
+                    }}
+                  />
+                );
+              })}
             </div>
 
             {gameState === 'gameOver' && (
-              <div className="game-over-overlay">
-                <div className="game-over-modal">
-                  <h2>게임 오버!</h2>
-                  <p className="final-score">점수: {score}</p>
+              <div className={styles['game-over-overlay']}>
+                <div className={styles['game-over-modal']}>
+                  <h2 className={styles.subtitle}>게임 오버!</h2>
+                  <p className={styles['final-score']}>점수: {score}</p>
                   {score === highScore && score > 0 && (
-                    <p className="new-record">🎉 새로운 최고 기록!</p>
+                    <p className={styles['new-record']}>🎉 새로운 최고 기록!</p>
                   )}
                   <button
-                    className="restart-btn"
+                    className={styles['restart-btn']}
                     onClick={() => setGameState('menu')}
                   >
                     다시 시작

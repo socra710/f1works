@@ -3,6 +3,7 @@ export const getSeasonEffects = (seasonIndex, SEASONS) => {
   const season = SEASONS[seasonIndex];
   const isNight = Math.random() < 0.5; // 50% 확률로 밤
   const hasExtra = Math.random() < 0.5; // 50% 확률로 추가 이펙트
+  const hasRain = Math.random() < 0.25; // 25% 확률로 비 (계절 상관없이)
 
   const effects = {
     season,
@@ -15,7 +16,11 @@ export const getSeasonEffects = (seasonIndex, SEASONS) => {
   if (season === 'spring') {
     if (isNight) {
       effects.base = 'moon';
-      effects.extra = hasExtra ? (Math.random() < 0.5 ? 'stars' : 'petals') : null;
+      effects.extra = hasExtra
+        ? Math.random() < 0.5
+          ? 'stars'
+          : 'petals'
+        : null;
     } else {
       effects.base = Math.random() < 0.5 ? 'sun' : 'clouds';
       effects.extra = hasExtra ? 'petals' : null;
@@ -28,7 +33,11 @@ export const getSeasonEffects = (seasonIndex, SEASONS) => {
         effects.special = 'lightning';
         effects.extra = null;
       } else {
-        effects.extra = hasExtra ? (Math.random() < 0.6 ? 'stars' : 'rain') : null;
+        effects.extra = hasExtra
+          ? Math.random() < 0.6
+            ? 'stars'
+            : 'rain'
+          : null;
       }
     } else {
       effects.base = 'sun';
@@ -41,10 +50,18 @@ export const getSeasonEffects = (seasonIndex, SEASONS) => {
   } else if (season === 'autumn') {
     if (isNight) {
       effects.base = 'moon';
-      effects.extra = hasExtra ? (Math.random() < 0.5 ? 'leaves' : 'stars') : null;
+      effects.extra = hasExtra
+        ? Math.random() < 0.5
+          ? 'leaves'
+          : 'stars'
+        : null;
     } else {
       effects.base = 'leaves'; // 단풍은 기본
-      effects.extra = hasExtra ? (Math.random() < 0.5 ? 'sun' : 'clouds') : null;
+      effects.extra = hasExtra
+        ? Math.random() < 0.5
+          ? 'sun'
+          : 'clouds'
+        : null;
     }
   } else if (season === 'winter') {
     if (isNight) {
@@ -54,12 +71,25 @@ export const getSeasonEffects = (seasonIndex, SEASONS) => {
         effects.special = 'sleet';
         effects.extra = null;
       } else {
-        effects.extra = hasExtra ? (Math.random() < 0.6 ? 'snow' : 'stars') : null;
+        effects.extra = hasExtra
+          ? Math.random() < 0.6
+            ? 'snow'
+            : 'stars'
+          : null;
       }
     } else {
       effects.base = 'snow';
-      effects.extra = hasExtra ? (Math.random() < 0.5 ? 'sun' : 'clouds') : null;
+      effects.extra = hasExtra
+        ? Math.random() < 0.5
+          ? 'sun'
+          : 'clouds'
+        : null;
     }
+  }
+
+  // 모든 시즌에서 랜덤으로 비 추가 (낮/밤 상관없이)
+  if (hasRain && !effects.special) {
+    effects.extra = 'rain';
   }
 
   return effects;

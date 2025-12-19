@@ -23,7 +23,7 @@ const PlayerCharacter = ({
             left: `${100 - idx * 6}px`,
             bottom: `${g.bottom}px`,
             fontSize: `${playerSize}px`,
-            opacity: `${Math.max(0.1, 0.35 - idx * 0.05)}`,
+            opacity: `${Math.max(0.15, 0.35 - idx * 0.05)}`,
           }}
         >
           {selectedCharacter.emoji}
