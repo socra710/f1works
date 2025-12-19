@@ -2,7 +2,7 @@ import React from 'react';
 
 const GROUND_HEIGHT = 50;
 
-const GameObstacles = ({ obstacles, birds }) => {
+const GameObstacles = ({ obstacles, birds, coins = [] }) => {
   return (
     <>
       {/* 지상 장애물 */}
@@ -34,6 +34,23 @@ const GameObstacles = ({ obstacles, birds }) => {
           }}
         >
           {bird.emoji}
+        </div>
+      ))}
+
+      {/* 코인 */}
+      {coins.map((coin) => (
+        <div
+          key={coin.id}
+          className="coin"
+          style={{
+            position: 'absolute',
+            left: `${coin.x}px`,
+            bottom: `${GROUND_HEIGHT + coin.y}px`,
+            fontSize: `${coin.size}px`,
+            zIndex: 8,
+          }}
+        >
+          {coin.emoji || '💰'}
         </div>
       ))}
     </>

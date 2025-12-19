@@ -250,6 +250,11 @@
   color: white;
 }
 
+.badge-not-submitted {
+  background: linear-gradient(135deg, #fd7e14 0%, #e8590c 100%);
+  color: white;
+}
+
 .badge-approved {
   background: linear-gradient(135deg, #28a745 0%, #218838 100%);
   color: white;

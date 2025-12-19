@@ -44,7 +44,7 @@
 }
 
 .btn-approve {
-  padding: 0.5rem 1.5rem;
+  padding: 0.65rem 1.2rem;
   background: #667eea;
   color: white;
   border: none;
@@ -62,7 +62,7 @@
 }
 
 .btn-reject {
-  padding: 0.5rem 1.5rem;
+  padding: 0.65rem 1.2rem;
   background: #dc3545;
   color: white;
   border: none;

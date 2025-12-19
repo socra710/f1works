@@ -187,6 +187,7 @@ export default function ExpenseManagement() {
     const badges = {
       DRAFT: { text: '임시저장', className: 'badge-draft' },
       SUBMITTED: { text: '제출', className: 'badge-submitted' },
+      NOT_SUBMITTED: { text: '제출없음', className: 'badge-not-submitted' },
       COMPLETED: { text: '승인', className: 'badge-approved' },
       REJECTED: { text: '반려', className: 'badge-rejected' },
     };
@@ -495,6 +496,7 @@ export default function ExpenseManagement() {
             >
               <option value="ALL">전체</option>
               <option value="SUBMITTED">제출</option>
+              <option value="NOT_SUBMITTED">제출없음</option>
               <option value="COMPLETED">승인</option>
               <option value="REJECTED">반려</option>
             </select>

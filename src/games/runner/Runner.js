@@ -9,7 +9,7 @@ import { Helmet } from 'react-helmet-async';
 import './Runner.css';
 
 // 컴포넌트
-import BackgroundEffects from './components/BackgroundEffects';
+// import BackgroundEffects from './components/BackgroundEffects';
 import PlayerCharacter from './components/PlayerCharacter';
 import GameObstacles from './components/GameObstacles';
 import ParticleEffects from './components/ParticleEffects';
@@ -25,7 +25,7 @@ const GRAVITY = 0.6;
 const JUMP_STRENGTH = -20;
 const BASE_GAME_SPEED = 5;
 const SPEED_INCREASE_PER_LEVEL = 0.5;
-const OBSTACLE_WIDTH = 30;
+// const OBSTACLE_WIDTH = 30;
 const PLAYER_SIZE = 50;
 const GROUND_HEIGHT = 50;
 // 러닝 바운스 효과 상수
@@ -47,8 +47,8 @@ const OBSTACLE_TYPES = [
 
 // 캐릭터 목록
 const CHARACTERS = [
-  { id: 'cat', name: '🐱', emoji: '🐱' },
   { id: 'dog', name: '🐶', emoji: '🐶' },
+  { id: 'cat', name: '🐱', emoji: '🐱' },
   // { id: 'lion', name: '🦁', emoji: '🦁' },
   // { id: 'rabbit', name: '🐰', emoji: '🐰' },
   // { id: 'devil', name: '👿', emoji: '👿' },
@@ -68,10 +68,11 @@ const Runner = () => {
   const [birds, setBirds] = useState([]);
   const [ghosts, setGhosts] = useState([]); // 러너 잔상
   const [particles, setParticles] = useState([]); // 먼지 파티클
-  const [isJumping, setIsJumping] = useState(false);
+  const [coins, setCoins] = useState([]); // 코인 목록
   const [jumpCount, setJumpCount] = useState(0);
   const [gameSpeed, setGameSpeed] = useState(BASE_GAME_SPEED);
   const [seasonIndex, setSeasonIndex] = useState(0);
+  const [coinCount, setCoinCount] = useState(0);
 
   const gameLoopRef = useRef(null);
   const scoreIntervalRef = useRef(null);
@@ -104,8 +105,12 @@ const Runner = () => {
     if (savedHighScore) {
       setHighScore(parseInt(savedHighScore, 10));
     }
-  }, []);
 
+    const savedCoins = localStorage.getItem('runnerCoins');
+    if (savedCoins) {
+      setCoinCount(parseInt(savedCoins, 10));
+    }
+  }, []);
 
   // 캐릭터 선택
   const selectCharacter = (character) => {
@@ -125,7 +130,7 @@ const Runner = () => {
     setBirds([]);
     setGhosts([]);
     setParticles([]);
-    setIsJumping(false);
+    setCoins([]);
     setJumpCount(0);
     setGameSpeed(BASE_GAME_SPEED);
     setSeasonIndex(Math.floor(Math.random() * SEASONS.length));
@@ -138,7 +143,6 @@ const Runner = () => {
   const jump = useCallback(() => {
     if (gameState === 'playing' && jumpCount < 2) {
       playerVelocityRef.current = Math.abs(JUMP_STRENGTH); // 위로 점프
-      setIsJumping(true);
       setJumpCount((prev) => prev + 1);
       playJumpSound(); // 점프 효과음 재생
     }
@@ -189,7 +193,9 @@ const Runner = () => {
         }
         // 100점마다 시즌 변경 (중복 방지)
         if (newScore % 200 === 0) {
-          setSeasonIndex((prevIdx) => randomDifferentIndex(prevIdx, SEASONS.length));
+          setSeasonIndex((prevIdx) =>
+            randomDifferentIndex(prevIdx, SEASONS.length)
+          );
         }
         return newScore;
       });
@@ -207,6 +213,46 @@ const Runner = () => {
         width: randomType.width,
       };
       setObstacles((prev) => [...prev, newObstacle]);
+
+      // 장애물 위 코인 스폰 (랜덤): 30% 확률로 1개 또는 2개 생성
+      const shouldSpawnCoins = Math.random() < 0.3;
+      if (shouldSpawnCoins) {
+        const coinsToSpawn = [];
+        const baseHeight = newObstacle.height; // 지면 기준 높이
+        const count = Math.random() < 0.5 ? 1 : 2; // 1개 또는 2개 랜덤
+
+        // 코인 위치 프리셋
+        const singleCoin = {
+          id: Date.now() + Math.random(),
+          x: newObstacle.x + 10 + Math.random() * 60,
+          y: baseHeight + (60 + Math.random() * 30), // 싱글 점프 높이
+          size: 26,
+          type: 'single',
+          speed: 1.2,
+          obstacleId: newObstacle.id,
+          emoji: '💰',
+        };
+        const doubleCoin = {
+          id: Date.now() + Math.random(),
+          x: newObstacle.x + 60 + Math.random() * 80,
+          y: baseHeight + (140 + Math.random() * 40), // 더블 점프 높이
+          size: 26,
+          type: 'double',
+          speed: 1.2,
+          obstacleId: newObstacle.id,
+          emoji: '💰',
+        };
+
+        if (count === 1) {
+          // 하나만 생성: 싱글/더블 중 랜덤
+          coinsToSpawn.push(Math.random() < 0.5 ? singleCoin : doubleCoin);
+        } else {
+          // 두 개 모두 생성
+          coinsToSpawn.push(singleCoin, doubleCoin);
+        }
+
+        setCoins((prev) => [...prev, ...coinsToSpawn]);
+      }
 
       // 속도에 비례하여 간격 조정 (난이도 밸런스 유지)
       // 속도가 빨라지면 간격도 짧아지되, 약간의 난이도 증가
@@ -226,8 +272,9 @@ const Runner = () => {
         id: Date.now(),
         x: 800,
         y: 80 + Math.random() * 150, // 80~230px 높이에서 랜덤
-        emoji: '🦅',
+        emoji: seasonEffects.isNight ? '🦉' : '🦅', // 밤 시즌에는 부엉이, 낮 시즌에는 독수리
         size: 40,
+        speed: 1.0 + Math.random() * 0.6, // 1.0 ~ 1.6 랜덤 스피드
       };
       setBirds((prev) => [...prev, newBird]);
 
@@ -259,7 +306,6 @@ const Runner = () => {
         // 바닥에 닿았을 때
         if (newY <= 0) {
           playerVelocityRef.current = 0;
-          setIsJumping(false);
           setJumpCount(0); // 바닥에 닿으면 점프 카운트 리셋
           isOnGroundRef.current = true;
           playerYRef.current = 0;
@@ -355,11 +401,22 @@ const Runner = () => {
         const newBirds = prevBirds
           .map((bird) => ({
             ...bird,
-            x: bird.x - gameSpeed * 1.2 * dt * 60, // 새는 조금 더 빠르게
+            x: bird.x - gameSpeed * (bird.speed || 1.2) * dt * 60, // 개별 랜덤 스피드 적용
           }))
           .filter((bird) => bird.x > -bird.size);
 
         return newBirds;
+      });
+
+      // 코인 이동 및 화면 밖 제거
+      setCoins((prevCoins) => {
+        const moved = prevCoins
+          .map((coin) => ({
+            ...coin,
+            x: coin.x - gameSpeed * (coin.speed || 1.2) * dt * 60,
+          }))
+          .filter((coin) => coin.x > -coin.size);
+        return moved;
       });
 
       gameLoopRef.current = requestAnimationFrame(gameLoop);
@@ -435,10 +492,40 @@ const Runner = () => {
           return;
         }
       }
+
+      // 코인 획득 감지
+      let collected = false;
+      const remaining = [];
+      for (let coin of coins) {
+        const coinLeft = coin.x;
+        const coinRight = coin.x + coin.size;
+        const coinBottom = coin.y;
+        const coinTop = coin.y + coin.size;
+
+        const hit =
+          playerRight > coinLeft + 6 &&
+          playerLeft < coinRight - 6 &&
+          playerTop > coinBottom + 6 &&
+          playerBottom < coinTop - 6;
+
+        if (hit) {
+          collected = true;
+        } else {
+          remaining.push(coin);
+        }
+      }
+      if (collected) {
+        setCoins(remaining);
+        setCoinCount((prev) => {
+          const next = prev + 1;
+          localStorage.setItem('runnerCoins', next.toString());
+          return next;
+        });
+      }
     };
 
     checkCollision();
-  }, [obstacles, birds, playerY, gameState, score, highScore]);
+  }, [obstacles, birds, coins, playerY, gameState, score, highScore]);
 
   return (
     <>
@@ -462,6 +549,7 @@ const Runner = () => {
             <div className="score">점수: {score}</div>
             <div className="speed">속도: {gameSpeed.toFixed(1)}x</div>
             <div className="high-score">최고점수: {highScore}</div>
+            <div className="coins">코인: {coinCount} 💰</div>
           </div>
         </div>
 
@@ -490,7 +578,7 @@ const Runner = () => {
               <p>⭐ 공중에서 한 번 더 점프 가능! (더블 점프)</p>
               <p>장애물을 피하며 최대한 오래 달리세요!</p>
               <p>🦅 날아다니는 새도 조심하세요!</p>
-              <p>🚀 100점마다 속도가 빨라집니다!</p>
+              <p>🚀 50점마다 속도가 빨라집니다!</p>
             </div>
           </div>
         )}
@@ -716,8 +804,12 @@ const Runner = () => {
                 ghosts={ghosts}
               />
 
-              {/* 장애물 및 새 */}
-              <GameObstacles obstacles={obstacles} birds={birds} />
+              {/* 장애물, 새, 코인 */}
+              <GameObstacles
+                obstacles={obstacles}
+                birds={birds}
+                coins={coins}
+              />
 
               {/* 바닥 */}
               <div className="ground">
