@@ -131,7 +131,6 @@ export const useScoreManagement = () => {
         }
         const data = await response.json();
         if (data && (data.success === true || data.success === 'true')) {
-          savePlayerName(name);
           const info = getDailySaveInfo();
           setDailySaveInfo(info.count + 1);
           setSaveAttemptsLeft(
@@ -194,6 +193,7 @@ export const useScoreManagement = () => {
 
     const result = await saveScoreToServer(name.trim(), score, coins, userId);
     if (result.success) {
+      savePlayerName(name.trim());
       alert('점수가 저장되었습니다!');
       setShowNameModal(false);
     } else {

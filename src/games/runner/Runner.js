@@ -292,20 +292,14 @@ const Runner = () => {
     }
   }, [gameState, score, setShowNameModal]);
 
-  // 게임 종료 시 자동 코인/점수 기록 (명시적 저장 여부와 무관)
-  useEffect(() => {
-    if (gameState !== 'gameOver') return;
-    if (sessionCoins <= 0) return;
-    const nameForSave = (playerName && playerName.trim()) || 'Auto';
-    saveCoinsAuto(nameForSave, score, sessionCoins, userId);
-  }, [gameState, sessionCoins, score, userId, playerName, saveCoinsAuto]);
-
+  // 게임 종료 시 코인 잔고 동기화
   useEffect(() => {
     if (gameState !== 'gameOver') return;
     if (!userId) return;
     const nameForServer = (playerName && playerName.trim()) || 'Auto';
     syncCoinBank(userId, coinCount, highScore, nameForServer);
-  }, [gameState, userId, coinCount, highScore, playerName, syncCoinBank]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState, userId, coinCount, highScore, syncCoinBank]);
 
   // 캐릭터 선택
   const selectCharacter = (character) => {
