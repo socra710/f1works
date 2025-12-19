@@ -31,9 +31,7 @@ const ScoreBoard = ({ highScores, isLoadingScores }) => {
               <span className={styles.rank}>{getRankLabel(index + 1)}</span>
               <span className={styles.name}>{score.name}</span>
               <span className={styles.score}>{score.score}점</span>
-              {score.coins > 0 && (
-                <span className={styles.coins}>💰{score.coins}</span>
-              )}
+              <span className={styles.coins}>💰{score.coins}</span>
               <span className={styles.date}>{formatDate(score.date)}</span>
             </li>
           ))}

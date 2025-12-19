@@ -29,8 +29,12 @@ import { getSeasonEffects, randomDifferentIndex } from './utils/seasonUtils';
 // import f1EmojiImage from './image/f1soft.png';
 import f1RunImage from './image/f1-run.png';
 const GRAVITY = 0.6;
-const JUMP_STRENGTH = -20;
-const BASE_GAME_SPEED = 5;
+const BASE_JUMP_STRENGTH = -20;
+const JUMP_STRENGTH =
+  process.env.NODE_ENV === 'production'
+    ? BASE_JUMP_STRENGTH / 2
+    : BASE_JUMP_STRENGTH;
+const BASE_GAME_SPEED = 5; // 원래 값
 const SPEED_INCREASE_PER_LEVEL = 0.5;
 const PLAYER_SIZE = 50;
 const GROUND_HEIGHT = 50;
@@ -535,10 +539,8 @@ const Runner = () => {
     const gameLoop = () => {
       // 시간 경과 계산 (초)
       const now = typeof performance !== 'undefined' ? performance.now() : 0;
-      let dt =
+      const dt =
         now && lastTsRef.current ? (now - lastTsRef.current) / 1000 : 1 / 60;
-      // dt를 제한하여 불안정한 프레임 타이밍 방지
-      dt = Math.min(dt, 0.1); // 최대 100ms로 제한
       lastTsRef.current = now || lastTsRef.current;
 
       // 플레이어 위치 업데이트 (dt 기반 물리)
