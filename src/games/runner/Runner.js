@@ -7,32 +7,40 @@ import React, {
 } from 'react';
 import { Helmet } from 'react-helmet-async';
 import styles from './Runner.module.css';
+import extraStyles from './RunnerExtras.module.css';
 
 // 컴포넌트
 // import BackgroundEffects from './components/BackgroundEffects';
 import PlayerCharacter from './components/PlayerCharacter';
 import GameObstacles from './components/GameObstacles';
 import ParticleEffects from './components/ParticleEffects';
+import ScoreBoard from './components/ScoreBoard';
+import GameModal from './components/GameModal';
 
 // 훅
 import { useCommonElements } from './hooks/useCommonElements';
+import { useScoreManagement } from './hooks/useScoreManagement';
 
 // 유틸리티
 import { playJumpSound } from './utils/audioUtils';
 import { getSeasonEffects, randomDifferentIndex } from './utils/seasonUtils';
 
+// 캐릭터 이미지
+// import f1EmojiImage from './image/f1soft.png';
+import f1RunImage from './image/f1-run.png';
 const GRAVITY = 0.6;
 const JUMP_STRENGTH = -20;
 const BASE_GAME_SPEED = 5;
 const SPEED_INCREASE_PER_LEVEL = 0.5;
-// const OBSTACLE_WIDTH = 30;
 const PLAYER_SIZE = 50;
 const GROUND_HEIGHT = 50;
-// 러닝 바운스 효과 상수
-const BOBBING_AMPLITUDE = 3; // 2~3px 권장
-const BOBBING_FREQUENCY = 4; // 빠르게 흔들림(Hz 유사)
-// 시즌 배경
+const BOBBING_AMPLITUDE = 3;
+const BOBBING_FREQUENCY = 4;
 const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
+const MAX_PARTICLES = 30;
+// const MAX_GHOSTS = 4;
+const MAX_MOTION_BLURS = 8;
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/com/api';
 
 // 장애물 종류
 const OBSTACLE_TYPES = [
@@ -47,8 +55,10 @@ const OBSTACLE_TYPES = [
 
 // 캐릭터 목록
 const CHARACTERS = [
+  // { id: 'f1', name: 'F1', emoji: 'f1-emoji', image: f1EmojiImage },
   { id: 'dog', name: '🐶', emoji: '🐶' },
   { id: 'cat', name: '🐱', emoji: '🐱' },
+
   // { id: 'lion', name: '🦁', emoji: '🦁' },
   // { id: 'rabbit', name: '🐰', emoji: '🐰' },
   // { id: 'devil', name: '👿', emoji: '👿' },
@@ -75,6 +85,32 @@ const Runner = () => {
   const [gameSpeed, setGameSpeed] = useState(BASE_GAME_SPEED);
   const [seasonIndex, setSeasonIndex] = useState(0);
   const [coinCount, setCoinCount] = useState(0);
+  const [sessionCoins, setSessionCoins] = useState(0); // 현재 게임에서 획득한 코인
+  const [hasLoadedServerCoins, setHasLoadedServerCoins] = useState(false);
+
+  // userId 생성: 테트리스와 동일하게 sessionStorage 'extensionLogin'을 우선 사용
+  const [userId, setUserId] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const sessionUser = window.sessionStorage.getItem('extensionLogin');
+      if (sessionUser) {
+        const decoded = atob(sessionUser);
+        setUserId(decoded);
+        localStorage.setItem('runnerUserId', decoded);
+        return;
+      }
+
+      let id = localStorage.getItem('runnerUserId');
+      if (!id) {
+        id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem('runnerUserId', id);
+      }
+      setUserId(id);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const gameLoopRef = useRef(null);
   const scoreIntervalRef = useRef(null);
@@ -96,6 +132,141 @@ const Runner = () => {
   // 훅으로 공통 엘리먼트 가져오기
   const commonElements = useCommonElements();
 
+  // 점수 관리 훅
+  const {
+    highScores,
+    isLoadingScores,
+    showNameModal,
+    setShowNameModal,
+    playerName,
+    setPlayerName,
+    isSaving,
+    saveLimitMessage,
+    saveAttemptsLeft,
+    handleSaveName,
+    handleCancelModal,
+    saveCoinsAuto,
+  } = useScoreManagement();
+
+  const syncCoinBank = useCallback(
+    async (uid, totalCoins, highScoreValue, nameForServer = '') => {
+      if (!uid || totalCoins == null || Number.isNaN(totalCoins)) return;
+      try {
+        await fetch(`${API_BASE_URL}/jvWorksSetRunnerCoins`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: uid,
+            coins: Math.max(0, Math.floor(totalCoins)),
+            highScore: Math.max(0, Math.floor(highScoreValue || 0)),
+            name: (nameForServer || '').slice(0, 20),
+          }),
+        });
+      } catch (error) {
+        console.error('코인 동기화 실패:', error);
+      }
+    },
+    []
+  );
+
+  const fetchServerCoins = useCallback(
+    async (uid) => {
+      if (!uid || hasLoadedServerCoins) return;
+
+      const localCoinsRaw = localStorage.getItem('runnerCoins');
+      const localCoins = localCoinsRaw ? parseInt(localCoinsRaw, 10) : 0;
+      const localName = localStorage.getItem('runnerPlayerName') || '';
+
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/jvWorksGetRunnerCoins?userId=${encodeURIComponent(
+            uid
+          )}`,
+          {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json && (json.success === true || json.success === 'true')) {
+            const exists = json.exists === true || json.exists === 'true';
+            const serverCoins = Number(json.coins);
+            const serverHighScore = Number(json.highScore);
+            const serverName = json.name || '';
+
+            if (exists) {
+              const resolved = Number.isFinite(serverCoins) ? serverCoins : 0;
+              setCoinCount(resolved);
+              localStorage.setItem('runnerCoins', resolved.toString());
+
+              // 서버 최고점수 세팅
+              const resolvedHighScore = Number.isFinite(serverHighScore)
+                ? serverHighScore
+                : 0;
+              setHighScore(resolvedHighScore);
+              localStorage.setItem(
+                'runnerHighScore',
+                resolvedHighScore.toString()
+              );
+
+              // 서버에서 닉네임도 가져와서 세팅
+              if (serverName && serverName.trim()) {
+                setPlayerName(serverName.trim());
+                localStorage.setItem('runnerPlayerName', serverName.trim());
+              }
+            } else {
+              const resolved = Number.isFinite(localCoins) ? localCoins : 0;
+              setCoinCount(resolved);
+              localStorage.setItem('runnerCoins', resolved.toString());
+
+              // 로컬 닉네임 사용
+              if (localName && localName.trim()) {
+                setPlayerName(localName.trim());
+              }
+
+              if (resolved > 0) {
+                const nameForServer =
+                  (localName && localName.trim()) || 'Runner';
+                const localHighScoreRaw =
+                  localStorage.getItem('runnerHighScore');
+                const localHighScore = localHighScoreRaw
+                  ? parseInt(localHighScoreRaw, 10)
+                  : 0;
+                await syncCoinBank(
+                  uid,
+                  resolved,
+                  localHighScore,
+                  nameForServer
+                );
+              }
+            }
+
+            setHasLoadedServerCoins(true);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('서버 코인 조회 실패:', error);
+      }
+
+      setHasLoadedServerCoins(true);
+      if (Number.isFinite(localCoins)) {
+        setCoinCount(localCoins);
+      }
+      if (localName && localName.trim()) {
+        setPlayerName(localName.trim());
+      }
+    },
+    [hasLoadedServerCoins, setPlayerName, syncCoinBank]
+  );
+
+  useEffect(() => {
+    if (!userId) return;
+    fetchServerCoins(userId);
+  }, [userId, fetchServerCoins]);
+
   // 시즌별 배경 이펙트 조합 (낮/밤 + 최대 2개 이펙트)
   const seasonEffects = useMemo(() => {
     return getSeasonEffects(seasonIndex, SEASONS);
@@ -114,18 +285,38 @@ const Runner = () => {
     }
   }, []);
 
+  // 게임 종료 시 모달 표시
+  useEffect(() => {
+    if (gameState === 'gameOver' && score > 0) {
+      setShowNameModal(true);
+    }
+  }, [gameState, score, setShowNameModal]);
+
+  // 게임 종료 시 자동 코인/점수 기록 (명시적 저장 여부와 무관)
+  useEffect(() => {
+    if (gameState !== 'gameOver') return;
+    if (sessionCoins <= 0) return;
+    const nameForSave = (playerName && playerName.trim()) || 'Auto';
+    saveCoinsAuto(nameForSave, score, sessionCoins, userId);
+  }, [gameState, sessionCoins, score, userId, playerName, saveCoinsAuto]);
+
+  useEffect(() => {
+    if (gameState !== 'gameOver') return;
+    if (!userId) return;
+    const nameForServer = (playerName && playerName.trim()) || 'Auto';
+    syncCoinBank(userId, coinCount, highScore, nameForServer);
+  }, [gameState, userId, coinCount, highScore, playerName, syncCoinBank]);
+
   // 캐릭터 선택
   const selectCharacter = (character) => {
     setSelectedCharacter(character);
-    if (gameState === 'menu') {
-      startGame();
-    }
   };
 
   // 게임 시작
   const startGame = () => {
     setGameState('playing');
     setScore(0);
+    setSessionCoins(0); // 게임 시작 시 현재 게임 코인 초기화
     setPlayerY(0);
     playerVelocityRef.current = 0;
     setObstacles([]);
@@ -442,29 +633,31 @@ const Runner = () => {
           }))
           .filter((p) => p.life > 0 && p.x > -p.size);
 
-        if (shouldSpawn) {
+        if (shouldSpawn && updated.length < MAX_PARTICLES) {
           particleCooldownRef.current = spawnInterval;
-          const baseX = 100 + 20; // 캐릭터 약간 뒤
-          const baseY = GROUND_HEIGHT + 8; // 발 근처
+          const baseX = 100 + 20;
+          const baseY = GROUND_HEIGHT + 8;
           const size = 6 + Math.random() * 4;
           const newParticle = {
             id: Date.now() + Math.random(),
             x: baseX,
             y: baseY,
-            vx: 150 + 50 * Math.random() * Math.max(1, gameSpeed), // 좌측으로 빠르게
-            vy: -20 - 20 * Math.random(), // 약간 위로 튐
+            vx: 150 + 50 * Math.random() * Math.max(1, gameSpeed),
+            vy: -20 - 20 * Math.random(),
             size,
             life: 0.5 + Math.random() * 0.3,
             opacity: 0.8,
           };
           updated.push(newParticle);
         }
-        return updated;
+        return updated.slice(-MAX_PARTICLES);
       });
 
       // 모션 블러 업데이트 및 필터링
       setMotionBlurs((prev) =>
-        prev.filter((blur) => (blur.delay -= dt) > -0.4)
+        prev
+          .filter((blur) => (blur.delay -= dt) > -0.4)
+          .slice(0, MAX_MOTION_BLURS)
       );
 
       // 점프 먼지 이펙트 업데이트 및 필터링
@@ -614,6 +807,7 @@ const Runner = () => {
           localStorage.setItem('runnerCoins', next.toString());
           return next;
         });
+        setSessionCoins((prev) => prev + 1);
       }
     };
 
@@ -642,50 +836,96 @@ const Runner = () => {
             <div className={styles.score}>점수: {score}</div>
             <div className={styles.speed}>속도: {gameSpeed.toFixed(1)}x</div>
             <div className={styles['high-score']}>최고점수: {highScore}</div>
-            <div className={styles.coins}>코인: {coinCount} 💰</div>
+            <div className={extraStyles.coins}>코인: {coinCount} 💰</div>
           </div>
         </div>
 
         {gameState === 'menu' && (
-          <div className={styles['runner-menu']}>
-            <h2 className={styles.subtitle}>캐릭터를 선택하세요</h2>
-            <div className={styles['character-selection']}>
-              {CHARACTERS.map((character) => (
-                <button
-                  key={character.id}
-                  className={`${styles['character-btn']} ${
-                    selectedCharacter.id === character.id ? styles.selected : ''
-                  }`}
-                  onClick={() => selectCharacter(character)}
-                >
-                  <span className={styles['character-emoji']}>
-                    {character.emoji}
-                  </span>
-                  <span className={styles['character-name']}>
-                    {character.name}
-                  </span>
-                </button>
-              ))}
+          <>
+            <div className={styles['runner-menu']}>
+              <h2 className={styles.subtitle}>캐릭터를 선택하세요</h2>
+              <div className={styles['character-selection']}>
+                {CHARACTERS.map((character) => (
+                  <button
+                    key={character.id}
+                    className={`${styles['character-btn']} ${
+                      selectedCharacter.id === character.id
+                        ? styles.selected
+                        : ''
+                    }`}
+                    onClick={() => selectCharacter(character)}
+                  >
+                    <span className={styles['character-emoji']}>
+                      {character.image ? (
+                        <img
+                          src={character.image}
+                          alt={character.name}
+                          style={{
+                            width: '4rem',
+                            objectFit: 'cover',
+                            boxSizing: 'border-box',
+                            // marginTop: '-1.3rem',
+                          }}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            fontSize: '3rem',
+                            objectFit: 'cover',
+                            boxSizing: 'border-box',
+                          }}
+                        >
+                          {character.emoji}
+                        </div>
+                      )}
+                    </span>
+                    <span
+                      className={styles['character-name']}
+                      // style={character.image ? { marginTop: '-3rem' } : {}}
+                    >
+                      {character.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <button className={styles['start-btn']} onClick={startGame}>
+                게임 시작
+              </button>
             </div>
-            <button className={styles['start-btn']} onClick={startGame}>
-              게임 시작
-            </button>
+
             <div className={styles.instructions}>
-              <p>💡 스페이스바, 클릭 또는 터치로 점프!</p>
-              <p>⭐ 공중에서 한 번 더 점프 가능! (더블 점프)</p>
-              <p>장애물을 피하며 최대한 오래 달리세요!</p>
-              <p>🦅 날아다니는 새도 조심하세요!</p>
-              <p>🚀 50점마다 속도가 빨라집니다!</p>
+              <h3
+                style={{
+                  margin: '0 0 15px 0',
+                  fontSize: '1.3rem',
+                  textAlign: 'center',
+                  color: '#ffd700',
+                }}
+              >
+                📖 게임 설명
+              </h3>
+              <p>
+                💡 <strong>조작</strong>: 스페이스바 또는 터치/마우스 클릭으로
+                점프
+              </p>
             </div>
-          </div>
+            <div className={styles.instructions} style={{ marginTop: '20px' }}>
+              <ScoreBoard
+                highScores={highScores}
+                isLoadingScores={isLoadingScores}
+              />
+            </div>
+          </>
         )}
 
         {(gameState === 'playing' || gameState === 'gameOver') && (
           <div className={styles['game-container']}>
             <div
-              className={`${styles['game-canvas']} season-${
-                seasonEffects.season
-              } ${seasonEffects.isNight ? 'night' : 'day'}`}
+              className={`${
+                styles['game-canvas']
+              } ${`season-${seasonEffects.season}`} ${
+                seasonEffects.isNight ? 'night' : 'day'
+              }`}
               onClick={() => gameState === 'playing' && jump()}
               onTouchStart={() => gameState === 'playing' && jump()}
             >
@@ -898,6 +1138,9 @@ const Runner = () => {
                     ? bobOffsetRef.current
                     : 0
                 }
+                gameState={gameState}
+                isOnGround={isOnGroundRef.current}
+                runImage={f1RunImage}
                 ghosts={ghosts}
               />
 
@@ -960,26 +1203,27 @@ const Runner = () => {
                 );
               })}
             </div>
-
-            {gameState === 'gameOver' && (
-              <div className={styles['game-over-overlay']}>
-                <div className={styles['game-over-modal']}>
-                  <h2 className={styles.subtitle}>게임 오버!</h2>
-                  <p className={styles['final-score']}>점수: {score}</p>
-                  {score === highScore && score > 0 && (
-                    <p className={styles['new-record']}>🎉 새로운 최고 기록!</p>
-                  )}
-                  <button
-                    className={styles['restart-btn']}
-                    onClick={() => setGameState('menu')}
-                  >
-                    다시 시작
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         )}
+
+        <GameModal
+          showModal={showNameModal && gameState === 'gameOver'}
+          score={score}
+          coins={sessionCoins}
+          playerName={playerName}
+          setPlayerName={setPlayerName}
+          saveAttemptsLeft={saveAttemptsLeft}
+          saveLimitMessage={saveLimitMessage}
+          isSaving={isSaving}
+          onSave={() => {
+            handleSaveName(playerName, score, sessionCoins, userId);
+            setTimeout(() => setGameState('menu'), 500);
+          }}
+          onCancel={() => {
+            handleCancelModal();
+            setGameState('menu');
+          }}
+        />
       </div>
     </>
   );
