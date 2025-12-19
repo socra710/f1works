@@ -1,13 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  API_BASE_URL,
   GAME_DURATION,
   INITIAL_DROP_SPEED,
   MIN_DROP_SPEED,
   SPEED_DECREASE_PER_LEVEL,
   LEVEL_DURATION,
   SCORE_PER_LINE,
-  MAX_DAILY_SERVER_SAVES,
 } from '../utils/constants';
 import {
   initBoard,
@@ -18,12 +16,6 @@ import {
   clearLines,
   addGrayLine,
 } from '../utils/gameLogic';
-import {
-  getDailySaveInfo,
-  setDailySaveInfo,
-  getTodayString,
-  loadPlayerName,
-} from '../utils/storageUtils';
 import { playWarningSound } from '../utils/audioUtils';
 import { addGrayLineWarning } from '../utils/effectsUtils';
 
