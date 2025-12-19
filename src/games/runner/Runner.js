@@ -189,6 +189,22 @@ const Runner = () => {
     }
   }, [gameState, jumpCount]);
 
+  // 탭 비활성화 감지 - 게임 일시정지
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && gameState === 'playing') {
+        // 탭이 비활성화되면 게임을 게임오버 상태로 전환
+        setGameState('gameOver');
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [gameState]);
+
   // 키보드 이벤트만 사용 (전역 클릭/터치는 금지)
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -255,8 +271,8 @@ const Runner = () => {
       };
       setObstacles((prev) => [...prev, newObstacle]);
 
-      // 장애물 위 코인 스폰 (랜덤): 20% 확률로 1개 또는 2개 생성
-      const shouldSpawnCoins = Math.random() < 0.2;
+      // 장애물 위 코인 스폰 (랜덤): 10% 확률로 1개 또는 2개 생성
+      const shouldSpawnCoins = Math.random() < 0.1;
       if (shouldSpawnCoins) {
         const coinsToSpawn = [];
         const baseHeight = newObstacle.height; // 지면 기준 높이

@@ -51,6 +51,7 @@
 .subtitle {
   font-size: 1.8rem;
   margin-bottom: 30px;
+  background: border-box;
 }
 
 .character-selection {
