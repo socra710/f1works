@@ -535,8 +535,10 @@ const Runner = () => {
     const gameLoop = () => {
       // 시간 경과 계산 (초)
       const now = typeof performance !== 'undefined' ? performance.now() : 0;
-      const dt =
+      let dt =
         now && lastTsRef.current ? (now - lastTsRef.current) / 1000 : 1 / 60;
+      // dt를 제한하여 불안정한 프레임 타이밍 방지
+      dt = Math.min(dt, 0.1); // 최대 100ms로 제한
       lastTsRef.current = now || lastTsRef.current;
 
       // 플레이어 위치 업데이트 (dt 기반 물리)
