@@ -32,7 +32,7 @@ const GRAVITY = 0.6;
 const BASE_JUMP_STRENGTH = -20;
 const JUMP_STRENGTH =
   process.env.NODE_ENV === 'production'
-    ? BASE_JUMP_STRENGTH / 2
+    ? BASE_JUMP_STRENGTH / 1.5
     : BASE_JUMP_STRENGTH;
 const BASE_GAME_SPEED = 5; // 원래 값
 const SPEED_INCREASE_PER_LEVEL = 0.5;
