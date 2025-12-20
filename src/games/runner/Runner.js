@@ -120,13 +120,18 @@ const Runner = () => {
       setUserId(id);
     }, 500);
 
-    // 특정 유저에게만 숨겨진 캐릭터 활성화
-    if (userId === 'user_1766141039009_ygdgjjqzh') {
-      CHARACTERS.push({ id: 'monkey', name: '🐵', emoji: '🐵' });
-    }
-
     return () => clearTimeout(timer);
   }, []);
+
+  // 특정 유저에게만 숨겨진 캐릭터 활성화
+  useEffect(() => {
+    if (userId && userId === 'user_1766141039009_ygdgjjqzh') {
+      // 중복 추가 방지
+      if (!CHARACTERS.some(char => char.id === 'monkey')) {
+        CHARACTERS.push({ id: 'monkey', name: '🐵', emoji: '🐵' });
+      }
+    }
+  }, [userId]);
 
   const gameLoopRef = useRef(null);
   const scoreIntervalRef = useRef(null);
