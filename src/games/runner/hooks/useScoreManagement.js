@@ -194,7 +194,7 @@ export const useScoreManagement = () => {
     const result = await saveScoreToServer(name.trim(), score, coins, userId);
     if (result.success) {
       savePlayerName(name.trim());
-      alert('점수가 저장되었습니다!');
+      // alert('점수가 저장되었습니다!');
       setShowNameModal(false);
     } else {
       alert(`점수 저장에 실패했습니다: ${result.error}`);
