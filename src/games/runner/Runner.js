@@ -68,7 +68,6 @@ const CHARACTERS = [
   // { id: 'f1', name: 'F1', emoji: 'f1-emoji', image: f1EmojiImage },
   { id: 'dog', name: '🐶', emoji: '🐶' },
   { id: 'cat', name: '🐱', emoji: '🐱' },
-
   // { id: 'lion', name: '🦁', emoji: '🦁' },
   // { id: 'rabbit', name: '🐰', emoji: '🐰' },
   // { id: 'devil', name: '👿', emoji: '👿' },
@@ -120,6 +119,11 @@ const Runner = () => {
       }
       setUserId(id);
     }, 500);
+
+    // 특정 유저에게만 숨겨진 캐릭터 활성화
+    if (userId === 'jasper') {
+      CHARACTERS.push({ id: 'monkey', name: '🐵', emoji: '🐵' });
+    }
 
     return () => clearTimeout(timer);
   }, []);
@@ -1013,8 +1017,8 @@ const Runner = () => {
                 📖 게임 설명
               </h3>
               <p>
-                💡 <strong>조작</strong>: 스페이스바 또는 터치/마우스 클릭으로
-                점프
+                💡 <strong>조작</strong>: 스페이스바, 방향키 ↑ 또는 터치/마우스 클릭으로
+                점프하세요. 더블 점프도 가능합니다!
               </p>
             </div>
             <div className={styles.instructions} style={{ marginTop: '20px' }}>
