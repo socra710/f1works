@@ -36,7 +36,7 @@ const GameModal = ({
               className="tetris-modal-input"
             />
           </div>
-          <p
+          {/* <p
             className="tetris-modal-remaining"
             style={{
               color: '#555',
@@ -45,7 +45,7 @@ const GameModal = ({
             }}
           >
             오늘 남은 서버 점수 기록: {saveAttemptsLeft}회
-          </p>
+          </p> */}
           {saveLimitMessage && (
             <p
               className="tetris-modal-limit"

@@ -15,9 +15,7 @@ export const useScoreManagement = () => {
   const [playerName, setPlayerName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveLimitMessage, setSaveLimitMessage] = useState('');
-  const [saveAttemptsLeft, setSaveAttemptsLeft] = useState(
-    MAX_DAILY_SERVER_SAVES
-  );
+  const [saveAttemptsLeft, setSaveAttemptsLeft] = useState(999);
 
   // 순위 데이터 로드
   const fetchHighScores = useCallback(async () => {
@@ -62,16 +60,8 @@ export const useScoreManagement = () => {
   // 모달 표시 시 남은 횟수 업데이트
   useEffect(() => {
     if (!showNameModal) return;
-    const info = getDailySaveInfo();
-    const remaining = Math.max(0, MAX_DAILY_SERVER_SAVES - info.count);
-    setSaveAttemptsLeft(remaining);
-    if (info.count >= MAX_DAILY_SERVER_SAVES) {
-      setSaveLimitMessage(
-        '아쉽지만 서버 점수 기록은 하루에 3번만 가능해요. 하지만 연습은 계속할 수 있어요!'
-      );
-    } else {
-      setSaveLimitMessage('');
-    }
+    setSaveAttemptsLeft(999);
+    setSaveLimitMessage('');
   }, [showNameModal]);
 
   // 서버에 점수 저장
@@ -97,13 +87,7 @@ export const useScoreManagement = () => {
         const data = await response.json();
         if (data && (data.success === true || data.success === 'true')) {
           savePlayerName(name);
-          const info = getDailySaveInfo();
-          const updatedCount =
-            info.date === getTodayString() ? info.count + 1 : 1;
-          setDailySaveInfo({ date: getTodayString(), count: updatedCount });
-          setSaveAttemptsLeft(
-            Math.max(0, MAX_DAILY_SERVER_SAVES - updatedCount)
-          );
+          setSaveAttemptsLeft(999);
           await fetchHighScores();
         } else {
           console.error('점수 저장 실패:', data && data.message);
@@ -113,7 +97,6 @@ export const useScoreManagement = () => {
       } finally {
         setIsSaving(false);
         setShowNameModal(false);
-        setPlayerName('');
       }
     },
     [fetchHighScores]
@@ -122,16 +105,8 @@ export const useScoreManagement = () => {
   const handleSaveName = useCallback(
     (name, score, userId) => {
       const trimmedName = name.trim() || '';
-      const info = getDailySaveInfo();
-      if (info.count >= MAX_DAILY_SERVER_SAVES) {
-        setSaveLimitMessage(
-          '아쉽지만 서버 점수 기록은 하루에 3번만 가능해요. 하지만 연습은 계속할 수 있어요!'
-        );
-        setSaveAttemptsLeft(0);
-        return;
-      }
       setSaveLimitMessage('');
-      setSaveAttemptsLeft(Math.max(0, MAX_DAILY_SERVER_SAVES - info.count));
+      setSaveAttemptsLeft(999);
       saveScoreToServer(trimmedName, score, userId);
     },
     [saveScoreToServer]
@@ -141,7 +116,7 @@ export const useScoreManagement = () => {
     setShowNameModal(false);
     setPlayerName('');
     setSaveLimitMessage('');
-    setSaveAttemptsLeft(MAX_DAILY_SERVER_SAVES);
+    setSaveAttemptsLeft(999);
   }, []);
 
   return {
