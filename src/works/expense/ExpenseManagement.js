@@ -17,6 +17,7 @@ export default function ExpenseManagement() {
   const [expenseList, setExpenseList] = useState([]);
   const [filterStatus, setFilterStatus] = useState('ALL'); // ALL, SUBMITTED, APPROVED, REJECTED
   const initializedRef = useRef(false);
+  const userIdEncodedRef = useRef(null);
 
   // 유류비 설정 모달
   const [showFuelModal, setShowFuelModal] = useState(false);
@@ -75,6 +76,7 @@ export default function ExpenseManagement() {
       // 기본 월 설정 (이전 달 - 경비는 지난달 기준)
       // 이전 선택값이 있으면 복원, 없으면 기본 월(이전 달)
       const persistedMonth = sessionStorage.getItem('expenseMgmtMonth');
+      const persistedStatus = sessionStorage.getItem('expenseMgmtStatus') || 'ALL';
       let initialMonth = persistedMonth;
       if (!initialMonth) {
         const now = new Date();
@@ -84,7 +86,10 @@ export default function ExpenseManagement() {
         ).padStart(2, '0')}`;
       }
       setSelectedMonth(initialMonth);
+      setFilterStatus(persistedStatus);
       sessionStorage.setItem('expenseMgmtMonth', initialMonth);
+      sessionStorage.setItem('expenseMgmtStatus', persistedStatus);
+      userIdEncodedRef.current = userIdEncoded;
 
       // 목록 조회
       await fetchExpenseList(factoryCode, initialMonth, userIdEncoded);
@@ -492,7 +497,15 @@ export default function ExpenseManagement() {
             <label>상태:</label>
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+              onChange={(e) => {
+                const newStatus = e.target.value;
+                setFilterStatus(newStatus);
+                try {
+                  sessionStorage.setItem('expenseMgmtStatus', newStatus);
+                } catch (err) {
+                  console.warn('상태 필터 저장 실패:', err);
+                }
+              }}
             >
               <option value="ALL">전체</option>
               <option value="SUBMITTED">제출</option>
