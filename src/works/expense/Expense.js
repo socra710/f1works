@@ -1817,7 +1817,7 @@ export default function Expense() {
                     </button>
                   </div> */}
                 </div>
-                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                <div>
                   <table className="expense-table">
                     <thead>
                       <tr>
