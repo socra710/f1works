@@ -121,7 +121,7 @@ const Runner = () => {
     }, 500);
 
     // 특정 유저에게만 숨겨진 캐릭터 활성화
-    if (userId === 'jasper') {
+    if (userId === 'user_1766141039009_ygdgjjqzh') {
       CHARACTERS.push({ id: 'monkey', name: '🐵', emoji: '🐵' });
     }
 
