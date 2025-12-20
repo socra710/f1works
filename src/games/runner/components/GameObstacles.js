@@ -2,7 +2,7 @@ import React from 'react';
 
 const GROUND_HEIGHT = 50;
 
-const GameObstacles = ({ obstacles, birds, coins = [] }) => {
+const GameObstacles = ({ obstacles, birds, coins = [], terrainOffset = 0 }) => {
   return (
     <>
       {/* 지상 장애물 */}
@@ -12,7 +12,7 @@ const GameObstacles = ({ obstacles, birds, coins = [] }) => {
           className="obstacle"
           style={{
             left: `${obstacle.x}px`,
-            bottom: `${GROUND_HEIGHT}px`,
+            bottom: `${GROUND_HEIGHT + terrainOffset}px`,
             width: `${obstacle.width}px`,
             height: `${obstacle.height}px`,
             fontSize: `${obstacle.height}px`,
@@ -29,7 +29,7 @@ const GameObstacles = ({ obstacles, birds, coins = [] }) => {
           className="bird"
           style={{
             left: `${bird.x}px`,
-            bottom: `${bird.y}px`,
+            bottom: `${bird.y + terrainOffset}px`,
             fontSize: `${bird.size}px`,
           }}
         >
@@ -45,7 +45,7 @@ const GameObstacles = ({ obstacles, birds, coins = [] }) => {
           style={{
             position: 'absolute',
             left: `${coin.x}px`,
-            bottom: `${GROUND_HEIGHT + coin.y}px`,
+            bottom: `${GROUND_HEIGHT + coin.y + terrainOffset}px`,
             fontSize: `${coin.size}px`,
             zIndex: 8,
           }}

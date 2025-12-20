@@ -12,6 +12,7 @@ import extraStyles from './RunnerExtras.module.css';
 // 컴포넌트
 // import BackgroundEffects from './components/BackgroundEffects';
 import PlayerCharacter from './components/PlayerCharacter';
+import ParallaxLayers from './components/ParallaxLayers';
 import GameObstacles from './components/GameObstacles';
 import ParticleEffects from './components/ParticleEffects';
 import ScoreBoard from './components/ScoreBoard';
@@ -124,6 +125,19 @@ const Runner = () => {
   const gameSpeedRef = useRef(BASE_GAME_SPEED);
   // 시즌 이펙트 ref (부엉이/독수리 표시용)
   const seasonEffectsRef = useRef({ isNight: false });
+  // 지형(카메라) 시야 연출용 오프셋
+  const terrainPhaseRef = useRef(0);
+  const terrainOffsetRef = useRef(0);
+  // 밤 페이드 오버레이 강도
+  const nightFadeRef = useRef(0);
+  // 안개 강도/블러 동적 제어
+  const fogTopOpacityRef = useRef(0);
+  const fogGroundOpacityRef = useRef(0);
+  const fogTopBlurRef = useRef(0);
+  const fogGroundBlurRef = useRef(0);
+  // 패럴랙스 X 위치
+  const parallaxFarXRef = useRef(0);
+  const parallaxNearXRef = useRef(0);
 
   // 훅으로 공통 엘리먼트 가져오기
   const commonElements = useCommonElements();
@@ -362,6 +376,8 @@ const Runner = () => {
   // seasonEffects 변화를 ref에 동기화 (부엉이/독수리 표시용)
   useEffect(() => {
     seasonEffectsRef.current = seasonEffects;
+    // 밤/낮 변경 시 페이드 목표치 업데이트 (좀 더 강하게)
+    nightFadeRef.current = seasonEffects.isNight ? 0.75 : 0; // 0~0.8 권장
   }, [seasonEffects]);
 
   // 캐릭터 선택
@@ -716,6 +732,45 @@ const Runner = () => {
         bobOffsetRef.current = 0;
       }
 
+      // 지형(카메라) 오프셋: 속도에 비례한 부드러운 웨이브
+      const terrainFreq = 0.4 + Math.min(1.2, gameSpeedRef.current * 0.05);
+      const terrainAmp = 12; // 8~18 권장
+      terrainPhaseRef.current += dt * terrainFreq;
+      terrainOffsetRef.current = Math.sin(terrainPhaseRef.current) * terrainAmp;
+
+      // 패럴랙스: 속도에 비례해 좌우 이동 (좌측으로 흐름)
+      const pxSpeedFar = 12 * Math.max(1, gameSpeedRef.current) * dt * 60 * 0.15;
+      const pxSpeedNear = 12 * Math.max(1, gameSpeedRef.current) * dt * 60 * 0.35;
+      parallaxFarXRef.current -= pxSpeedFar;
+      parallaxNearXRef.current -= pxSpeedNear;
+
+      // 밤/안개 강도 동적 계산 (속도 따라 가시성 보정)
+      const speed = Math.max(1, gameSpeedRef.current);
+      const speedFactor = Math.min(1, (speed - 1) / 4); // 1..5배속 → 0..1
+      const isCloudy =
+        seasonEffectsRef.current.base === 'clouds' ||
+        seasonEffectsRef.current.extra === 'clouds';
+
+      // 밤 알파: 기본보다 약간 가변 (고속일수록 살짝 완화)
+      const nightTarget = seasonEffectsRef.current.isNight
+        ? Math.min(0.82, Math.max(0.65, 0.72 + 0.10 * (1 - speedFactor)))
+        : 0;
+      nightFadeRef.current += (nightTarget - nightFadeRef.current) * Math.min(1, dt * 3);
+
+      // 안개 강도/블러: 구름 시즌일 때만 적용, 고속일수록 약간 약화 (극강 날씨 시 강화)
+      const fogBaseTop = isCloudy ? 0.38 : 0;
+      const fogBaseGround = isCloudy ? 0.46 : 0;
+      const intensityMultiplier = seasonEffectsRef.current.intensity === 'extreme' ? 1.8 : 
+                                  seasonEffectsRef.current.intensity === 'heavy' ? 1.4 : 1;
+      const fogTop = fogBaseTop * (1 - 0.25 * speedFactor) * intensityMultiplier;
+      const fogGround = fogBaseGround * (1 - 0.25 * speedFactor) * intensityMultiplier;
+      fogTopOpacityRef.current += (fogTop - fogTopOpacityRef.current) * Math.min(1, dt * 3);
+      fogGroundOpacityRef.current += (fogGround - fogGroundOpacityRef.current) * Math.min(1, dt * 3);
+      const fogTopBlur = isCloudy ? (2.8 - 1.0 * speedFactor) * intensityMultiplier : 0;
+      const fogGroundBlur = isCloudy ? (3.6 - 1.2 * speedFactor) * intensityMultiplier : 0;
+      fogTopBlurRef.current += (fogTopBlur - fogTopBlurRef.current) * Math.min(1, dt * 3);
+      fogGroundBlurRef.current += (fogGroundBlur - fogGroundBlurRef.current) * Math.min(1, dt * 3);
+
       // 러너 잔상 업데이트: 최근 위치 4개 유지
       if (gameState === 'playing') {
         const playerBottomNow =
@@ -1061,7 +1116,63 @@ const Runner = () => {
               }`}
               onClick={() => gameState === 'playing' && jump()}
               onTouchStart={() => gameState === 'playing' && jump()}
+              style={{
+                // 밤에는 디서츄레이션/명도↓/대비↑를 nightFade에 연동 + 안개 블러를 화면 전체에 적용 + 시즌별 톤 필터
+                filter: (() => {
+                  // 밤 필터 (가을 밤에는 단풍이 보이도록 밝기 조정)
+                  let nightFilter = 'none';
+                  if (seasonEffects.isNight) {
+                    const isAutumnNight = seasonEffects.season === 'autumn';
+                    // 가을 밤에는 brightness 감소를 0.12로 줄임 (기본 0.18), spring/summer는 더 어두움
+                    const brightnessFactor = isAutumnNight ? 0.12 : 0.18;
+                    const contrastFactor = isAutumnNight ? 0.08 : 0.12;
+                    nightFilter = `saturate(${0.88}) brightness(${(0.86 - nightFadeRef.current * brightnessFactor).toFixed(3)}) contrast(${(1.08 + nightFadeRef.current * contrastFactor).toFixed(3)})`;
+                  }
+                  
+                  // 시즌별 톤 필터 (극강 날씨 시 강화)
+                  let seasonTone = '';
+                  const isIntenseWeather = seasonEffects.intensity === 'heavy' || seasonEffects.intensity === 'extreme';
+                  if (seasonEffects.season === 'spring') {
+                    seasonTone = isIntenseWeather 
+                      ? `hue-rotate(-5deg) saturate(1.15)` 
+                      : `saturate(1.05)`;
+                  } else if (seasonEffects.season === 'summer') {
+                    seasonTone = isIntenseWeather 
+                      ? `hue-rotate(8deg) saturate(1.25) brightness(1.08)` 
+                      : `saturate(1.1) brightness(1.02)`;
+                  } else if (seasonEffects.season === 'autumn') {
+                    seasonTone = isIntenseWeather 
+                      ? `hue-rotate(15deg) saturate(1.3) brightness(1.05)` 
+                      : `hue-rotate(8deg) saturate(1.15)`;
+                  } else if (seasonEffects.season === 'winter') {
+                    seasonTone = isIntenseWeather 
+                      ? `hue-rotate(-12deg) saturate(0.95) brightness(0.98)` 
+                      : `hue-rotate(-8deg) saturate(0.92)`;
+                  }
+                  
+                  // 평균 안개 블러 (구름 시즌에서만 의미 있게 적용)
+                  const isFoggy = (seasonEffects.base === 'clouds' || seasonEffects.extra === 'clouds');
+                  const fogBlur = isFoggy
+                    ? parseFloat((((fogTopBlurRef.current + fogGroundBlurRef.current) / 2).toFixed(2)))
+                    : 0;
+                  
+                  // 모든 필터를 결합
+                  const filters = [nightFilter, seasonTone, fogBlur > 0 ? `blur(${fogBlur}px)` : ''].filter(f => f);
+                  return filters.join(' ').trim();
+                })(),
+                transition: 'filter 0.4s ease',
+              }}
             >
+              {/* 패럴랙스 능선 레이어 (원경/근경) — 전역 비활성화 */}
+              {/* 타원형 실루엣이 시각적 방해가 되어 비활성화. 향후 불릿 타입 배경으로 대체 가능 */}
+              {false && (
+                <ParallaxLayers
+                  farX={parallaxFarXRef.current}
+                  nearX={parallaxNearXRef.current}
+                  isNight={seasonEffects.isNight}
+                  season={seasonEffects.season}
+                />
+              )}
               {/* 기본 이펙트 렌더링 */}
               {seasonEffects.base === 'sun' && (
                 <div className="sky-object sun">☀️</div>
@@ -1175,6 +1286,27 @@ const Runner = () => {
                   ))}
                 </div>
               )}
+              {/* 비 스트릭 오버레이: 빠른 대각선 빗줄기 (강도는 속도에 연동) */}
+              {seasonEffects.extra === 'rain' && (
+                <div
+                  className="rain-streaks"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    pointerEvents: 'none',
+                    background:
+                      'repeating-linear-gradient(120deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 2px, rgba(255,255,255,0.0) 3px, rgba(255,255,255,0.0) 12px)',
+                    opacity: (() => {
+                      // 극강 날씨일 때 비 스트릭 강도 증가
+                      const baseOpacity = Math.min(0.45, 0.25 + Math.max(0, (gameSpeedRef.current - 1) * 0.06));
+                      const intensityMultiplier = seasonEffects.intensity === 'extreme' ? 2.5 : 
+                                                   seasonEffects.intensity === 'heavy' ? 1.6 : 1;
+                      return Math.min(0.95, baseOpacity * intensityMultiplier);
+                    })(),
+                    mixBlendMode: 'screen',
+                  }}
+                />
+              )}
               {seasonEffects.extra === 'clouds' && (
                 <div className="clouds-layer">
                   {commonElements.clouds.map((cloud) => (
@@ -1230,6 +1362,57 @@ const Runner = () => {
                 </div>
               )}
 
+              {/* 가시성 변화 오버레이 (안개/밤 페이드) */}
+              {/* 구름 시즌일 때 은은한 안개 */}
+              {(seasonEffects.base === 'clouds' || seasonEffects.extra === 'clouds') && (
+                <div
+                  className="fog-overlay"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    pointerEvents: 'none',
+                    // 균일한 얕은 화이트로 뿌연 느낌만 부여 (블러는 canvas filter로 처리)
+                    background: 'rgba(255,255,255,0.08)',
+                    // 상/하단 강도를 평균화한 단일 불투명도
+                    opacity: Math.min(
+                      0.55,
+                      Math.max(
+                        0.20,
+                        ((fogTopOpacityRef.current + fogGroundOpacityRef.current) * 0.65)
+                      )
+                    ),
+                    transition: 'opacity 0.3s ease',
+                  }}
+                />
+              )}
+              {/* 밤 페이드 오버레이 */}
+              {seasonEffects.isNight && (
+                <>
+                  {/* 전체 어둡게 페이드 */}
+                  <div
+                    className="night-overlay"
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      pointerEvents: 'none',
+                      background: `rgba(0,0,0,${nightFadeRef.current})`,
+                      transition: 'background 0.6s ease',
+                    }}
+                  />
+                  {/* 비네트: 가장자리 어둡게, 중앙 강조 */}
+                  <div
+                    className="vignette-overlay"
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      pointerEvents: 'none',
+                      background:
+                        'radial-gradient(circle at 50% 60%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.35) 100%)',
+                    }}
+                  />
+                </>
+              )}
+
               {/* 특수 이펙트 렌더링 (단독 연출) */}
               {seasonEffects.special === 'lightning' && (
                 <div className="effects-layer">
@@ -1276,6 +1459,7 @@ const Runner = () => {
                 runImage={f1RunImage}
                 ghosts={ghosts}
                 jumpCount={jumpCount}
+                terrainOffset={terrainOffsetRef.current}
               />
 
               {/* 장애물, 새, 코인 */}
@@ -1283,6 +1467,7 @@ const Runner = () => {
                 obstacles={obstacles}
                 birds={birds}
                 coins={coins}
+                terrainOffset={terrainOffsetRef.current}
               />
 
               {/* 바닥 */}
@@ -1294,6 +1479,7 @@ const Runner = () => {
                       0.6,
                       2 / Math.max(1, gameSpeed)
                     )}s`,
+                    transform: `translateY(${terrainOffsetRef.current}px)`,
                   }}
                 />
               </div>
