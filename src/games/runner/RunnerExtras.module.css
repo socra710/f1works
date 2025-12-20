@@ -91,9 +91,9 @@
   white-space: nowrap;
 }
 
-.score-list .coins {
-  font-size: 0.85rem;
-  opacity: 0.8;
+.score-list .coins-score {
+  font-size: 0.8rem;
+  /* opacity: 0.8; */
   white-space: nowrap;
 }
 

@@ -1817,7 +1817,7 @@ export default function Expense() {
                     </button>
                   </div> */}
                 </div>
-                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                <div>
                   <table className="expense-table">
                     <thead>
                       <tr>
@@ -2261,7 +2261,8 @@ export default function Expense() {
                             verticalAlign: 'middle',
                           }}
                         >
-                          {(status === 'DRAFT' || status === 'REJECTED') &&
+                          {((status === 'DRAFT' || status === 'REJECTED') ||
+                            (isManagerMode && status === 'SUBMITTED')) &&
                             !managerChecked && (
                               <button
                                 className="btn-delete"
@@ -2292,7 +2293,8 @@ export default function Expense() {
               </tbody>
             </table>
           </div>
-          {(status === 'DRAFT' || status === 'REJECTED') &&
+          {((status === 'DRAFT' || status === 'REJECTED') ||
+            (isManagerMode && status === 'SUBMITTED')) &&
             !(isManagerMode && !proxyMode && !isIdBasedQuery) && (
               <div
                 style={{
@@ -2315,7 +2317,7 @@ export default function Expense() {
                   className="btn-add-row"
                   style={{ background: '#007bff' }}
                 >
-                  ⛽ 유류비 항목 추가
+                  ⛽ 유류비 추가
                 </button>
                 <button
                   type="button"
@@ -2613,8 +2615,9 @@ export default function Expense() {
                                 }}
                               >
                                 {isManagerMode &&
-                                  (status === 'DRAFT' ||
-                                    status === 'REJECTED') &&
+                                  ((status === 'DRAFT' ||
+                                    status === 'REJECTED') ||
+                                    status === 'SUBMITTED') &&
                                   !managerChecked && (
                                     <button
                                       className="btn-delete"
@@ -2632,7 +2635,8 @@ export default function Expense() {
                 </div>
 
                 {isManagerMode &&
-                  (status === 'DRAFT' || status === 'REJECTED') &&
+                  ((status === 'DRAFT' || status === 'REJECTED') ||
+                    status === 'SUBMITTED') &&
                   !(isManagerMode && !proxyMode && !isIdBasedQuery) && (
                     <div style={{ marginTop: '0.5rem' }}>
                       <button
