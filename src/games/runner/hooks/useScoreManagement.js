@@ -1,38 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/com/api';
-const MAX_DAILY_SERVER_SAVES = 3;
 
 // 로컬 스토리지 유틸리티
-const getTodayString = () => {
-  const today = new Date();
-  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
-    2,
-    '0'
-  )}-${String(today.getDate()).padStart(2, '0')}`;
-};
-
-const getDailySaveInfo = () => {
-  const saved = localStorage.getItem('runnerDailySaves');
-  if (!saved) return { date: getTodayString(), count: 0 };
-
-  const data = JSON.parse(saved);
-  if (data.date !== getTodayString()) {
-    return { date: getTodayString(), count: 0 };
-  }
-  return data;
-};
-
-const setDailySaveInfo = (count) => {
-  localStorage.setItem(
-    'runnerDailySaves',
-    JSON.stringify({
-      date: getTodayString(),
-      count: count,
-    })
-  );
-};
-
 const savePlayerName = (name) => {
   localStorage.setItem('runnerPlayerName', name);
 };
@@ -47,16 +17,12 @@ export const useScoreManagement = () => {
   const [showNameModal, setShowNameModal] = useState(false);
   const [playerName, setPlayerName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [saveLimitMessage, setSaveLimitMessage] = useState('');
-  const [saveAttemptsLeft, setSaveAttemptsLeft] = useState(
-    MAX_DAILY_SERVER_SAVES
-  );
 
   // 순위 데이터 로드
   const fetchHighScores = useCallback(async () => {
     setIsLoadingScores(true);
     try {
-      const url = `${API_BASE_URL}/jvWorksGetRunnerScores?limit=8`;
+      const url = `${API_BASE_URL}/jvWorksGetRunnerScores?limit=10`;
       const res = await fetch(url, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -93,21 +59,6 @@ export const useScoreManagement = () => {
     }
   }, [fetchHighScores]);
 
-  // 모달 표시 시 남은 횟수 업데이트
-  useEffect(() => {
-    if (!showNameModal) return;
-    const info = getDailySaveInfo();
-    const remaining = Math.max(0, MAX_DAILY_SERVER_SAVES - info.count);
-    setSaveAttemptsLeft(remaining);
-    if (info.count >= MAX_DAILY_SERVER_SAVES) {
-      setSaveLimitMessage(
-        '아쉽지만 서버 점수 기록은 하루에 3번만 가능해요.<br />하지만 연습은 계속할 수 있어요!'
-      );
-    } else {
-      setSaveLimitMessage('');
-    }
-  }, [showNameModal]);
-
   // 서버에 점수 저장
   const saveScoreToServer = useCallback(
     async (name, score, coins, userId) => {
@@ -131,11 +82,6 @@ export const useScoreManagement = () => {
         }
         const data = await response.json();
         if (data && (data.success === true || data.success === 'true')) {
-          const info = getDailySaveInfo();
-          setDailySaveInfo(info.count + 1);
-          setSaveAttemptsLeft(
-            Math.max(0, MAX_DAILY_SERVER_SAVES - info.count - 1)
-          );
           await fetchHighScores();
           return { success: true };
         } else {
@@ -151,29 +97,30 @@ export const useScoreManagement = () => {
     [fetchHighScores]
   );
 
-  // 게임 종료 시 자동 코인/점수 기록 (일일 제한/모달과 무관하게 저장 시도)
-  const saveCoinsAuto = useCallback(async (name, score, coins, userId) => {
+  // 게임 종료 시 자동 점수/코인 저장 (모달 없이 바로 저장)
+  const saveScoreAuto = useCallback(async (name, score, coins, userId) => {
     try {
       const url = `${API_BASE_URL}/jvWorksSetRunnerScore`;
       await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: name || '',
+          name: name || 'Runner',
           score: score || 0,
           coins: coins || 0,
           date: new Date().toISOString(),
           userId: userId || '',
         }),
       });
-      // 성공/실패와 무관하게 모달 상태나 일일 제한은 건드리지 않음
+      // 자동 저장 후 순위표 재조회
+      await fetchHighScores();
     } catch (error) {
-      console.error('자동 코인 저장 실패:', error);
+      console.error('자동 점수 저장 실패:', error);
     }
-  }, []);
+  }, [fetchHighScores]);
 
   // 닉네임 저장 핸들러
-  const handleSaveName = async (name, score, coins, userId) => {
+  const handleSaveName = async (name, userId) => {
     if (!name || name.trim().length === 0) {
       alert('닉네임을 입력해주세요!');
       return;
@@ -183,27 +130,35 @@ export const useScoreManagement = () => {
       return;
     }
 
-    const info = getDailySaveInfo();
-    if (info.count >= MAX_DAILY_SERVER_SAVES) {
-      setSaveLimitMessage(
-        '아쉽지만 서버 점수 기록은 하루에 3번만 가능해요.<br />하지만 연습은 계속할 수 있어요!'
-      );
-      return;
+    savePlayerName(name.trim());
+    setPlayerName(name.trim());
+    
+    // 닉네임을 서버에도 업데이트 (코인뱅크 동기화)
+    try {
+      await fetch(`${API_BASE_URL}/jvWorksSetRunnerCoins`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userId || '',
+          coins: 0, // 코인은 변경하지 않음
+          highScore: 0, // 점수는 변경하지 않음
+          name: name.trim(),
+        }),
+      });
+      // 닉네임 저장 후 순위표 재조회
+      await fetchHighScores();
+    } catch (error) {
+      console.error('닉네임 업데이트 실패:', error);
     }
-
-    const result = await saveScoreToServer(name.trim(), score, coins, userId);
-    if (result.success) {
-      savePlayerName(name.trim());
-      // alert('점수가 저장되었습니다!');
-      setShowNameModal(false);
-    } else {
-      alert(`점수 저장에 실패했습니다: ${result.error}`);
-    }
+    
+    setShowNameModal(false);
   };
 
   // 모달 취소 핸들러
   const handleCancelModal = () => {
     setShowNameModal(false);
+    // 모달을 닫을 때 순위표 재조회
+    fetchHighScores();
   };
 
   return {
@@ -214,11 +169,9 @@ export const useScoreManagement = () => {
     playerName,
     setPlayerName,
     isSaving,
-    saveLimitMessage,
-    saveAttemptsLeft,
     handleSaveName,
     handleCancelModal,
     fetchHighScores,
-    saveCoinsAuto,
+    saveScoreAuto,
   };
 };

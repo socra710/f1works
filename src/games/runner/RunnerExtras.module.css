@@ -110,12 +110,13 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes fadeIn {
@@ -128,160 +129,285 @@
 }
 
 .modal-content {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20px;
-  padding: 30px;
-  max-width: 400px;
+  background: linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  border-radius: 24px;
+  padding: 40px 35px;
+  max-width: 420px;
   width: 90%;
   color: white;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-  animation: slideUp 0.3s ease;
-  position: relative; /* 컨페티 오버레이 기준 */
-  overflow: hidden;   /* 컨페티가 모달 바깥으로 넘치지 않도록 */
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+    0 0 100px rgba(102, 126, 234, 0.3);
+  animation: modalAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
 }
 
-@keyframes slideUp {
+.modal-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #667eea);
+  background-size: 200% 100%;
+  animation: gradientShift 3s linear infinite;
+}
+
+@keyframes modalAppear {
   from {
-    transform: translateY(50px);
+    transform: scale(0.8) translateY(40px);
     opacity: 0;
   }
   to {
-    transform: translateY(0);
+    transform: scale(1) translateY(0);
     opacity: 1;
   }
 }
 
-.modal-content h2 {
-  margin: 0 0 20px 0;
-  text-align: center;
-  font-size: 2rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  background: border-box;
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
 }
 
-.celebrate-banner {
+.trophy-icon {
   text-align: center;
+  font-size: 4rem;
+  margin-bottom: 15px;
+  animation: trophyBounce 0.8s ease-in-out infinite alternate;
+  filter: drop-shadow(0 5px 15px rgba(255, 215, 0, 0.6));
+}
+
+@keyframes trophyBounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-10px); }
+}
+
+.modal-title {
+  margin: 0 0 30px 0;
+  text-align: center;
+  font-size: 1.8rem;
   font-weight: 700;
-  color: #ffd700;
-  margin: 10px 0;
-  font-size: 1.2rem;
+  background: linear-gradient(135deg, #ffd700, #ffed4e, #ffd700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.5px;
 }
 
-.final-stats {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-  text-align: center;
+.stats-container {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
 }
 
-.final-stats p {
-  margin: 8px 0;
-  font-size: 1.1rem;
+.stat-item {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 18px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
-.final-stats strong {
-  color: #ffd700;
-  font-size: 1.3rem;
+.stat-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
-.new-record-text {
-  margin-top: 6px;
-  color: #ffd700;
-  font-weight: 600;
+.stat-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
-.save-info {
-  text-align: center;
-  margin-bottom: 20px;
-  color: rgba(255, 255, 255, 0.9);
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.save-info strong {
-  color: #ffd700;
-}
-
-.save-info small {
-  color: rgba(255, 255, 255, 0.7);
+.stat-label {
   font-size: 0.85rem;
-}
-
-.limit-message {
-  background: rgba(128, 128, 128, 0.3);
-  border: 2px solid rgba(128, 128, 128, 0.5);
-  padding: 15px;
-  border-radius: 10px;
-  text-align: center;
-  color: #b0b0b0;
+  color: rgba(255, 255, 255, 0.6);
   font-weight: 500;
-  font-size: 15px;
-  width: 366px;
+  letter-spacing: 0.3px;
 }
 
-.name-input-group {
-  margin-bottom: 20px;
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
 }
 
-.name-input-group input {
+.nickname-section {
+  margin-bottom: 25px;
+}
+
+.nickname-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 15px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.nickname-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.nickname-label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 8px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.nickname-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fff, #e0e0e0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.btn-edit {
   width: 100%;
-  padding: 12px 15px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.1);
+  padding: 14px 24px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
   color: white;
   font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-edit:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.name-input-wrapper {
+  margin-bottom: 15px;
+}
+
+.name-input {
+  width: 100%;
+  padding: 16px 20px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 500;
   transition: all 0.3s ease;
   box-sizing: border-box;
 }
 
-.name-input-group input:focus {
+.name-input:focus {
   outline: none;
-  border-color: #ffd700;
-  background: rgba(255, 255, 255, 0.15);
+  border-color: #667eea;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
 }
 
-.name-input-group input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+.name-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
 
-.modal-buttons {
+.edit-buttons {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
-.modal-buttons button {
+.edit-buttons button {
   flex: 1;
-  padding: 12px 20px;
+  padding: 14px 20px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 1rem;
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .btn-save {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
 .btn-save:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+  box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
 }
 
 .btn-save:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
+  transform: none;
 }
 
-.btn-cancel {
-  background: rgba(255, 255, 255, 0.2);
+.btn-cancel-edit {
+  background: rgba(255, 255, 255, 0.1);
   color: white;
+  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-.btn-cancel:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.3);
+.btn-cancel-edit:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-close {
+  width: 100%;
+  padding: 16px 24px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+}
+
+.btn-close:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(245, 87, 108, 0.6);
 }
 
 /* 모달 내 폭죽 이펙트 */

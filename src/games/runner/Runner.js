@@ -102,37 +102,6 @@ const Runner = () => {
   // userId 생성: 테트리스와 동일하게 sessionStorage 'extensionLogin'을 우선 사용
   const [userId, setUserId] = useState('');
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const sessionUser = window.sessionStorage.getItem('extensionLogin');
-      if (sessionUser) {
-        const decoded = atob(sessionUser);
-        setUserId(decoded);
-        localStorage.setItem('runnerUserId', decoded);
-        return;
-      }
-
-      let id = localStorage.getItem('runnerUserId');
-      if (!id) {
-        id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        localStorage.setItem('runnerUserId', id);
-      }
-      setUserId(id);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  // 특정 유저에게만 숨겨진 캐릭터 활성화
-  useEffect(() => {
-    if (userId && userId === 'user_1766141039009_ygdgjjqzh') {
-      // 중복 추가 방지
-      if (!CHARACTERS.some(char => char.id === 'monkey')) {
-        CHARACTERS.push({ id: 'monkey', name: '🐵', emoji: '🐵' });
-      }
-    }
-  }, [userId]);
-
   const gameLoopRef = useRef(null);
   const scoreIntervalRef = useRef(null);
   const obstacleIntervalRef = useRef(null);
@@ -168,12 +137,49 @@ const Runner = () => {
     playerName,
     setPlayerName,
     isSaving,
-    saveLimitMessage,
-    saveAttemptsLeft,
     handleSaveName,
     handleCancelModal,
-    saveCoinsAuto,
+    saveScoreAuto,
   } = useScoreManagement();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const sessionUser = window.sessionStorage.getItem('extensionLogin');
+      if (sessionUser) {
+        const decoded = atob(sessionUser);
+        setUserId(decoded);
+        localStorage.setItem('runnerUserId', decoded);
+        return;
+      }
+
+      let id = localStorage.getItem('runnerUserId');
+      if (!id) {
+        id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem('runnerUserId', id);
+      }
+      setUserId(id);
+      
+      // 초기 닉네임 설정: 없으면 Runner + 랜덤 숫자
+      let name = localStorage.getItem('runnerPlayerName');
+      if (!name) {
+        name = `Runner${Math.floor(Math.random() * 10000)}`;
+        localStorage.setItem('runnerPlayerName', name);
+        setPlayerName(name);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [setPlayerName]);
+
+  // 특정 유저에게만 숨겨진 캐릭터 활성화
+  useEffect(() => {
+    if (userId && userId === 'user_1766141039009_ygdgjjqzh') {
+      // 중복 추가 방지
+      if (!CHARACTERS.some(char => char.id === 'monkey')) {
+        CHARACTERS.push({ id: 'monkey', name: '🐵', emoji: '🐵' });
+      }
+    }
+  }, [userId]);
 
   const syncCoinBank = useCallback(
     async (uid, totalCoins, highScoreValue, nameForServer = '') => {
@@ -323,7 +329,7 @@ const Runner = () => {
   useEffect(() => {
     if (gameState !== 'gameOver') return;
     if (!userId) return;
-    const nameForServer = (playerName && playerName.trim()) || 'Runner' + Math.floor(Math.random() * 1000);
+    const nameForServer = (playerName && playerName.trim()) || `Runner${Math.floor(Math.random() * 10000)}`;
     syncCoinBank(userId, coinCount, highScore, nameForServer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState, userId, coinCount, highScore, syncCoinBank]);
@@ -868,6 +874,11 @@ const Runner = () => {
             setHighScore(score);
             localStorage.setItem('runnerHighScore', score.toString());
           }
+          // 자동으로 서버에 점수 저장
+          const currentName = playerName || 'Runner';
+          saveScoreAuto(currentName, score, sessionCoins, userId);
+          // 모달 표시
+          setShowNameModal(true);
           return;
         }
       }
@@ -892,6 +903,11 @@ const Runner = () => {
             setHighScore(score);
             localStorage.setItem('runnerHighScore', score.toString());
           }
+          // 자동으로 서버에 점수 저장
+          const currentName = playerName || 'Runner';
+          saveScoreAuto(currentName, score, sessionCoins, userId);
+          // 모달 표시
+          setShowNameModal(true);
           return;
         }
       }
@@ -929,7 +945,7 @@ const Runner = () => {
     };
 
     checkCollision();
-  }, [obstacles, birds, coins, playerY, gameState, score, highScore]);
+  }, [obstacles, birds, coins, playerY, gameState, score, highScore, playerName, sessionCoins, userId, saveScoreAuto, setShowNameModal]);
 
   return (
     <>
@@ -1330,15 +1346,12 @@ const Runner = () => {
           coins={sessionCoins}
           isNewRecord={isNewRecord}
           playerName={playerName}
-          setPlayerName={setPlayerName}
-          saveAttemptsLeft={saveAttemptsLeft}
-          saveLimitMessage={saveLimitMessage}
-          isSaving={isSaving}
-          onSave={() => {
-            handleSaveName(playerName, score, sessionCoins, userId);
-            setTimeout(() => setGameState('menu'), 500);
+          userId={userId}
+          onNameChange={(name, uid) => {
+            handleSaveName(name, uid);
+            setGameState('menu');
           }}
-          onCancel={() => {
+          onClose={() => {
             handleCancelModal();
             setGameState('menu');
           }}

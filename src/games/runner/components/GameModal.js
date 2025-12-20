@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styles from '../RunnerExtras.module.css';
 
 const GameModal = ({
@@ -7,32 +7,67 @@ const GameModal = ({
   coins,
   isNewRecord,
   playerName,
-  setPlayerName,
-  saveAttemptsLeft,
-  saveLimitMessage,
-  isSaving,
-  onSave,
-  onCancel,
+  userId,
+  onNameChange,
+  onClose,
 }) => {
+  const [editingName, setEditingName] = useState(false);
+  const [tempName, setTempName] = useState('');
+
   if (!showModal) return null;
+
+  const displayName = playerName || `Runner${Math.floor(Math.random() * 10000)}`;
+
+  const handleEditClick = () => {
+    setTempName(displayName);
+    setEditingName(true);
+  };
+
+  const handleSaveName = () => {
+    if (!tempName || tempName.trim().length === 0) {
+      alert('닉네임을 입력해주세요!');
+      return;
+    }
+    if (tempName.length > 20) {
+      alert('닉네임은 20자 이하로 입력해주세요!');
+      return;
+    }
+    onNameChange(tempName.trim(), userId);
+    setEditingName(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingName(false);
+    setTempName('');
+  };
 
   return (
     <div className={styles['modal-overlay']}>
       <div className={styles['modal-content']}>
-        <h2>게임 종료!</h2>
         {isNewRecord && (
-          <div className={styles['celebrate-banner']}>🎉 최고 기록 갱신! 🎉</div>
+          <div className={styles['trophy-icon']}>🏆</div>
         )}
-        <div className={styles['final-stats']}>
-          <p className={styles['final-score']}>
-            최종 점수: <strong>{score}</strong>
-          </p>
-          <p className={styles['final-coins']}>
-            획득 코인: <strong>💰 {coins}</strong>
-          </p>
-          {isNewRecord && (
-            <p className={styles['new-record-text']}>신기록입니다! 멋져요! 🎊</p>
-          )}
+        
+        <h2 className={styles['modal-title']}>
+          {isNewRecord ? '🎉 신기록 달성! 🎉' : '게임 종료'}
+        </h2>
+        
+        <div className={styles['stats-container']}>
+          <div className={styles['stat-item']}>
+            <div className={styles['stat-icon']}>⭐</div>
+            <div className={styles['stat-content']}>
+              <span className={styles['stat-label']}>최종 점수</span>
+              <span className={styles['stat-value']}>{score}</span>
+            </div>
+          </div>
+          
+          <div className={styles['stat-item']}>
+            <div className={styles['stat-icon']}>💰</div>
+            <div className={styles['stat-content']}>
+              <span className={styles['stat-label']}>획득 코인</span>
+              <span className={styles['stat-value']}>{coins}</span>
+            </div>
+          </div>
         </div>
 
         {isNewRecord && (
@@ -92,57 +127,61 @@ const GameModal = ({
           </div>
         )}
 
-        {saveLimitMessage ? (
-          <>
-            <p
-              className={styles['limit-message']}
-              dangerouslySetInnerHTML={{ __html: saveLimitMessage }}
-            />
-            <div className={styles['modal-buttons']}>
-              <button onClick={onCancel} className={styles['btn-cancel']}>
-                닫기
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <p className={styles['save-info']}>
-              오늘 남은 서버 점수 기록: <strong>{saveAttemptsLeft}회</strong>
-              <br />
-              <small>연습은 무제한으로 가능해요!</small>
-            </p>
-            <div className={styles['name-input-group']}>
-              <input
-                type="text"
-                placeholder="닉네임 입력 (최대 20자)"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                maxLength={20}
-                disabled={isSaving}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && !isSaving) {
-                    onSave();
-                  }
-                }}
-              />
-            </div>
-            <div className={styles['modal-buttons']}>
-              <button
-                onClick={onSave}
-                disabled={isSaving || !playerName.trim()}
-                className={styles['btn-save']}
+        <div className={styles['nickname-section']}>
+          {!editingName ? (
+            <>
+              <div className={styles['nickname-card']}>
+                <div className={styles['nickname-label']}>플레이어</div>
+                <div className={styles['nickname-value']}>{displayName}</div>
+              </div>
+              <button 
+                onClick={handleEditClick} 
+                className={styles['btn-edit']}
               >
-                {isSaving ? '저장 중...' : '점수 저장'}
+                <span>✏️</span> 닉네임 변경
               </button>
-              <button
-                onClick={onCancel}
-                disabled={isSaving}
-                className={styles['btn-cancel']}
-              >
-                닫기
-              </button>
-            </div>
-          </>
+            </>
+          ) : (
+            <>
+              <div className={styles['name-input-wrapper']}>
+                <input
+                  type="text"
+                  placeholder="새로운 닉네임 (최대 20자)"
+                  value={tempName}
+                  onChange={(e) => setTempName(e.target.value)}
+                  maxLength={20}
+                  className={styles['name-input']}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSaveName();
+                    }
+                  }}
+                  autoFocus
+                />
+              </div>
+              <div className={styles['edit-buttons']}>
+                <button
+                  onClick={handleSaveName}
+                  disabled={!tempName.trim()}
+                  className={styles['btn-save']}
+                >
+                  ✓ 저장
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  className={styles['btn-cancel-edit']}
+                >
+                  ✕ 취소
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {!editingName && (
+          <button onClick={onClose} className={styles['btn-close']}>
+            확인
+          </button>
         )}
       </div>
     </div>
