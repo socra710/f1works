@@ -685,16 +685,20 @@ const Runner = () => {
       };
       setObstacles((prev) => [...prev, newObstacle]);
 
-      // 장애물 위 코인 스폰 (랜덤): 30% 확률로 1개 또는 2개 생성
+      // 장애물 위 코인 스폰 (랜덤): 30% 확률로 1~3개 생성
       const shouldSpawnCoins = Math.random() < 0.3;
       if (shouldSpawnCoins) {
         const coinsToSpawn = [];
         const baseHeight = newObstacle.height; // 지면 기준 높이
-        const count = Math.random() < 0.5 ? 1 : 2; // 1개 또는 2개 랜덤
+        
+        // 1~3개 중 랜덤 개수 (가중치: 1개 30%, 2개 50%, 3개 20%)
+        const rand = Math.random();
+        const count = rand < 0.3 ? 1 : rand < 0.8 ? 2 : 3;
 
         // 큰 코인 생성 확률 (10%) - 각 코인마다 독립적으로 체크하되 한 번에 1개만
-        const isSingleBig = Math.random() < 0.1;
-        const isDoubleBig = isSingleBig ? false : Math.random() < 0.1; // 첫 번째가 큰 코인이면 두 번째는 일반
+        const isSingleBig = Math.random() < 0.10;
+        const isDoubleBig = isSingleBig ? false : Math.random() < 0.10;
+        const isTripleBig = (isSingleBig || isDoubleBig) ? false : Math.random() < 0.10;
 
         // 코인 위치 프리셋
         const singleCoin = {
@@ -719,13 +723,28 @@ const Runner = () => {
           emoji: isDoubleBig ? '💎' : '💰',
           value: isDoubleBig ? 5 : 1,
         };
+        const tripleCoin = {
+          id: Date.now() + Math.random() * 2,
+          x: newObstacle.x + 140 + Math.random() * 80,
+          y: baseHeight + (100 + Math.random() * 50), // 중간 높이
+          size: isTripleBig ? 34 : 26,
+          type: 'triple',
+          speed: 1.2,
+          obstacleId: newObstacle.id,
+          emoji: isTripleBig ? '💎' : '💰',
+          value: isTripleBig ? 5 : 1,
+        };
 
         if (count === 1) {
-          // 하나만 생성: 싱글/더블 중 랜덤
-          coinsToSpawn.push(Math.random() < 0.5 ? singleCoin : doubleCoin);
-        } else {
-          // 두 개 모두 생성
+          // 하나만 생성: 싱글/더블/트리플 중 랜덤
+          const choice = Math.random();
+          coinsToSpawn.push(choice < 0.4 ? singleCoin : choice < 0.7 ? doubleCoin : tripleCoin);
+        } else if (count === 2) {
+          // 두 개 생성
           coinsToSpawn.push(singleCoin, doubleCoin);
+        } else {
+          // 세 개 모두 생성
+          coinsToSpawn.push(singleCoin, doubleCoin, tripleCoin);
         }
 
         setCoins((prev) => [...prev, ...coinsToSpawn]);
@@ -1883,7 +1902,6 @@ const Runner = () => {
               >
                 <ins
                   className="kakao_ad_area"
-                  style={{ display: 'none' }}
                   data-ad-unit="DAN-IMNTXI7IePMvzVan"
                   data-ad-width="728"
                   data-ad-height="90"
