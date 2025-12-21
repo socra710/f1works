@@ -368,6 +368,31 @@ const Runner = () => {
     return getSeasonEffects(seasonIndex, SEASONS);
   }, [seasonIndex]);
 
+  // 시즌 전환 시 전체 배경도 살짝 달라지도록 테마 색상 지정
+  const runnerBackground = useMemo(() => {
+    const palettes = {
+      spring: {
+        day: 'linear-gradient(135deg, #ffe7f0 0%, #b5f5ec 45%, #d3ffce 100%)',
+        night: 'linear-gradient(135deg, #0f1c3a 0%, #1f3d63 55%, #214230 100%)',
+      },
+      summer: {
+        day: 'linear-gradient(135deg, #4ac1ff 0%, #ffd66b 50%, #7dd56f 100%)',
+        night: 'linear-gradient(135deg, #0b1f33 0%, #12354f 55%, #1e5a35 100%)',
+      },
+      autumn: {
+        day: 'linear-gradient(135deg, #ffb38a 0%, #ff8c42 50%, #d86b35 100%)',
+        night: 'linear-gradient(135deg, #2b0f0f 0%, #3c1f16 55%, #2f261c 100%)',
+      },
+      winter: {
+        day: 'linear-gradient(135deg, #d7e8ff 0%, #b8c6ff 48%, #edf4ff 100%)',
+        night: 'linear-gradient(135deg, #0d1c2e 0%, #1d3047 55%, #cedaf0 100%)',
+      },
+    };
+
+    const palette = palettes[seasonEffects.season] || palettes.spring;
+    return palette[seasonEffects.isNight ? 'night' : 'day'];
+  }, [seasonEffects.isNight, seasonEffects.season]);
+
   // 로컬 스토리지에서 최고 점수 불러오기
   useEffect(() => {
     const savedHighScore = localStorage.getItem('runnerHighScore');
@@ -1409,7 +1434,11 @@ const Runner = () => {
         />
       </Helmet>
 
-      <div ref={containerRef} className={styles['runner-game']}>
+      <div
+        ref={containerRef}
+        className={styles['runner-game']}
+        style={{ background: runnerBackground, transition: 'background 0.8s ease' }}
+      >
         <div className={styles['runner-header']}>
           <div className={styles['runner-toolbar']}>
             <div className={styles['brand']}>🏃 러너 게임</div>
@@ -1524,10 +1553,12 @@ const Runner = () => {
                   let nightFilter = 'none';
                   if (seasonEffects.isNight) {
                     const isAutumnNight = seasonEffects.season === 'autumn';
-                    // 가을 밤에는 brightness 감소를 0.12로 줄임 (기본 0.18), spring/summer는 더 어두움
-                    const brightnessFactor = isAutumnNight ? 0.12 : 0.18;
-                    const contrastFactor = isAutumnNight ? 0.08 : 0.12;
-                    nightFilter = `saturate(${0.88}) brightness(${(0.86 - nightFadeRef.current * brightnessFactor).toFixed(3)}) contrast(${(1.08 + nightFadeRef.current * contrastFactor).toFixed(3)})`;
+                    // 가을 밤에는 단풍이 보이도록 더 밝고 채도 유지
+                    const brightnessFactor = isAutumnNight ? 0.06 : 0.18;
+                    const contrastFactor = isAutumnNight ? 0.05 : 0.12;
+                    const baseBrightness = isAutumnNight ? 0.94 : 0.86;
+                    const baseSaturate = isAutumnNight ? 0.98 : 0.88;
+                    nightFilter = `saturate(${baseSaturate}) brightness(${(baseBrightness - nightFadeRef.current * brightnessFactor).toFixed(3)}) contrast(${(1.05 + nightFadeRef.current * contrastFactor).toFixed(3)})`;
                   }
                   
                   // 시즌별 톤 필터 (극강 날씨 시 강화)
@@ -1734,11 +1765,15 @@ const Runner = () => {
                       style={{
                         left: star.left,
                         top: star.top,
+                        width: `${star.size}px`,
+                        height: `${star.size}px`,
+                        opacity: star.opacity,
                         animationDelay: star.delay,
+                        animationDuration: star.twinkleDuration,
+                        filter: `blur(${star.blur}px)`,
+                        boxShadow: `0 0 ${Math.max(1.5, star.size * 1.6)}px rgba(255,255,255,${Math.min(1, star.opacity + 0.35)})`,
                       }}
-                    >
-                      ⭐
-                    </span>
+                    />
                   ))}
                 </div>
               )}

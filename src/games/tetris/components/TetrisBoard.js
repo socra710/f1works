@@ -1,7 +1,7 @@
 import React from 'react';
 import { BLOCK_SIZE, COLS, ROWS } from '../utils/constants';
 
-const TetrisBoard = ({ canvasRef, board, currentPiece, bloodParticles }) => {
+const TetrisBoard = ({ canvasRef, board, currentPiece, bloodParticles, colorMap = {} }) => {
   const drawBoard = React.useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -17,7 +17,7 @@ const TetrisBoard = ({ canvasRef, board, currentPiece, bloodParticles }) => {
         for (let x = 0; x < COLS; x++) {
           const cell = board[y] && board[y][x];
           if (cell) {
-            ctx.fillStyle = cell;
+            ctx.fillStyle = colorMap[cell] || cell;
             ctx.fillRect(
               x * BLOCK_SIZE,
               y * BLOCK_SIZE,
@@ -38,7 +38,7 @@ const TetrisBoard = ({ canvasRef, board, currentPiece, bloodParticles }) => {
 
     // Draw current piece
     if (currentPiece && currentPiece.shape) {
-      ctx.fillStyle = currentPiece.color;
+      ctx.fillStyle = colorMap[currentPiece.color] || currentPiece.color;
       for (let y = 0; y < currentPiece.shape.length; y++) {
         for (let x = 0; x < currentPiece.shape[y].length; x++) {
           if (currentPiece.shape[y] && currentPiece.shape[y][x]) {

@@ -22,7 +22,7 @@ const ScoreBoard = ({ highScores, isLoadingScores }) => {
         <div className="panel-title">순위</div>
         {isLoadingScores ? (
           <div className="skeleton-loader">
-            {[...Array(7)].map((_, idx) => (
+            {[...Array(10)].map((_, idx) => (
               <div key={idx} className="skeleton-score-row">
                 <span className="skeleton-rank"></span>
                 <span className="skeleton-name"></span>

@@ -1,6 +1,6 @@
 // 게임 상수
 export const COLS = 10;
-export const ROWS = 21;
+export const ROWS = 22;
 export const BLOCK_SIZE = 35;
 
 // API 설정

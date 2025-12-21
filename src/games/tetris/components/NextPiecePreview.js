@@ -5,7 +5,7 @@ import {
   PREVIEW_CANVAS_HEIGHT,
 } from '../utils/constants';
 
-const NextPiecePreview = ({ canvasRef, nextPiece }) => {
+const NextPiecePreview = ({ canvasRef, nextPiece, colorMap = {} }) => {
   const drawNextPiece = React.useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas || !nextPiece || !nextPiece.shape) return;
@@ -40,7 +40,7 @@ const NextPiecePreview = ({ canvasRef, nextPiece }) => {
     const offsetY = (canvas.height - pieceHeight) / 2 - minY * previewBlockSize;
 
     // 블록 그리기
-    ctx.fillStyle = nextPiece.color;
+    ctx.fillStyle = colorMap[nextPiece.color] || nextPiece.color;
     for (let y = 0; y < shape.length; y++) {
       for (let x = 0; x < shape[y].length; x++) {
         if (shape[y] && shape[y][x]) {

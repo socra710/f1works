@@ -21,11 +21,15 @@ export const useCommonElements = () => {
         emoji: cloudTypes[Math.floor(Math.random() * cloudTypes.length)],
         };
       }),
-      stars: Array.from({ length: 10 }).map((_, i) => ({
+      stars: Array.from({ length: 32 }).map((_, i) => ({
         id: `star-${i}`,
         left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 30}%`,
-        delay: `${Math.random() * 3}s`,
+        top: `${Math.random() * 35}%`,
+        delay: `${Math.random() * 4}s`,
+        size: 1.2 + Math.random() * 2.4, // 1.2px ~ 3.6px
+        opacity: 0.35 + Math.random() * 0.55, // 0.35 ~ 0.9
+        blur: Math.random() * 1.5,
+        twinkleDuration: `${2.4 + Math.random() * 2.6}s`,
       })),
       rain: Array.from({ length: 30 }).map((_, i) => ({
         id: `rain-${i}`,
