@@ -25,6 +25,7 @@ const PlayerCharacter = ({
   runImage,
   jumpCount,
   terrainOffset = 0,
+  shieldActive = false,
 }) => {
   const playerSize = PLAYER_SIZE * scaleFactor;
   const isImage = selectedCharacter.image;
@@ -147,6 +148,46 @@ const PlayerCharacter = ({
         )
       )}
 
+      {/* 실드 효과 */}
+      {shieldActive && (
+        <>
+          {/* 외부 파란색 고리 (큰 원) */}
+          <div
+            className="shield-effect-outer"
+            style={{
+              position: 'absolute',
+              left: `${105 - 15}px`,
+              bottom: `${GROUND_HEIGHT + playerY + bobOffset + terrainOffset - 20}px`,
+              width: `${playerSize + 30}px`,
+              height: `${playerSize + 30}px`,
+              border: '2px solid rgba(100, 200, 255, 0.4)',
+              borderRadius: '50%',
+              animation: 'shield-pulse-outer 2s infinite ease-in-out',
+              pointerEvents: 'none',
+              zIndex: 8,
+            }}
+          />
+          
+          {/* 중앙 고리 (빛나는 효과) */}
+          <div
+            className="shield-effect"
+            style={{
+              position: 'absolute',
+              left: `${105 - 10}px`,
+              bottom: `${GROUND_HEIGHT + playerY + bobOffset + terrainOffset - 15}px`,
+              width: `${playerSize + 20}px`,
+              height: `${playerSize + 20}px`,
+              border: '3px solid rgba(100, 220, 255, 0.9)',
+              borderRadius: '50%',
+              boxShadow: '0 0 15px rgba(100, 220, 255, 0.8), 0 0 30px rgba(100, 200, 255, 0.5), inset 0 0 15px rgba(150, 230, 255, 0.4)',
+              animation: 'shield-pulse 1.5s infinite ease-in-out',
+              pointerEvents: 'none',
+              zIndex: 9,
+            }}
+          />
+        </>
+      )}
+      
       {/* 플레이어 */}
       {isImage ? (
         <img
