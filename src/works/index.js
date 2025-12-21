@@ -171,7 +171,7 @@ export default function Works() {
         isNew: true,
       },
       {
-        title: 'Wordle 게임',
+        title: '오늘의 단어',
         description: '영어 단어 퍼즐 게임으로 짧은 휴식을 즐겨보세요',
         icon: '🎮',
         path: '/games/wordle',
@@ -182,6 +182,14 @@ export default function Works() {
         description: '블록을 쌓아 라인을 지우는 클래식 게임',
         icon: '🎮',
         path: '/games/tetris',
+        category: '게임',
+        isNew: true,
+      },
+      {
+        title: '러너',
+        description: '장애물을 피하며 달리는 러너 게임',
+        icon: '🎮',
+        path: '/games/runner',
         category: '게임',
         isNew: true,
       },
@@ -246,9 +254,9 @@ export default function Works() {
     },
     {
       date: '2025.12.13',
-      title: '테트리스 게임 기능 출시',
+      title: '신규 게임 2종 출시',
       description:
-        '블록을 쌓아 라인을 지우는 클래식 게임으로 짧은 휴식을 즐겨보세요',
+        '테트리스와 러너 게임이 새롭게 추가되어 짧은 휴식을 즐기실 수 있습니다.',
     },
     {
       date: '2025.12.11',

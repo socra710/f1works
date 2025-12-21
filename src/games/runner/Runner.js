@@ -12,6 +12,7 @@ import extraStyles from './RunnerExtras.module.css';
 // 컴포넌트
 // import BackgroundEffects from './components/BackgroundEffects';
 import PlayerCharacter from './components/PlayerCharacter';
+import ParallaxLayers from './components/ParallaxLayers';
 import GameObstacles from './components/GameObstacles';
 import ParticleEffects from './components/ParticleEffects';
 import ScoreBoard from './components/ScoreBoard';
@@ -50,17 +51,18 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/com/api';
 
 // 장애물 종류
 const OBSTACLE_TYPES = [
-  { id: ' ', emoji: '💣', height: 50, width: 30 },
-  
+  { id: 'boom', emoji: '💣', height: 50, width: 30 },
   { id: 'cactus', emoji: '🌵', height: 80, width: 35 },
   { id: 'tree', emoji: '🌲', height: 90, width: 35 },
   { id: 'fire', emoji: '🔥', height: 55, width: 30 },
   { id: 'cone', emoji: '🚧', height: 45, width: 35 },
   { id: 'barrel', emoji: '🛢️', height: 60, width: 30 },
   { id: 'bush', emoji: '🌿', height: 50, width: 30 },
-  { id: 'rock2', emoji: '🪨', height: 40, width: 28 },
+  { id: 'rock', emoji: '🪨', height: 40, width: 28 },
   { id: 'bomb', emoji: '💥', height: 45, width: 32 },
   { id: 'wall', emoji: '🧱', height: 70, width: 40 },
+  { id: 'spikes', emoji: '🦔', height: 35, width: 30 },
+  { id: 'log', emoji: '🪵', height: 55, width: 45 },
 ];
 
 // 캐릭터 목록
@@ -98,6 +100,11 @@ const Runner = () => {
   const [sessionCoins, setSessionCoins] = useState(0); // 현재 게임에서 획득한 코인
   const [hasLoadedServerCoins, setHasLoadedServerCoins] = useState(false);
   const [isNewRecord, setIsNewRecord] = useState(false);
+  
+  // 파워업 아이템 관련 상태
+  const [powerUps, setPowerUps] = useState([]); // 게임 화면에 존재하는 파워업들
+  const [activePowerUp, setActivePowerUp] = useState(null); // {type, endTime}
+  const [shieldActive, setShieldActive] = useState(false); // 실드 활성화 여부
 
   // userId 생성: 테트리스와 동일하게 sessionStorage 'extensionLogin'을 우선 사용
   const [userId, setUserId] = useState('');
@@ -124,6 +131,29 @@ const Runner = () => {
   const gameSpeedRef = useRef(BASE_GAME_SPEED);
   // 시즌 이펙트 ref (부엉이/독수리 표시용)
   const seasonEffectsRef = useRef({ isNight: false });
+  // 지형(카메라) 시야 연출용 오프셋
+  const terrainPhaseRef = useRef(0);
+  const terrainOffsetRef = useRef(0);
+  // 밤 페이드 오버레이 강도
+  const nightFadeRef = useRef(0);
+  // 안개 강도/블러 동적 제어
+  const fogTopOpacityRef = useRef(0);
+  const fogGroundOpacityRef = useRef(0);
+  const fogTopBlurRef = useRef(0);
+  const fogGroundBlurRef = useRef(0);
+  // 패럴랙스 X 위치
+  const parallaxFarXRef = useRef(0);
+  const parallaxNearXRef = useRef(0);
+
+  // 파워업 효과 타이밍 추적 (게임 시간 기반)
+  const powerUpEndTimeRef = useRef(0); // 현재 파워업 효과의 끝시간 (ms)
+  const magnetActiveDurationRef = useRef(0); // 자석 남은 시간
+  const slowMoActiveDurationRef = useRef(0); // 슬로모션 남은 시간
+  const tripleJumpCountRef = useRef(0); // 트리플 점프 남은 횟수 (0이 아니면 활성)
+  // 슬로모션(속도고정)용: 발동 시점의 속도 저장
+  const slowFreezeSpeedRef = useRef(null);
+  // 실드 피격 후 잠시 무적 시간
+  const invincibleUntilRef = useRef(0);
 
   // 훅으로 공통 엘리먼트 가져오기
   const commonElements = useCommonElements();
@@ -334,7 +364,7 @@ const Runner = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState, userId, coinCount, highScore, syncCoinBank]);
 
-  // 점수에 따라 속도를 부드럽게 증가
+  // 점수에 따라 속도를 부드럽게 증가 (슬로우=속도 고정 적용)
   useEffect(() => {
     if (gameState !== 'playing') return;
 
@@ -346,7 +376,16 @@ const Runner = () => {
         const cappedTargetSpeed = Math.min(targetSpeed, maxSpeed);
         
         // 부드러운 전환: 목표 속도에 천천히 접근
-        const newSpeed = prevSpeed + (cappedTargetSpeed - prevSpeed) * SPEED_INCREASE_SMOOTHNESS;
+        let newSpeed = prevSpeed + (cappedTargetSpeed - prevSpeed) * SPEED_INCREASE_SMOOTHNESS;
+        
+        // 슬로우(속도 고정): 발동 순간의 속도로 잠시 고정
+        if (slowMoActiveDurationRef.current > 0) {
+          if (slowFreezeSpeedRef.current == null) {
+            slowFreezeSpeedRef.current = prevSpeed;
+          }
+          newSpeed = slowFreezeSpeedRef.current;
+        }
+        
         return newSpeed;
       });
     }, 50); // 50ms마다 속도 업데이트
@@ -359,9 +398,45 @@ const Runner = () => {
     gameSpeedRef.current = gameSpeed;
   }, [gameSpeed]);
 
+  // Kakao 광고 스크립트 로드 (중복 로드 무방)
+  useEffect(() => {
+    setTimeout(() => {
+      const script = document.createElement('script');
+      script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }, 500);
+  }, []);
+
+  // 게임 시작 시 광고 렌더링 시도 (스크립트가 먼저 로드된 경우 대비)
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+    const tryRender = () => {
+      if (window.adfit) {
+        try {
+          const adEls = document.querySelectorAll('.kakao_ad_area');
+          adEls.forEach((el) => {
+            try {
+              window.adfit.render(el);
+            } catch (e) {
+              // ignore per-element render errors
+            }
+          });
+        } catch (e) {
+          // ignore
+        }
+      } else {
+        setTimeout(tryRender, 200);
+      }
+    };
+    tryRender();
+  }, [gameState]);
+
   // seasonEffects 변화를 ref에 동기화 (부엉이/독수리 표시용)
   useEffect(() => {
     seasonEffectsRef.current = seasonEffects;
+    // 밤/낮 변경 시 페이드 목표치 업데이트 (좀 더 강하게)
+    nightFadeRef.current = seasonEffects.isNight ? 0.75 : 0; // 0~0.8 권장
   }, [seasonEffects]);
 
   // 캐릭터 선택
@@ -383,6 +458,12 @@ const Runner = () => {
     setMotionBlurs([]);
     setJumpDusts([]);
     setCoins([]);
+    setPowerUps([]); // 파워업 초기화
+    setActivePowerUp(null); // 활성 파워업 초기화
+    setShieldActive(false); // 실드 초기화
+    magnetActiveDurationRef.current = 0;
+    slowMoActiveDurationRef.current = 0;
+    tripleJumpCountRef.current = 0;
     setJumpCount(0);
     setGameSpeed(BASE_GAME_SPEED);
     setSeasonIndex(Math.floor(Math.random() * SEASONS.length));
@@ -392,11 +473,19 @@ const Runner = () => {
     setIsNewRecord(false);
   };
 
-  // 점프 (더블 점프 가능)
+  // 점프 (더블 점프 + 트리플 점프 파워업 가능)
   const jump = useCallback(() => {
-    if (gameState === 'playing' && jumpCount < 2) {
+    // 트리플 점프 활성이면 최대 3회, 아니면 2회
+    const maxJumps = tripleJumpCountRef.current > 0 ? 3 : 2;
+    
+    if (gameState === 'playing' && jumpCount < maxJumps) {
+      const willUseTriple = tripleJumpCountRef.current > 0 && jumpCount === 2;
       playerVelocityRef.current = Math.abs(JUMP_STRENGTH); // 위로 점프
       setJumpCount((prev) => prev + 1);
+      // 세 번째 점프 사용 시(트리플 소모)
+      if (willUseTriple) {
+        tripleJumpCountRef.current = 0;
+      }
       playJumpSound(); // 점프 효과음 재생
 
       // 점프 시 모션 블러 생성 (랜덤 위치)
@@ -569,8 +658,23 @@ const Runner = () => {
         randomType = OBSTACLE_TYPES[Math.floor(Math.random() * OBSTACLE_TYPES.length)];
       }
       
-      // 장애물 크기에 더 큰 변형 (70%~130%)
-      const sizeVariation = 0.7 + Math.random() * 0.6;
+      // 장애물 크기 변형 확률 조정
+      // 점수(난이도)에 따라 극단값(작게/크게) 비율을 서서히 늘림
+      const extremeWeight = 0.15 + 0.35 * difficultyFactor; // 15% → 최대 50%
+      const moderateWeight = 0.25 + 0.15 * difficultyFactor; // 25% → 최대 40%
+      const commonWeight = Math.max(0, 1 - extremeWeight - moderateWeight);
+      const rSize = Math.random();
+      let sizeVariation;
+      if (rSize < commonWeight) {
+        // 보통: 거의 기본 크기 (0.95 ~ 1.05)
+        sizeVariation = 0.95 + Math.random() * 0.10;
+      } else if (rSize < commonWeight + moderateWeight) {
+        // 중간: 약간 변형 (0.85 ~ 1.15)
+        sizeVariation = 0.85 + Math.random() * 0.30;
+      } else {
+        // 극단: 크게 변형 (0.70 ~ 1.30)
+        sizeVariation = 0.70 + Math.random() * 0.60;
+      }
       
       const newObstacle = {
         id: Date.now(),
@@ -581,44 +685,98 @@ const Runner = () => {
       };
       setObstacles((prev) => [...prev, newObstacle]);
 
-      // 장애물 위 코인 스폰 (랜덤): 10% 확률로 1개 또는 2개 생성
-      const shouldSpawnCoins = Math.random() < 0.1;
+      // 장애물 위 코인 스폰 (랜덤): 30% 확률로 1~3개 생성
+      const shouldSpawnCoins = Math.random() < 0.3;
       if (shouldSpawnCoins) {
         const coinsToSpawn = [];
         const baseHeight = newObstacle.height; // 지면 기준 높이
-        const count = Math.random() < 0.5 ? 1 : 2; // 1개 또는 2개 랜덤
+        
+        // 1~3개 중 랜덤 개수 (가중치: 1개 30%, 2개 50%, 3개 20%)
+        const rand = Math.random();
+        const count = rand < 0.3 ? 1 : rand < 0.8 ? 2 : 3;
+
+        // 큰 코인 생성 확률 (10%) - 각 코인마다 독립적으로 체크하되 한 번에 1개만
+        const isSingleBig = Math.random() < 0.10;
+        const isDoubleBig = isSingleBig ? false : Math.random() < 0.10;
+        const isTripleBig = (isSingleBig || isDoubleBig) ? false : Math.random() < 0.10;
 
         // 코인 위치 프리셋
         const singleCoin = {
           id: Date.now() + Math.random(),
           x: newObstacle.x + 10 + Math.random() * 60,
           y: baseHeight + (60 + Math.random() * 30), // 싱글 점프 높이
-          size: 26,
+          size: isSingleBig ? 34 : 26,
           type: 'single',
           speed: 1.2,
           obstacleId: newObstacle.id,
-          emoji: '💰',
+          emoji: isSingleBig ? '💎' : '💰',
+          value: isSingleBig ? 5 : 1,
         };
         const doubleCoin = {
           id: Date.now() + Math.random(),
           x: newObstacle.x + 60 + Math.random() * 80,
           y: baseHeight + (140 + Math.random() * 40), // 더블 점프 높이
-          size: 26,
+          size: isDoubleBig ? 34 : 26,
           type: 'double',
           speed: 1.2,
           obstacleId: newObstacle.id,
-          emoji: '💰',
+          emoji: isDoubleBig ? '💎' : '💰',
+          value: isDoubleBig ? 5 : 1,
+        };
+        const tripleCoin = {
+          id: Date.now() + Math.random() * 2,
+          x: newObstacle.x + 140 + Math.random() * 80,
+          y: baseHeight + (100 + Math.random() * 50), // 중간 높이
+          size: isTripleBig ? 34 : 26,
+          type: 'triple',
+          speed: 1.2,
+          obstacleId: newObstacle.id,
+          emoji: isTripleBig ? '💎' : '💰',
+          value: isTripleBig ? 5 : 1,
         };
 
         if (count === 1) {
-          // 하나만 생성: 싱글/더블 중 랜덤
-          coinsToSpawn.push(Math.random() < 0.5 ? singleCoin : doubleCoin);
-        } else {
-          // 두 개 모두 생성
+          // 하나만 생성: 싱글/더블/트리플 중 랜덤
+          const choice = Math.random();
+          coinsToSpawn.push(choice < 0.4 ? singleCoin : choice < 0.7 ? doubleCoin : tripleCoin);
+        } else if (count === 2) {
+          // 두 개 생성
           coinsToSpawn.push(singleCoin, doubleCoin);
+        } else {
+          // 세 개 모두 생성
+          coinsToSpawn.push(singleCoin, doubleCoin, tripleCoin);
         }
 
         setCoins((prev) => [...prev, ...coinsToSpawn]);
+      }
+
+      // 파워업 아이템 스폰: 장애물 우측에 1개만 생성
+      const shouldSpawnPowerUp = Math.random() < 0.05; // 5% 확률
+      if (shouldSpawnPowerUp) {
+        const baseHeight = newObstacle.height;
+        const powerUpTypes = ['magnet', 'shield', 'slowmo', 'triplejump'];
+        const powerUpEmojis = {
+          magnet: '🧲',
+          shield: '🛡️',
+          slowmo: '⏱️',
+          triplejump: '⬆️',
+        };
+        // 싱글/더블 점프 높이 중 랜덤으로 생성 (우측에 보이도록)
+        const isDouble = Math.random() < 0.5;
+        const spawnY = isDouble
+          ? baseHeight + (140 + Math.random() * 40) // 더블 점프 높이
+          : baseHeight + (60 + Math.random() * 30); // 싱글 점프 높이
+        const newPowerUp = {
+          id: Date.now() + Math.random(),
+          x: newObstacle.x + 60 + Math.random() * 80, // 우측 x=860~940
+          y: spawnY,
+          type: powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)],
+          size: 32,
+          speed: 1.2,
+        };
+        newPowerUp.emoji = powerUpEmojis[newPowerUp.type];
+
+        setPowerUps((prev) => [...prev, newPowerUp]);
       }
 
       // 속도에 비례하여 간격 조정 (난이도 밸런스 유지)
@@ -716,7 +874,46 @@ const Runner = () => {
         bobOffsetRef.current = 0;
       }
 
-      // 러너 잔상 업데이트: 최근 위치 4개 유지
+      // 지형(카메라) 오프셋: 속도에 비례한 부드러운 웨이브
+      const terrainFreq = 0.4 + Math.min(1.2, gameSpeedRef.current * 0.05);
+      const terrainAmp = 12; // 8~18 권장
+      terrainPhaseRef.current += dt * terrainFreq;
+      terrainOffsetRef.current = Math.sin(terrainPhaseRef.current) * terrainAmp;
+
+      // 패럴랙스: 속도에 비례해 좌우 이동 (좌측으로 흐름)
+      const pxSpeedFar = 12 * Math.max(1, gameSpeedRef.current) * dt * 60 * 0.15;
+      const pxSpeedNear = 12 * Math.max(1, gameSpeedRef.current) * dt * 60 * 0.35;
+      parallaxFarXRef.current -= pxSpeedFar;
+      parallaxNearXRef.current -= pxSpeedNear;
+
+      // 밤/안개 강도 동적 계산 (속도 따라 가시성 보정)
+      const speed = Math.max(1, gameSpeedRef.current);
+      const speedFactor = Math.min(1, (speed - 1) / 4); // 1..5배속 → 0..1
+      const isCloudy =
+        seasonEffectsRef.current.base === 'clouds' ||
+        seasonEffectsRef.current.extra === 'clouds';
+
+      // 밤 알파: 기본보다 약간 가변 (고속일수록 살짝 완화)
+      const nightTarget = seasonEffectsRef.current.isNight
+        ? Math.min(0.82, Math.max(0.65, 0.72 + 0.10 * (1 - speedFactor)))
+        : 0;
+      nightFadeRef.current += (nightTarget - nightFadeRef.current) * Math.min(1, dt * 3);
+
+      // 안개 강도/블러: 구름 시즌일 때만 적용, 고속일수록 약간 약화 (극강 날씨 시 강화)
+      const fogBaseTop = isCloudy ? 0.38 : 0;
+      const fogBaseGround = isCloudy ? 0.46 : 0;
+      const intensityMultiplier = seasonEffectsRef.current.intensity === 'extreme' ? 1.8 : 
+                                  seasonEffectsRef.current.intensity === 'heavy' ? 1.4 : 1;
+      const fogTop = fogBaseTop * (1 - 0.25 * speedFactor) * intensityMultiplier;
+      const fogGround = fogBaseGround * (1 - 0.25 * speedFactor) * intensityMultiplier;
+      fogTopOpacityRef.current += (fogTop - fogTopOpacityRef.current) * Math.min(1, dt * 3);
+      fogGroundOpacityRef.current += (fogGround - fogGroundOpacityRef.current) * Math.min(1, dt * 3);
+      const fogTopBlur = isCloudy ? (2.8 - 1.0 * speedFactor) * intensityMultiplier : 0;
+      const fogGroundBlur = isCloudy ? (3.6 - 1.2 * speedFactor) * intensityMultiplier : 0;
+      fogTopBlurRef.current += (fogTopBlur - fogTopBlurRef.current) * Math.min(1, dt * 3);
+      fogGroundBlurRef.current += (fogGroundBlur - fogGroundBlurRef.current) * Math.min(1, dt * 3);
+
+      // 러너 잔상 업데이트: 최근 위치 5개 유지
       if (gameState === 'playing') {
         const playerBottomNow =
           GROUND_HEIGHT +
@@ -815,16 +1012,74 @@ const Runner = () => {
         return newBirds;
       });
 
-      // 코인 이동 및 화면 밖 제거
+      // 코인 이동 및 화면 밖 제거 (자석 파워업 활성 시 자동 수집)
       setCoins((prevCoins) => {
+        const playerLeft = 100;
+        const playerRight = playerLeft + PLAYER_SIZE;
+        const playerCenterY = playerY + PLAYER_SIZE / 2;
+
         const moved = prevCoins
-          .map((coin) => ({
-            ...coin,
-            x: coin.x - gameSpeedRef.current * (coin.speed || 1.2) * dt * 60,
-          }))
+          .map((coin) => {
+            let coinX = coin.x - gameSpeedRef.current * (coin.speed || 1.2) * dt * 60;
+            let coinY = coin.y;
+
+            // 자석 파워업 활성 시 플레이어를 향해 끌어당김
+            if (magnetActiveDurationRef.current > 0) {
+              const MAGNET_RANGE = 150;
+              const MAGNET_SPEED = 200; // px/s
+              const dx = playerRight - 20 - coinX; // 플레이어 중앙
+              const dy = playerCenterY - coinY;
+              const distance = Math.sqrt(dx * dx + dy * dy);
+
+              if (distance < MAGNET_RANGE) {
+                // 범위 내이면 플레이어를 향해 끌어당김
+                const moveDistance = MAGNET_SPEED * dt;
+                if (distance > 0) {
+                  coinX += (dx / distance) * moveDistance;
+                  coinY += (dy / distance) * moveDistance;
+                }
+              }
+            }
+
+            return {
+              ...coin,
+              x: coinX,
+              y: coinY,
+            };
+          })
           .filter((coin) => coin.x > -coin.size);
         return moved;
       });
+
+      // 파워업 이동 및 화면 밖 제거
+      setPowerUps((prevPowerUps) => {
+        const moved = prevPowerUps
+          .map((powerUp) => ({
+            ...powerUp,
+            x: powerUp.x - gameSpeedRef.current * (powerUp.speed || 0.8) * dt * 60,
+          }))
+          .filter((powerUp) => powerUp.x > -powerUp.size);
+        
+        return moved;
+      });
+
+      // 파워업 효과 지속시간 업데이트
+      // 자석 효과 시간 감소
+      if (magnetActiveDurationRef.current > 0) {
+        magnetActiveDurationRef.current -= dt * 1000;
+      }
+
+      // 슬로모션(속도 고정) 효과 시간 감소 + 해제 시 고정 해제
+      if (slowMoActiveDurationRef.current > 0) {
+        slowMoActiveDurationRef.current -= dt * 1000;
+        if (slowMoActiveDurationRef.current <= 0) {
+          slowMoActiveDurationRef.current = 0;
+          slowFreezeSpeedRef.current = null;
+        }
+      }
+
+      // 트리플 점프 활성 중이면 점프 카운트 유지
+      // (jumpCount 상태는 별도로 관리됨)
 
       gameLoopRef.current = requestAnimationFrame(gameLoop);
     };
@@ -852,6 +1107,8 @@ const Runner = () => {
     if (gameState !== 'playing') return;
 
     const checkCollision = () => {
+      const nowTs = typeof performance !== 'undefined' ? performance.now() : 0;
+      const isInvincible = invincibleUntilRef.current > nowTs;
       const playerLeft = 100;
       const playerRight = playerLeft + PLAYER_SIZE;
       const playerBottom = playerY;
@@ -867,6 +1124,20 @@ const Runner = () => {
           playerLeft < obstacleRight - 10 &&
           playerBottom < obstacleTop - 10
         ) {
+          // 충돌 발생 - 실드 확인
+          if (shieldActive) {
+            // 실드로 보호됨: 실드 해제 + 잠깐 무적 + 충돌 장애물 제거
+            setShieldActive(false);
+            invincibleUntilRef.current = nowTs + 600; // 0.6초 무적
+            setObstacles((prev) => prev.filter((o) => o.id !== obstacle.id));
+            return; // 게임 오버 안 함
+          }
+
+          // 무적 상태면 무시
+          if (isInvincible) {
+            continue;
+          }
+
           // 충돌 발생
           setGameState('gameOver');
           if (score > highScore) {
@@ -896,6 +1167,20 @@ const Runner = () => {
           playerTop > birdBottom + 10 &&
           playerBottom < birdTop - 10
         ) {
+          // 새와 충돌 발생 - 실드 확인
+          if (shieldActive) {
+            // 실드로 보호됨: 실드 해제 + 잠깐 무적 + 충돌 새 제거
+            setShieldActive(false);
+            invincibleUntilRef.current = nowTs + 600; // 0.6초 무적
+            setBirds((prev) => prev.filter((b) => b.id !== bird.id));
+            return; // 게임 오버 안 함
+          }
+
+          // 무적 상태면 무시
+          if (isInvincible) {
+            continue;
+          }
+
           // 새와 충돌 발생
           setGameState('gameOver');
           if (score > highScore) {
@@ -914,6 +1199,7 @@ const Runner = () => {
 
       // 코인 획득 감지
       let collected = false;
+      let collectedValue = 0;
       const remaining = [];
       for (let coin of coins) {
         const coinLeft = coin.x;
@@ -929,6 +1215,7 @@ const Runner = () => {
 
         if (hit) {
           collected = true;
+          collectedValue += (coin.value || 1); // 코인 값 누적
         } else {
           remaining.push(coin);
         }
@@ -936,16 +1223,78 @@ const Runner = () => {
       if (collected) {
         setCoins(remaining);
         setCoinCount((prev) => {
-          const next = prev + 1;
+          const next = prev + collectedValue;
           localStorage.setItem('runnerCoins', next.toString());
           return next;
         });
-        setSessionCoins((prev) => prev + 1);
+        setSessionCoins((prev) => prev + collectedValue);
+      }
+
+      // 파워업 획득 감지 (코인과 동일한 로직)
+      let powerUpCollected = false;
+      const remainingPowerUps = [];
+      for (let powerUp of powerUps) {
+        const powerUpLeft = powerUp.x;
+        const powerUpRight = powerUp.x + powerUp.size;
+        const powerUpBottom = powerUp.y;
+        const powerUpTop = powerUp.y + powerUp.size;
+
+        const hit =
+          playerRight > powerUpLeft + 3 &&
+          playerLeft < powerUpRight - 3 &&
+          playerTop > powerUpBottom + 3 &&
+          playerBottom < powerUpTop - 3;
+
+        if (hit) {
+          powerUpCollected = true;
+          // 파워업 효과 활성화
+          switch (powerUp.type) {
+            case 'magnet':
+              magnetActiveDurationRef.current = 5000; // 5초
+              break;
+            case 'shield':
+              setShieldActive(true);
+              break;
+            case 'slowmo':
+              slowMoActiveDurationRef.current = 3000; // 3초
+              // 발동 시점의 속도로 고정
+              slowFreezeSpeedRef.current = gameSpeedRef.current;
+              break;
+            case 'triplejump':
+              tripleJumpCountRef.current = 1; // 추가 1회 점프
+              break;
+            default:
+              break;
+          }
+          setActivePowerUp({ type: powerUp.type });
+        } else {
+          remainingPowerUps.push(powerUp);
+        }
+      }
+      if (powerUpCollected) {
+        setPowerUps(remainingPowerUps);
+        // 파워업 획득 이펙트: 황색 먼지 생성
+        const dustCount = 8 + Math.floor(Math.random() * 4);
+        const newDusts = [];
+        for (let i = 0; i < dustCount; i++) {
+          const angle = (i / dustCount) * Math.PI * 2;
+          const power = 80 + Math.random() * 40;
+          newDusts.push({
+            id: Date.now() + Math.random(),
+            left: 100 + Math.random() * 200,
+            top: GROUND_HEIGHT + playerY + terrainOffsetRef.current + PLAYER_SIZE / 2,
+            burstX: Math.cos(angle) * power,
+            burstY: Math.sin(angle) * power,
+            size: 6 + Math.random() * 4,
+            delay: 0,
+          });
+        }
+        setJumpDusts((prev) => [...prev, ...newDusts].slice(-50));
       }
     };
 
     checkCollision();
-  }, [obstacles, birds, coins, playerY, gameState, score, highScore, playerName, sessionCoins, userId, saveScoreAuto, setShowNameModal]);
+  }, [obstacles, birds, coins, playerY, gameState, score, highScore, playerName, sessionCoins, userId, saveScoreAuto, setShowNameModal, shieldActive]);
 
   return (
     <>
@@ -971,6 +1320,9 @@ const Runner = () => {
             <div className={styles['high-score']}>최고점수: {highScore}</div>
             <div className={extraStyles.coins}>코인: {coinCount} 💰</div>
           </div>
+
+          {/* 활성 파워업 표시 */}
+          {/* 헤더에서는 파워업 표기를 제거하고 게임 화면 좌상단 오버레이로 이동 */}
         </div>
 
         {gameState === 'menu' && (
@@ -1039,7 +1391,7 @@ const Runner = () => {
               </h3>
               <p>
                 💡 <strong>조작</strong>: 스페이스바, 방향키 ↑ 또는 터치/마우스 클릭으로
-                점프하세요. 더블 점프도 가능합니다!
+                점프하세요. <br/>더블 점프도 가능합니다!
               </p>
             </div>
             <div className={styles.instructions} style={{ marginTop: '20px' }}>
@@ -1061,7 +1413,133 @@ const Runner = () => {
               }`}
               onClick={() => gameState === 'playing' && jump()}
               onTouchStart={() => gameState === 'playing' && jump()}
+              style={{
+                // 밤에는 디서츄레이션/명도↓/대비↑를 nightFade에 연동 + 안개 블러를 화면 전체에 적용 + 시즌별 톤 필터
+                filter: (() => {
+                  // 밤 필터 (가을 밤에는 단풍이 보이도록 밝기 조정)
+                  let nightFilter = 'none';
+                  if (seasonEffects.isNight) {
+                    const isAutumnNight = seasonEffects.season === 'autumn';
+                    // 가을 밤에는 brightness 감소를 0.12로 줄임 (기본 0.18), spring/summer는 더 어두움
+                    const brightnessFactor = isAutumnNight ? 0.12 : 0.18;
+                    const contrastFactor = isAutumnNight ? 0.08 : 0.12;
+                    nightFilter = `saturate(${0.88}) brightness(${(0.86 - nightFadeRef.current * brightnessFactor).toFixed(3)}) contrast(${(1.08 + nightFadeRef.current * contrastFactor).toFixed(3)})`;
+                  }
+                  
+                  // 시즌별 톤 필터 (극강 날씨 시 강화)
+                  let seasonTone = '';
+                  const isIntenseWeather = seasonEffects.intensity === 'heavy' || seasonEffects.intensity === 'extreme';
+                  if (seasonEffects.season === 'spring') {
+                    seasonTone = isIntenseWeather 
+                      ? `hue-rotate(-5deg) saturate(1.15)` 
+                      : `saturate(1.05)`;
+                  } else if (seasonEffects.season === 'summer') {
+                    seasonTone = isIntenseWeather 
+                      ? `hue-rotate(8deg) saturate(1.25) brightness(1.08)` 
+                      : `saturate(1.1) brightness(1.02)`;
+                  } else if (seasonEffects.season === 'autumn') {
+                    seasonTone = isIntenseWeather 
+                      ? `hue-rotate(15deg) saturate(1.3) brightness(1.05)` 
+                      : `hue-rotate(8deg) saturate(1.15)`;
+                  } else if (seasonEffects.season === 'winter') {
+                    seasonTone = isIntenseWeather 
+                      ? `hue-rotate(-12deg) saturate(0.95) brightness(0.98)` 
+                      : `hue-rotate(-8deg) saturate(0.92)`;
+                  }
+                  
+                  // 평균 안개 블러 (구름 시즌에서만 의미 있게 적용)
+                  const isFoggy = (seasonEffects.base === 'clouds' || seasonEffects.extra === 'clouds');
+                  const fogBlur = isFoggy
+                    ? parseFloat((((fogTopBlurRef.current + fogGroundBlurRef.current) / 2).toFixed(2)))
+                    : 0;
+                  
+                  // 모든 필터를 결합
+                  const filters = [nightFilter, seasonTone, fogBlur > 0 ? `blur(${fogBlur}px)` : ''].filter(f => f);
+                  return filters.join(' ').trim();
+                })(),
+                transition: 'filter 0.4s ease',
+              }}
             >
+              {/* 파워업/버프 오버레이: 게임 화면 좌상단 표시 */}
+              {gameState === 'playing' && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 8,
+                    left: 8,
+                    display: 'flex',
+                    gap: 6,
+                    zIndex: 5,
+                  }}
+                >
+                  {shieldActive && (
+                    <div
+                      style={{
+                        padding: '3px 6px',
+                        backgroundColor: 'rgba(100, 200, 255, 0.8)',
+                        borderRadius: 4,
+                        fontSize: 12,
+                        color: '#002233',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.25)'
+                      }}
+                    >
+                      🛡️ Shield
+                    </div>
+                  )}
+                  {magnetActiveDurationRef.current > 0 && (
+                    <div
+                      style={{
+                        padding: '3px 6px',
+                        backgroundColor: 'rgba(200, 100, 200, 0.8)',
+                        borderRadius: 4,
+                        fontSize: 12,
+                        color: '#2b0a2b',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.25)'
+                      }}
+                    >
+                      🧲 {(magnetActiveDurationRef.current / 1000).toFixed(1)}s
+                    </div>
+                  )}
+                  {slowMoActiveDurationRef.current > 0 && (
+                    <div
+                      style={{
+                        padding: '3px 6px',
+                        backgroundColor: 'rgba(200, 200, 100, 0.8)',
+                        borderRadius: 4,
+                        fontSize: 12,
+                        color: '#332b00',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.25)'
+                      }}
+                    >
+                      ⏱️ {(slowMoActiveDurationRef.current / 1000).toFixed(1)}s
+                    </div>
+                  )}
+                  {tripleJumpCountRef.current > 0 && (
+                    <div
+                      style={{
+                        padding: '3px 6px',
+                        backgroundColor: 'rgba(100, 200, 100, 0.8)',
+                        borderRadius: 4,
+                        fontSize: 12,
+                        color: '#0d2b0d',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.25)'
+                      }}
+                    >
+                      ⬆️ x1
+                    </div>
+                  )}
+                </div>
+              )}
+              {/* 패럴랙스 능선 레이어 (원경/근경) — 전역 비활성화 */}
+              {/* 타원형 실루엣이 시각적 방해가 되어 비활성화. 향후 불릿 타입 배경으로 대체 가능 */}
+              {false && (
+                <ParallaxLayers
+                  farX={parallaxFarXRef.current}
+                  nearX={parallaxNearXRef.current}
+                  isNight={seasonEffects.isNight}
+                  season={seasonEffects.season}
+                />
+              )}
               {/* 기본 이펙트 렌더링 */}
               {seasonEffects.base === 'sun' && (
                 <div className="sky-object sun">☀️</div>
@@ -1175,6 +1653,27 @@ const Runner = () => {
                   ))}
                 </div>
               )}
+              {/* 비 스트릭 오버레이: 빠른 대각선 빗줄기 (강도는 속도에 연동) */}
+              {seasonEffects.extra === 'rain' && (
+                <div
+                  className="rain-streaks"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    pointerEvents: 'none',
+                    background:
+                      'repeating-linear-gradient(120deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 2px, rgba(255,255,255,0.0) 3px, rgba(255,255,255,0.0) 12px)',
+                    opacity: (() => {
+                      // 극강 날씨일 때 비 스트릭 강도 증가
+                      const baseOpacity = Math.min(0.45, 0.25 + Math.max(0, (gameSpeedRef.current - 1) * 0.06));
+                      const intensityMultiplier = seasonEffects.intensity === 'extreme' ? 2.5 : 
+                                                   seasonEffects.intensity === 'heavy' ? 1.6 : 1;
+                      return Math.min(0.95, baseOpacity * intensityMultiplier);
+                    })(),
+                    mixBlendMode: 'screen',
+                  }}
+                />
+              )}
               {seasonEffects.extra === 'clouds' && (
                 <div className="clouds-layer">
                   {commonElements.clouds.map((cloud) => (
@@ -1230,6 +1729,57 @@ const Runner = () => {
                 </div>
               )}
 
+              {/* 가시성 변화 오버레이 (안개/밤 페이드) */}
+              {/* 구름 시즌일 때 은은한 안개 */}
+              {(seasonEffects.base === 'clouds' || seasonEffects.extra === 'clouds') && (
+                <div
+                  className="fog-overlay"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    pointerEvents: 'none',
+                    // 균일한 얕은 화이트로 뿌연 느낌만 부여 (블러는 canvas filter로 처리)
+                    background: 'rgba(255,255,255,0.08)',
+                    // 상/하단 강도를 평균화한 단일 불투명도
+                    opacity: Math.min(
+                      0.55,
+                      Math.max(
+                        0.20,
+                        ((fogTopOpacityRef.current + fogGroundOpacityRef.current) * 0.65)
+                      )
+                    ),
+                    transition: 'opacity 0.3s ease',
+                  }}
+                />
+              )}
+              {/* 밤 페이드 오버레이 */}
+              {seasonEffects.isNight && (
+                <>
+                  {/* 전체 어둡게 페이드 */}
+                  <div
+                    className="night-overlay"
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      pointerEvents: 'none',
+                      background: `rgba(0,0,0,${nightFadeRef.current})`,
+                      transition: 'background 0.6s ease',
+                    }}
+                  />
+                  {/* 비네트: 가장자리 어둡게, 중앙 강조 */}
+                  <div
+                    className="vignette-overlay"
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      pointerEvents: 'none',
+                      background:
+                        'radial-gradient(circle at 50% 60%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.35) 100%)',
+                    }}
+                  />
+                </>
+              )}
+
               {/* 특수 이펙트 렌더링 (단독 연출) */}
               {seasonEffects.special === 'lightning' && (
                 <div className="effects-layer">
@@ -1276,13 +1826,16 @@ const Runner = () => {
                 runImage={f1RunImage}
                 ghosts={ghosts}
                 jumpCount={jumpCount}
+                terrainOffset={terrainOffsetRef.current}
               />
 
-              {/* 장애물, 새, 코인 */}
+              {/* 장애물, 새, 코인, 파워업 */}
               <GameObstacles
                 obstacles={obstacles}
                 birds={birds}
                 coins={coins}
+                powerUps={powerUps}
+                terrainOffset={terrainOffsetRef.current}
               />
 
               {/* 바닥 */}
@@ -1294,6 +1847,7 @@ const Runner = () => {
                       0.6,
                       2 / Math.max(1, gameSpeed)
                     )}s`,
+                    transform: `translateY(${terrainOffsetRef.current}px)`,
                   }}
                 />
               </div>
@@ -1337,6 +1891,23 @@ const Runner = () => {
                 );
               })}
             </div>
+            {gameState === 'playing' && (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  paddingTop: 8,
+                }}
+              >
+                <ins
+                  className="kakao_ad_area"
+                  data-ad-unit="DAN-IMNTXI7IePMvzVan"
+                  data-ad-width="728"
+                  data-ad-height="90"
+                ></ins>
+              </div>
+            )}
           </div>
         )}
 

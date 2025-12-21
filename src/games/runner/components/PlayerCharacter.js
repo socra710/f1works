@@ -24,6 +24,7 @@ const PlayerCharacter = ({
   isOnGround,
   runImage,
   jumpCount,
+  terrainOffset = 0,
 }) => {
   const playerSize = PLAYER_SIZE * scaleFactor;
   const isImage = selectedCharacter.image;
@@ -120,7 +121,7 @@ const PlayerCharacter = ({
             style={{
               position: 'absolute',
               left: `${85 - idx * 6}px`,
-              bottom: `${g.bottom}px`,
+              bottom: `${g.bottom + terrainOffset}px`,
               width: `${playerSize}px`,
               height: `${playerSize}px`,
               opacity: `${Math.max(0.15, 0.35 - idx * 0.05)}`,
@@ -135,7 +136,7 @@ const PlayerCharacter = ({
             className="ghost"
             style={{
               left: `${85 - idx * 6}px`,
-              bottom: `${g.bottom}px`,
+              bottom: `${g.bottom + terrainOffset}px`,
               fontSize: `${playerSize}px`,
               opacity: `${Math.max(0.15, 0.35 - idx * 0.05)}`,
               ...getRotationStyle(),
@@ -155,7 +156,7 @@ const PlayerCharacter = ({
           style={{
             position: 'absolute',
             left: '85px',
-            bottom: `${GROUND_HEIGHT + playerY + bobOffset}px`,
+            bottom: `${GROUND_HEIGHT + playerY + bobOffset + terrainOffset}px`,
             width: `${playerSize}px`,
             height: `${playerSize}px`,
             objectFit: 'cover',
@@ -167,7 +168,7 @@ const PlayerCharacter = ({
         <div
           className="player"
           style={{
-            bottom: `${GROUND_HEIGHT + playerY + bobOffset}px`,
+            bottom: `${GROUND_HEIGHT + playerY + bobOffset + terrainOffset}px`,
             fontSize: `${playerSize}px`,
             ...getRotationStyle(),
           }}
