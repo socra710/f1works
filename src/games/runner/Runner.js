@@ -398,6 +398,40 @@ const Runner = () => {
     gameSpeedRef.current = gameSpeed;
   }, [gameSpeed]);
 
+  // Kakao 광고 스크립트 로드 (중복 로드 무방)
+  useEffect(() => {
+    setTimeout(() => {
+      const script = document.createElement('script');
+      script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }, 500);
+  }, []);
+
+  // 게임 시작 시 광고 렌더링 시도 (스크립트가 먼저 로드된 경우 대비)
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+    const tryRender = () => {
+      if (window.adfit) {
+        try {
+          const adEls = document.querySelectorAll('.kakao_ad_area');
+          adEls.forEach((el) => {
+            try {
+              window.adfit.render(el);
+            } catch (e) {
+              // ignore per-element render errors
+            }
+          });
+        } catch (e) {
+          // ignore
+        }
+      } else {
+        setTimeout(tryRender, 200);
+      }
+    };
+    tryRender();
+  }, [gameState]);
+
   // seasonEffects 변화를 ref에 동기화 (부엉이/독수리 표시용)
   useEffect(() => {
     seasonEffectsRef.current = seasonEffects;
@@ -1838,6 +1872,24 @@ const Runner = () => {
                 );
               })}
             </div>
+            {gameState === 'playing' && (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  paddingTop: 8,
+                }}
+              >
+                <ins
+                  className="kakao_ad_area"
+                  style={{ display: 'none' }}
+                  data-ad-unit="DAN-IMNTXI7IePMvzVan"
+                  data-ad-width="728"
+                  data-ad-height="90"
+                ></ins>
+              </div>
+            )}
           </div>
         )}
 
