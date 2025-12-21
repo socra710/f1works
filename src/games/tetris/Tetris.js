@@ -1,5 +1,5 @@
 import './Tetris.css';
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 
 // Components
@@ -18,6 +18,46 @@ import { addBloodOverlay, addScreenShake } from './utils/effectsUtils';
 const Tetris = () => {
   const canvasRef = useRef(null);
   const nextPieceCanvasRef = useRef(null);
+  const themes = [
+    { id: 'red', label: 'Red' },
+    { id: 'blue', label: 'Blue' },
+    { id: 'green', label: 'Green' },
+    { id: 'mono', label: 'Mono' },
+  ];
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('tetris-theme') || 'red';
+  });
+
+  const handleThemeChange = (newTheme) => {
+    setTheme(newTheme);
+    localStorage.setItem('tetris-theme', newTheme);
+  };
+
+  const basePieceColors = [
+    '#ff3333',
+    '#ee5555',
+    '#ff5555',
+    '#dd4444',
+    '#ff6666',
+    '#ff4444',
+    '#ff7777',
+  ];
+
+  const themePalettes = {
+    red: ['#ff3333', '#ee5555', '#ff5555', '#dd4444', '#ff6666', '#ff4444', '#ff7777'],
+    blue: ['#4f8bff', '#65a5ff', '#7aa8ff', '#5c7cff', '#4f6bff', '#4560ff', '#7f96ff'],
+    green: ['#2ecc71', '#3fd68a', '#2fcf82', '#29b46f', '#34d399', '#27ae60', '#5adea8'],
+    mono: ['#b4b4b4', '#c2c2c2', '#a8a8a8', '#8f8f8f', '#9a9a9a', '#7f7f7f', '#cfcfcf'],
+  };
+
+  const colorMap = React.useMemo(() => {
+    const palette = themePalettes[theme] || themePalettes.red;
+    const map = {};
+    basePieceColors.forEach((c, idx) => {
+      map[c] = palette[idx] || c;
+    });
+    return map;
+  }, [theme]);
 
   // 게임 로직 훅
   const {
@@ -88,25 +128,39 @@ const Tetris = () => {
           content={`https://f1works.netlify.app/games/tetris`}
         />
       </Helmet>
-      <div className="tetris-main">
+      <div className={`tetris-main theme-${theme}`}>
         <div className="tetris-header">
           <div className="tetris-header-top">
             <h1 className="game-title" aria-label="TETRIS">TETRIS</h1>
-            <div className="header-center" aria-live="polite">
-              <div className="time-text" aria-label="남은 시간">
-                {Math.floor(timeLeft / 60)}:
-                {String(timeLeft % 60).padStart(2, '0')}
-              </div>
-            </div>
             <div className="header-badges">
               <div className="badge badge-level" aria-label={`레벨 ${level}`}>
                 <span className="badge-label">LV</span>
                 <span className="badge-value">{level}</span>
               </div>
+              <div className="badge badge-time" aria-label="남은 시간" aria-live="polite">
+                <span className="badge-label">TIME</span>
+                <span className="badge-value">
+                  {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
+                </span>
+              </div>
               <div className="badge badge-score" aria-label={`점수 ${score}`}>
                 <span className="badge-label">점수</span>
                 <span className="badge-value">{score}</span>
               </div>
+            </div>
+            <div className="header-right">
+              <select 
+                className="theme-select" 
+                value={theme} 
+                onChange={(e) => handleThemeChange(e.target.value)}
+                aria-label="테마 변경"
+              >
+                {themes.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="tetris-header-bottom">
@@ -125,6 +179,7 @@ const Tetris = () => {
               <NextPiecePreview
                 canvasRef={nextPieceCanvasRef}
                 nextPiece={nextPiece}
+                colorMap={colorMap}
               />
               <div className="tetris-ad">
                 <ins
@@ -140,18 +195,15 @@ const Tetris = () => {
               board={board || []}
               currentPiece={currentPiece || null}
               bloodParticles={gameStateRef.current.bloodParticles || []}
+              colorMap={colorMap}
             />
             {!gameStarted && (
               <div className="msg">
                 <h3>{gameOver ? '게임 오버!' : '테트리스'}</h3>
                 {gameOver && (
                   <>
-                    <p style={{ color: '#a01b1b', fontWeight: 'bold' }}>
-                      최종 점수: {score}
-                    </p>
-                    <p style={{ color: '#888', fontSize: '0.9rem' }}>
-                      닉네임을 입력하고 점수를 저장해보세요!
-                    </p>
+                    <p className="final-score">최종 점수: {score}</p>
+                    <p className="final-score-sub">닉네임을 입력하고 점수를 저장해보세요!</p>
                   </>
                 )}
                 <button onClick={startGame}>게임 시작</button>
@@ -162,6 +214,7 @@ const Tetris = () => {
           <ScoreBoard
             highScores={highScores}
             isLoadingScores={isLoadingScores}
+            theme={theme}
           />
         </section>
 
