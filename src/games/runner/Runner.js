@@ -408,6 +408,29 @@ const Runner = () => {
     }, 500);
   }, []);
 
+  // 페이지 가시성 변경 감지 (탭 전환, 브라우저 최소화 등)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (gameState !== 'playing') return;
+
+      if (document.hidden) {
+        // 페이지가 숨겨짐 → 게임 오버
+        setGameState('gameOver');
+        if (score > highScore) {
+          setIsNewRecord(true);
+          setHighScore(score);
+          localStorage.setItem('runnerHighScore', score.toString());
+        }
+        const currentName = playerName || 'Runner';
+        saveScoreAuto(currentName, score, sessionCoins, userId);
+        setShowNameModal(true);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [gameState, score, highScore, playerName, sessionCoins, userId, saveScoreAuto, setShowNameModal]);
+
   // 게임 시작 시 광고 렌더링 시도 (스크립트가 먼저 로드된 경우 대비)
   useEffect(() => {
     if (gameState !== 'playing') return;
@@ -751,7 +774,7 @@ const Runner = () => {
       }
 
       // 파워업 아이템 스폰: 장애물 우측에 1개만 생성
-      const shouldSpawnPowerUp = Math.random() < 0.05; // 5% 확률
+      const shouldSpawnPowerUp = Math.random() < 0.55; // 5% 확률
       if (shouldSpawnPowerUp) {
         const baseHeight = newObstacle.height;
         const powerUpTypes = ['magnet', 'shield', 'slowmo', 'triplejump'];
@@ -1129,6 +1152,27 @@ const Runner = () => {
             // 실드로 보호됨: 실드 해제 + 잠깐 무적 + 충돌 장애물 제거
             setShieldActive(false);
             invincibleUntilRef.current = nowTs + 600; // 0.6초 무적
+            
+            // 쉴드 깨짐 이펙트: 파란색 파티클 폭발
+            const shieldBreakParticles = [];
+            const particleCount = 12; // 입자 개수
+            for (let i = 0; i < particleCount; i++) {
+              const angle = (i / particleCount) * Math.PI * 2;
+              const speed = 200 + Math.random() * 150;
+              shieldBreakParticles.push({
+                id: Date.now() + Math.random(),
+                x: 100 + PLAYER_SIZE / 2,
+                y: GROUND_HEIGHT + playerYRef.current + PLAYER_SIZE / 2,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: 8 + Math.random() * 4,
+                life: 0.6 + Math.random() * 0.2,
+                opacity: 1,
+                color: 'rgba(100, 220, 255',
+              });
+            }
+            setParticles((prev) => [...prev, ...shieldBreakParticles]);
+            
             setObstacles((prev) => prev.filter((o) => o.id !== obstacle.id));
             return; // 게임 오버 안 함
           }
@@ -1172,6 +1216,27 @@ const Runner = () => {
             // 실드로 보호됨: 실드 해제 + 잠깐 무적 + 충돌 새 제거
             setShieldActive(false);
             invincibleUntilRef.current = nowTs + 600; // 0.6초 무적
+            
+            // 쉴드 깨짐 이펙트: 파란색 파티클 폭발
+            const shieldBreakParticles = [];
+            const particleCount = 12;
+            for (let i = 0; i < particleCount; i++) {
+              const angle = (i / particleCount) * Math.PI * 2;
+              const speed = 200 + Math.random() * 150;
+              shieldBreakParticles.push({
+                id: Date.now() + Math.random(),
+                x: 100 + PLAYER_SIZE / 2,
+                y: GROUND_HEIGHT + playerYRef.current + PLAYER_SIZE / 2,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: 8 + Math.random() * 4,
+                life: 0.6 + Math.random() * 0.2,
+                opacity: 1,
+                color: 'rgba(100, 220, 255',
+              });
+            }
+            setParticles((prev) => [...prev, ...shieldBreakParticles]);
+            
             setBirds((prev) => prev.filter((b) => b.id !== bird.id));
             return; // 게임 오버 안 함
           }
@@ -1250,13 +1315,13 @@ const Runner = () => {
           // 파워업 효과 활성화
           switch (powerUp.type) {
             case 'magnet':
-              magnetActiveDurationRef.current = 5000; // 5초
+              magnetActiveDurationRef.current = 7000; // 7초
               break;
             case 'shield':
               setShieldActive(true);
               break;
             case 'slowmo':
-              slowMoActiveDurationRef.current = 3000; // 3초
+              slowMoActiveDurationRef.current = 5000; // 5초
               // 발동 시점의 속도로 고정
               slowFreezeSpeedRef.current = gameSpeedRef.current;
               break;
@@ -1827,6 +1892,7 @@ const Runner = () => {
                 ghosts={ghosts}
                 jumpCount={jumpCount}
                 terrainOffset={terrainOffsetRef.current}
+                shieldActive={shieldActive}
               />
 
               {/* 장애물, 새, 코인, 파워업 */}
