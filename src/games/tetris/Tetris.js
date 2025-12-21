@@ -90,28 +90,34 @@ const Tetris = () => {
       </Helmet>
       <div className="tetris-main">
         <div className="tetris-header">
-          <div className="tetris-header-container">
-            <div className="level-display">
-              <span className="level-label">LV</span>
-              <span className="level-value">{level}</span>
-            </div>
-            <div className="timer-display">
-              <div className="time-text">
+          <div className="tetris-header-top">
+            <h1 className="game-title" aria-label="TETRIS">TETRIS</h1>
+            <div className="header-center" aria-live="polite">
+              <div className="time-text" aria-label="남은 시간">
                 {Math.floor(timeLeft / 60)}:
                 {String(timeLeft % 60).padStart(2, '0')}
               </div>
-              <div className="time-bar">
-                <div
-                  className="time-bar-fill"
-                  style={{ width: `${(timeLeft / 300) * 100}%` }}
-                />
+            </div>
+            <div className="header-badges">
+              <div className="badge badge-level" aria-label={`레벨 ${level}`}>
+                <span className="badge-label">LV</span>
+                <span className="badge-value">{level}</span>
+              </div>
+              <div className="badge badge-score" aria-label={`점수 ${score}`}>
+                <span className="badge-label">점수</span>
+                <span className="badge-value">{score}</span>
               </div>
             </div>
-            <div className="score-display">
-              <span className="score-label">점수</span>
-              <span className="score-value">{score}</span>
+          </div>
+          <div className="tetris-header-bottom">
+            <div className="time-bar" role="meter" aria-valuemin={0} aria-valuemax={300} aria-valuenow={timeLeft}>
+              <div
+                className="time-bar-fill"
+                style={{ width: `${(timeLeft / 300) * 100}%` }}
+              />
             </div>
           </div>
+          <div className="controls-inline">← → 이동 · ↑ 회전 · SPACE 하드드롭</div>
         </div>
         <section className="tetris-content">
           <div className="tetris-board-wrap">

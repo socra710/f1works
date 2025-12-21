@@ -21,7 +21,7 @@ export const useScoreManagement = () => {
   const fetchHighScores = useCallback(async () => {
     setIsLoadingScores(true);
     try {
-      const url = `${API_BASE_URL}/jvWorksGetTetrisScores?limit=8`;
+      const url = `${API_BASE_URL}/jvWorksGetTetrisScores?limit=10`;
       const res = await fetch(url, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
