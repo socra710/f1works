@@ -2,14 +2,104 @@
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 20px;
+  padding: 12px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   user-select: none;
 }
 
+/* 플레이 중 스크롤 비활성화 */
+:global(body.no-scroll) {
+  overflow-y: hidden;
+}
+
 .runner-header {
-  text-align: center;
-  margin-bottom: 30px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin-bottom: 20px;
+}
+
+/* 상단 툴바 */
+.runner-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08));
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.12) inset;
+}
+
+.brand {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+.stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.pill-score {
+  background: rgba(255, 215, 0, 0.25);
+  border-color: rgba(255, 215, 0, 0.45);
+}
+
+.pill-speed {
+  background: rgba(102, 126, 234, 0.25);
+  border-color: rgba(102, 126, 234, 0.45);
+}
+
+.pill-high {
+  background: rgba(240, 147, 251, 0.25);
+  border-color: rgba(240, 147, 251, 0.45);
+}
+
+.pill-coins {
+  background: rgba(76, 201, 91, 0.25);
+  border-color: rgba(76, 201, 91, 0.45);
+}
+
+.pill-name {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+}
+
+.pill-name:hover {
+  background: rgba(255, 255, 255, 0.28);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 560px) {
+  .runner-toolbar {
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 14px;
+  }
+  .brand {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .stat-pill {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
 }
 
 .title {
@@ -18,28 +108,7 @@
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.runner-scores {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  font-size: 1.2rem;
-  flex-wrap: wrap;
-}
-
-.score,
-.high-score,
-.speed {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 10px 20px;
-  border-radius: 10px;
-  backdrop-filter: blur(10px);
-}
-
-.speed {
-  background: rgba(255, 215, 0, 0.3);
-  font-weight: bold;
-  border: 2px solid rgba(255, 215, 0, 0.5);
-}
+/* 구 헤더 점수 스타일 제거 (새 stat-pill로 대체) */
 
 /* 메뉴 화면 */
 .runner-menu {
@@ -139,6 +208,109 @@
   max-width: 800px;
   margin: 0 auto;
   position: relative;
+}
+.bottom-panel {
+  margin-top: 10px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.12) inset;
+}
+
+.bottom-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+}
+
+.bottom-title {
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  font-size: 0.95rem;
+}
+
+.bottom-toggle {
+  border: none;
+  color: white;
+  background: rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 5px 8px;
+  cursor: pointer;
+}
+
+.bottom-toggle:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.bottom-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 8px 10px 10px;
+}
+
+.panel-section {
+  background: rgba(0,0,0,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.panel-title {
+  margin: 0 0 6px 0;
+  font-size: 0.85rem;
+  color: #ffd700;
+}
+
+.controls-list {
+  margin: 0 0 8px 0;
+  padding-left: 16px;
+}
+
+.controls-list li {
+  margin: 2px 0;
+  font-size: 0.85rem;
+}
+
+.live-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+.panel-loading,
+.panel-empty {
+  opacity: 0.7;
+  font-size: 0.85rem;
+}
+
+.mini-score-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mini-score-list li {
+  display: grid;
+  grid-template-columns: 32px 1fr 64px;
+  gap: 6px;
+  align-items: center;
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.08);
+}
+
+.mini-rank { text-align: center; font-weight: 700; color: #ffd700; font-size: 0.85rem; }
+.mini-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.85rem; }
+.mini-score { text-align: right; font-weight: 700; font-size: 0.85rem; }
+
+@media (max-width: 640px) {
+  .bottom-content {
+    grid-template-columns: 1fr;
+  }
 }
 
 .game-canvas {
@@ -951,9 +1123,7 @@
 :global(.dust-particle) {
   position: absolute;
   border-radius: 50%;
-  background: rgba(255, 220, 120, 0.9);
   pointer-events: none;
-  box-shadow: 0 0 6px rgba(255, 200, 80, 0.8);
   animation: dustFade 0.5s ease-out forwards;
 }
 

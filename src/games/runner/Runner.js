@@ -7,7 +7,6 @@ import React, {
 } from 'react';
 import { Helmet } from 'react-helmet-async';
 import styles from './Runner.module.css';
-import extraStyles from './RunnerExtras.module.css';
 
 // 컴포넌트
 // import BackgroundEffects from './components/BackgroundEffects';
@@ -100,6 +99,40 @@ const Runner = () => {
   const [sessionCoins, setSessionCoins] = useState(0); // 현재 게임에서 획득한 코인
   const [hasLoadedServerCoins, setHasLoadedServerCoins] = useState(false);
   const [isNewRecord, setIsNewRecord] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [panelCollapsed, setPanelCollapsed] = useState(false);
+  const containerRef = useRef(null);
+
+  // 플레이 중: 컨텐츠가 화면 높이에 맞게 들어가는 경우에만 페이지 스크롤 비활성화
+  useEffect(() => {
+    const body = document.body;
+    if (!body) return;
+
+    const updateScrollLock = () => {
+      if (gameState !== 'playing') {
+        body.classList.remove('no-scroll');
+        return;
+      }
+      const el = containerRef.current;
+      if (!el) {
+        body.classList.remove('no-scroll');
+        return;
+      }
+      const fits = el.scrollHeight <= window.innerHeight;
+      if (fits) {
+        body.classList.add('no-scroll');
+      } else {
+        body.classList.remove('no-scroll');
+      }
+    };
+
+    updateScrollLock();
+    window.addEventListener('resize', updateScrollLock);
+    return () => {
+      window.removeEventListener('resize', updateScrollLock);
+      body.classList.remove('no-scroll');
+    };
+  }, [gameState, panelCollapsed]);
   
   // 파워업 아이템 관련 상태
   const [powerUps, setPowerUps] = useState([]); // 게임 화면에 존재하는 파워업들
@@ -774,7 +807,7 @@ const Runner = () => {
       }
 
       // 파워업 아이템 스폰: 장애물 우측에 1개만 생성
-      const shouldSpawnPowerUp = Math.random() < 0.55; // 5% 확률
+      const shouldSpawnPowerUp = Math.random() < 0.05; // 5% 확률
       if (shouldSpawnPowerUp) {
         const baseHeight = newObstacle.height;
         const powerUpTypes = ['magnet', 'shield', 'slowmo', 'triplejump'];
@@ -1153,7 +1186,7 @@ const Runner = () => {
             setShieldActive(false);
             invincibleUntilRef.current = nowTs + 600; // 0.6초 무적
             
-            // 쉴드 깨짐 이펙트: 파란색 파티클 폭발
+            // 쉴드 깨짐 이펙트: 쉴드 색깔과 동일한 파란색 파티클 폭발
             const shieldBreakParticles = [];
             const particleCount = 12; // 입자 개수
             for (let i = 0; i < particleCount; i++) {
@@ -1168,7 +1201,7 @@ const Runner = () => {
                 size: 8 + Math.random() * 4,
                 life: 0.6 + Math.random() * 0.2,
                 opacity: 1,
-                color: 'rgba(100, 220, 255',
+                color: 'rgba(100, 200, 255, 0.8)',
               });
             }
             setParticles((prev) => [...prev, ...shieldBreakParticles]);
@@ -1217,7 +1250,7 @@ const Runner = () => {
             setShieldActive(false);
             invincibleUntilRef.current = nowTs + 600; // 0.6초 무적
             
-            // 쉴드 깨짐 이펙트: 파란색 파티클 폭발
+            // 쉴드 깨짐 이펙트: 쉴드 색깔과 동일한 파란색 파티클 폭발
             const shieldBreakParticles = [];
             const particleCount = 12;
             for (let i = 0; i < particleCount; i++) {
@@ -1232,7 +1265,7 @@ const Runner = () => {
                 size: 8 + Math.random() * 4,
                 life: 0.6 + Math.random() * 0.2,
                 opacity: 1,
-                color: 'rgba(100, 220, 255',
+                color: 'rgba(100, 200, 255, 0.8)',
               });
             }
             setParticles((prev) => [...prev, ...shieldBreakParticles]);
@@ -1376,18 +1409,24 @@ const Runner = () => {
         />
       </Helmet>
 
-      <div className={styles['runner-game']}>
+      <div ref={containerRef} className={styles['runner-game']}>
         <div className={styles['runner-header']}>
-          <h1 className={styles.title}>🏃 러너 게임</h1>
-          <div className={styles['runner-scores']}>
-            <div className={styles.score}>점수: {score}</div>
-            <div className={styles.speed}>속도: {gameSpeed.toFixed(1)}x</div>
-            <div className={styles['high-score']}>최고점수: {highScore}</div>
-            <div className={extraStyles.coins}>코인: {coinCount} 💰</div>
+          <div className={styles['runner-toolbar']}>
+            <div className={styles['brand']}>🏃 러너 게임</div>
+            <div className={styles['toolbar-spacer']} />
+            <button
+              type="button"
+              className={`${styles['stat-pill']} ${styles['pill-name']}`}
+              onClick={() => { setEditingName(true); setShowNameModal(true); }}
+              aria-label="닉네임 변경"
+            >
+              👤 {playerName || 'Runner'}
+            </button>
+            <div className={`${styles['stat-pill']} ${styles['pill-score']}`}>🏅 {score}</div>
+            <div className={`${styles['stat-pill']} ${styles['pill-speed']}`}>⚡ {gameSpeed.toFixed(1)}x</div>
+            <div className={`${styles['stat-pill']} ${styles['pill-high']}`}>🥇 {highScore}</div>
+            <div className={`${styles['stat-pill']} ${styles['pill-coins']}`}>💰 {coinCount}</div>
           </div>
-
-          {/* 활성 파워업 표시 */}
-          {/* 헤더에서는 파워업 표기를 제거하고 게임 화면 좌상단 오버레이로 이동 */}
         </div>
 
         {gameState === 'menu' && (
@@ -1974,23 +2013,82 @@ const Runner = () => {
                 ></ins>
               </div>
             )}
+            {gameState === 'playing' && (
+              <div className={styles['bottom-panel']}>
+                <div className={styles['bottom-header']}>
+                  <div className={styles['bottom-title']}>🎮 플레이 가이드 & 랭킹 요약</div>
+                  <button
+                    type="button"
+                    className={styles['bottom-toggle']}
+                    onClick={() => setPanelCollapsed((v) => !v)}
+                    aria-label={panelCollapsed ? '하단 패널 펼치기' : '하단 패널 접기'}
+                  >
+                    {panelCollapsed ? '▲ 펼치기' : '▼ 접기'}
+                  </button>
+                </div>
+                {!panelCollapsed && (
+                  <div className={styles['bottom-content']}>
+                    <div className={styles['panel-section']}>
+                      <h4 className={styles['panel-title']}>컨트롤</h4>
+                      <ul className={styles['controls-list']}>
+                        <li>스페이스바 / ↑ / 터치: 점프</li>
+                        <li>공중에서 한 번 더: 더블 점프</li>
+                        <li>장애물은 점프로 회피</li>
+                      </ul>
+                      <div className={styles['live-stats']}>
+                        <span>속도: {gameSpeed.toFixed(1)}x</span>
+                        <span>세션 코인: {sessionCoins}</span>
+                        <span>총 코인: {coinCount}</span>
+                      </div>
+                    </div>
+                    <div className={styles['panel-section']}>
+                      <h4 className={styles['panel-title']}>상위 랭킹</h4>
+                      {isLoadingScores ? (
+                        <div className={styles['panel-loading']}>불러오는 중...</div>
+                      ) : (
+                        <ul className={styles['mini-score-list']}>
+                          {(highScores || []).slice(0, 5).map((row, idx) => (
+                            <li key={`${row.name}-${row.date || idx}`}>
+                              <span className={styles['mini-rank']}>#{idx + 1}</span>
+                              <span className={styles['mini-name']}>{row.name}</span>
+                              <span className={styles['mini-score']}>{row.score}</span>
+                            </li>
+                          ))}
+                          {(highScores || []).length === 0 && (
+                            <li className={styles['panel-empty']}>랭킹 데이터가 없습니다</li>
+                          )}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
         <GameModal
-          showModal={showNameModal && gameState === 'gameOver'}
+          showModal={showNameModal}
           score={score}
           coins={sessionCoins}
           isNewRecord={isNewRecord}
           playerName={playerName}
           userId={userId}
+          title={editingName ? '닉네임 변경' : undefined}
+          showStats={!editingName}
           onNameChange={(name, uid) => {
             handleSaveName(name, uid);
-            setGameState('menu');
+            if (gameState === 'gameOver') {
+              setGameState('menu');
+            }
+            setEditingName(false);
           }}
           onClose={() => {
             handleCancelModal();
-            setGameState('menu');
+            if (gameState === 'gameOver') {
+              setGameState('menu');
+            }
+            setEditingName(false);
           }}
         />
       </div>
