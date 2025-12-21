@@ -10,8 +10,22 @@ import {
 
 export default function Works() {
   const navigate = useNavigate();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [checked, setChecked] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem('isAdminStatus');
+      return cached === 'true';
+    } catch (err) {
+      return false;
+    }
+  });
+  const [checked, setChecked] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem('isAdminStatus');
+      return cached === 'true' || cached === 'false';
+    } catch (err) {
+      return false;
+    }
+  });
   const [loadingInsights, setLoadingInsights] = useState(true);
   const [insights, setInsights] = useState({
     attendance: [
@@ -38,6 +52,24 @@ export default function Works() {
     return savedTab || '업무';
   });
   const [notificationVisible, setNotificationVisible] = useState(false);
+
+  const persistAdminStatus = (status) => {
+    try {
+      sessionStorage.setItem('isAdminStatus', status ? 'true' : 'false');
+    } catch (err) {
+      // 세션스토리지 접근 불가 시 무시
+    }
+  };
+
+  const hasAdminStatusCached = () => {
+    try {
+      return sessionStorage.getItem('isAdminStatus');
+    } catch (err) {
+      return null;
+    }
+  };
+
+  const skipAdminSkeleton = checked || !!hasAdminStatusCached();
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -96,16 +128,20 @@ export default function Works() {
           try {
             const adminStatus = await checkAdminStatus(userId.trim());
             setIsAdmin(adminStatus);
+            persistAdminStatus(adminStatus);
           } catch (apiError) {
             console.error('[Works] API 호출 실패:', apiError);
             setIsAdmin(false);
+            persistAdminStatus(false);
           }
         } else {
           setIsAdmin(false);
+          persistAdminStatus(false);
         }
       } catch (error) {
         console.error('[Works] Admin check failed:', error);
         setIsAdmin(false);
+        persistAdminStatus(false);
       } finally {
         setChecked(true);
       }
@@ -406,12 +442,12 @@ export default function Works() {
           }}
         >
           {categoryOrder.map((catName) => {
-            // 일반 카테고리는 publicFeatures에서, 관리 카테고리는 checked 후 표시
+            // 일반 카테고리는 publicFeatures에서, 관리 카테고리는 체크 여부나 캐시 여부에 따라 표시
             const catData = categoriesWithItems.find(c => c.category === catName);
             const isAdminCat = catName === '관리';
             
             // 관리 카테고리인데 아직 체크 안됐으면 스켈레톤
-            if (isAdminCat && !checked) {
+            if (isAdminCat && !skipAdminSkeleton) {
               return (
                 <div
                   key={catName}
@@ -500,8 +536,8 @@ export default function Works() {
           ></div>
 
           <div className="features-grid">
-            {/* 관리 카테고리이고 아직 체크 안됐으면 스켈레톤 */}
-            {activeCategory.isAdminCategory && !checked ? (
+            {/* 관리 카테고리이고 아직 체크/캐시 안됐으면 스켈레톤 */}
+            {activeCategory.isAdminCategory && !skipAdminSkeleton ? (
               [...Array(2)].map((_, index) => (
                 <div key={index} className="skeleton-card" />
               ))
