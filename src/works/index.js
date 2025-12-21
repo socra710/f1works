@@ -68,6 +68,7 @@ export default function Works() {
   }, []);
 
   useEffect(() => {
+    // 확장 프로그램에서 전달하는 로그인 정보를 받기 위해 0.5초 대기
     const timer = setTimeout(async () => {
       if (adminCheckRef.current) return;
       adminCheckRef.current = true;
@@ -212,15 +213,22 @@ export default function Works() {
     []
   );
 
-  const filteredFeatures = useMemo(
-    () =>
-      allFeatures.filter((feature) => {
-        if (feature.requiresAdmin) {
-          return isAdmin;
-        }
-        return true;
-      }),
+  // 관리자 권한이 필요 없는 메뉴 (즉시 표시)
+  const publicFeatures = useMemo(
+    () => allFeatures.filter((feature) => !feature.requiresAdmin),
+    [allFeatures]
+  );
+
+  // 관리자 권한이 필요한 메뉴 (권한 체크 후 표시)
+  const adminFeatures = useMemo(
+    () => allFeatures.filter((feature) => feature.requiresAdmin && isAdmin),
     [allFeatures, isAdmin]
+  );
+
+  // 전체 메뉴 (일반 + 관리)
+  const filteredFeatures = useMemo(
+    () => [...publicFeatures, ...adminFeatures],
+    [publicFeatures, adminFeatures]
   );
 
   const categoriesWithItems = useMemo(
@@ -229,6 +237,7 @@ export default function Works() {
         .map((cat) => ({
           category: cat,
           items: filteredFeatures.filter((f) => f.category === cat),
+          isAdminCategory: cat === '관리',
         }))
         .filter((g) => g.items.length > 0),
     [categoryOrder, filteredFeatures]
@@ -396,16 +405,38 @@ export default function Works() {
             overflowX: 'auto',
           }}
         >
-          {categoriesWithItems.map((cat) => {
-            const isActive = cat.category === activeCategory.category;
-            const newCount = cat.items.filter((item) => item.isNew).length;
+          {categoryOrder.map((catName) => {
+            // 일반 카테고리는 publicFeatures에서, 관리 카테고리는 checked 후 표시
+            const catData = categoriesWithItems.find(c => c.category === catName);
+            const isAdminCat = catName === '관리';
+            
+            // 관리 카테고리인데 아직 체크 안됐으면 스켈레톤
+            if (isAdminCat && !checked) {
+              return (
+                <div
+                  key={catName}
+                  className="skeleton-tab-button"
+                  style={{
+                    width: '60px',
+                    height: '36px',
+                    borderRadius: 10,
+                  }}
+                />
+              );
+            }
+            
+            // 카테고리에 아이템이 없으면 표시 안함
+            if (!catData) return null;
+            
+            const isActive = catData.category === activeCategory.category;
+            const newCount = catData.items.filter((item) => item.isNew).length;
             return (
               <button
-                key={cat.category}
+                key={catData.category}
                 onClick={() => {
-                  setSelectedTab(cat.category);
+                  setSelectedTab(catData.category);
                   // localStorage에 선택된 탭 저장
-                  localStorage.setItem('selectedTab', cat.category);
+                  localStorage.setItem('selectedTab', catData.category);
                 }}
                 style={{
                   padding: '8px 14px',
@@ -442,7 +473,7 @@ export default function Works() {
                     {newCount}
                   </span>
                 )}
-                {cat.category}
+                {catData.category}
               </button>
             );
           })}
@@ -469,28 +500,35 @@ export default function Works() {
           ></div>
 
           <div className="features-grid">
-            {visibleItems.map((feature, index) => (
-              <div
-                key={`${activeCategory.category}-${index}`}
-                className="feature-card"
-                onClick={() => handleNavigate(feature.path)}
-              >
-                {feature.isNew && (
-                  <span className="feature-badge-new" aria-label="신규">
-                    NEW
-                  </span>
-                )}
-                {feature.isUpdated && (
-                  <span className="feature-badge-updated" aria-label="업데이트">
-                    UPDATE
-                  </span>
-                )}
-                <div className="feature-category">{feature.category}</div>
-                <h3 className="feature-title">{feature.title}</h3>
-                <p className="feature-description">{feature.description}</p>
-                <div className="feature-arrow">→</div>
-              </div>
-            ))}
+            {/* 관리 카테고리이고 아직 체크 안됐으면 스켈레톤 */}
+            {activeCategory.isAdminCategory && !checked ? (
+              [...Array(2)].map((_, index) => (
+                <div key={index} className="skeleton-card" />
+              ))
+            ) : (
+              visibleItems.map((feature, index) => (
+                <div
+                  key={`${activeCategory.category}-${index}`}
+                  className="feature-card"
+                  onClick={() => handleNavigate(feature.path)}
+                >
+                  {feature.isNew && (
+                    <span className="feature-badge-new" aria-label="신규">
+                      NEW
+                    </span>
+                  )}
+                  {feature.isUpdated && (
+                    <span className="feature-badge-updated" aria-label="업데이트">
+                      UPDATE
+                    </span>
+                  )}
+                  <div className="feature-category">{feature.category}</div>
+                  <h3 className="feature-title">{feature.title}</h3>
+                  <p className="feature-description">{feature.description}</p>
+                  <div className="feature-arrow">→</div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -567,22 +605,7 @@ export default function Works() {
           ></ins>
         </div>
 
-        {checked ? (
-          renderFeatures()
-        ) : (
-          <div>
-            <div className="skeleton-tab-bar">
-              {[...Array(5)].map((_, index) => (
-                <div key={index} className="skeleton-tab-button" />
-              ))}
-            </div>
-            <div className="skeleton-grid" style={{ marginTop: '12px' }}>
-              {[...Array(4)].map((_, index) => (
-                <div key={index} className="skeleton-card" />
-              ))}
-            </div>
-          </div>
-        )}
+        {renderFeatures()}
       </section>
 
       {/* Desktop Ad (728x90) */}
