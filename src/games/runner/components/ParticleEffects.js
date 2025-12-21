@@ -13,6 +13,8 @@ const ParticleEffects = ({ particles }) => {
             width: `${p.size}px`,
             height: `${p.size}px`,
             opacity: p.opacity,
+            background: p.color || 'rgba(255, 220, 120, 0.9)',
+            boxShadow: p.color ? `0 0 6px ${p.color}` : '0 0 6px rgba(255, 200, 80, 0.8)',
           }}
         />
       ))}

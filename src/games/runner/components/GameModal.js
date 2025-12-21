@@ -10,6 +10,8 @@ const GameModal = ({
   userId,
   onNameChange,
   onClose,
+  title,
+  showStats = true,
 }) => {
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState('');
@@ -41,6 +43,8 @@ const GameModal = ({
     setTempName('');
   };
 
+  const modalTitle = title || (isNewRecord ? '🎉 신기록 달성! 🎉' : '게임 종료');
+
   return (
     <div className={styles['modal-overlay']}>
       <div className={styles['modal-content']}>
@@ -48,27 +52,27 @@ const GameModal = ({
           <div className={styles['trophy-icon']}>🏆</div>
         )}
         
-        <h2 className={styles['modal-title']}>
-          {isNewRecord ? '🎉 신기록 달성! 🎉' : '게임 종료'}
-        </h2>
+        <h2 className={styles['modal-title']}>{modalTitle}</h2>
         
-        <div className={styles['stats-container']}>
-          <div className={styles['stat-item']}>
-            <div className={styles['stat-icon']}>⭐</div>
-            <div className={styles['stat-content']}>
-              <span className={styles['stat-label']}>최종 점수</span>
-              <span className={styles['stat-value']}>{score}</span>
+        {showStats && (
+          <div className={styles['stats-container']}>
+            <div className={styles['stat-item']}>
+              <div className={styles['stat-icon']}>⭐</div>
+              <div className={styles['stat-content']}>
+                <span className={styles['stat-label']}>최종 점수</span>
+                <span className={styles['stat-value']}>{score}</span>
+              </div>
+            </div>
+            
+            <div className={styles['stat-item']}>
+              <div className={styles['stat-icon']}>💰</div>
+              <div className={styles['stat-content']}>
+                <span className={styles['stat-label']}>획득 코인</span>
+                <span className={styles['stat-value']}>{coins}</span>
+              </div>
             </div>
           </div>
-          
-          <div className={styles['stat-item']}>
-            <div className={styles['stat-icon']}>💰</div>
-            <div className={styles['stat-content']}>
-              <span className={styles['stat-label']}>획득 코인</span>
-              <span className={styles['stat-value']}>{coins}</span>
-            </div>
-          </div>
-        </div>
+        )}
 
         {isNewRecord && (
           <div className={styles['modal-celebration']} aria-hidden>
