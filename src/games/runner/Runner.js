@@ -45,7 +45,7 @@ const BOBBING_FREQUENCY = 4;
 const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
 const MAX_PARTICLES = 30;
 // const MAX_GHOSTS = 4;
-const MAX_MOTION_BLURS = 8;
+// const MAX_MOTION_BLURS = 8;
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/com/api';
 
 // 장애물 종류
@@ -179,7 +179,7 @@ const Runner = () => {
   const parallaxNearXRef = useRef(0);
 
   // 파워업 효과 타이밍 추적 (게임 시간 기반)
-  const powerUpEndTimeRef = useRef(0); // 현재 파워업 효과의 끝시간 (ms)
+  // const powerUpEndTimeRef = useRef(0); // 현재 파워업 효과의 끝시간 (ms)
   const magnetActiveDurationRef = useRef(0); // 자석 남은 시간
   const slowMoActiveDurationRef = useRef(0); // 슬로모션 남은 시간
   const tripleJumpCountRef = useRef(0); // 트리플 점프 남은 횟수 (0이 아니면 활성)
@@ -199,7 +199,7 @@ const Runner = () => {
     setShowNameModal,
     playerName,
     setPlayerName,
-    isSaving,
+    // isSaving,
     handleSaveName,
     handleCancelModal,
     saveScoreAuto,

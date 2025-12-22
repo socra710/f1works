@@ -2,7 +2,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import ClipLoader from 'react-spinners/ClipLoader';
 
 import ModalHelp from '../components/ModalHelp2';
 
@@ -32,7 +31,6 @@ export default function Monitor() {
         }
         setAuthUser(window.sessionStorage.getItem('extensionLogin'));
       }
-      setLoading(false);
 
       const script = document.createElement('script');
       script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
@@ -70,6 +68,9 @@ export default function Monitor() {
       ('00' + minute.toString()).slice(-2)
     );
   };
+
+  const skeletonRows = Array.from({ length: 5 });
+  const skeletonCols = Array.from({ length: 9 });
 
   const onSetDefault = useCallback(() => {
     document.querySelector('#appDate').value = getStringToDate();
@@ -164,6 +165,7 @@ export default function Monitor() {
       '&dateTo=' +
       '&dispatchGbn=02';
 
+    setLoading(true);
     fetch(`${API_BASE_URL}/jvWorksGetDispatch?` + query, {})
       .then((e) => e.json())
       .then((e) => {
@@ -213,7 +215,7 @@ export default function Monitor() {
           td = document.createElement('td');
           td.setAttribute('style', 'text-align:center;');
           td.innerHTML =
-            '<a href="#" class="aTagDispatCh" style="cursor:pointer;color:#667eea;">' +
+            '<a href="javascript:void(0)" class="aTagDispatCh" style="cursor:pointer;color:#667eea;">' +
             item.DISPATCH_NO +
             '</a>';
           tr.append(td);
@@ -273,6 +275,12 @@ export default function Monitor() {
             onModifyForm(this);
           })
         );
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, [authUser, API_BASE_URL, onModifyForm]);
 
@@ -571,412 +579,417 @@ export default function Monitor() {
         <meta property="og:url" content={`https://f1works.netlify.app/`} />
       </Helmet>
       <div className={`${styles['car-shell']} ${styles['div-car']}`}>
-        {loading ? (
-          <div className={styles.loaderContainer}>
-            <ClipLoader color="#667eea" loading={loading} size={100} />
-          </div>
-        ) : (
-          <>
-            <main className={styles['car-content']}>
-              <section className={styles['dispatch-hero']}>
-                <div className={styles['dispatch-hero__text']}>
-                  <h1 className={styles['hero-title']}>휴대용 모니터 신청</h1>
-                  <p className={styles['hero-sub']}>
-                    출장지나 외근지에서도 듀얼 화면을 편하게 사용할 수 있도록
-                    모니터를 사전 예약해 주세요. <br />
-                    사용 후에는 케이스/케이블을 함께 반납해 주세요.
-                  </p>
-                  <div className={styles['hero-meta']}>
-                    <span
-                      className={`${styles['chip']} ${styles['chip--solid']}`}
-                    >
-                      제우스랩 P15A 3대 운영
-                    </span>
-                    <span className={styles['chip']}>신청 후 승인 사용</span>
-                    <span className={styles['chip']}>최대 3일 예약 권장</span>
-                  </div>
-                </div>
-                <div className={styles['dispatch-hero__status']}>
-                  <div className={styles['stat-card']}>
-                    <p className={styles['stat-label']}>신청/반납 규칙</p>
-                    <p className={styles['stat-value']}>최대 3일</p>
-                    <small className={styles['stat-desc']}>
-                      장기 예약은 제한될 수 있습니다.
-                    </small>
-                  </div>
-                  <div className={styles['stat-card']}>
-                    <p className={styles['stat-label']}>사용 후 필수</p>
-                    <p className={styles['stat-value']}>케이스+케이블 반납</p>
-                    <small className={styles['stat-desc']}>
-                      이상 발견 시 관리팀에 바로 알림.
-                    </small>
-                  </div>
-                </div>
-              </section>
+        <main className={styles['car-content']}>
+          {loading && (
+            <div
+              className={styles.loadingBar}
+              role="status"
+              aria-label="데이터 로딩 중"
+            >
+              <div className={styles.loadingBarIndicator} />
+            </div>
+          )}
+          <section className={styles['dispatch-hero']}>
+            <div className={styles['dispatch-hero__text']}>
+              <h1 className={styles['hero-title']}>휴대용 모니터 신청</h1>
+              <p className={styles['hero-sub']}>
+                출장지나 외근지에서도 듀얼 화면을 편하게 사용할 수 있도록
+                모니터를 사전 예약해 주세요. <br />
+                사용 후에는 케이스/케이블을 함께 반납해 주세요.
+              </p>
+              <div className={styles['hero-meta']}>
+                <span className={`${styles['chip']} ${styles['chip--solid']}`}>
+                  제우스랩 P15A 3대 운영
+                </span>
+                <span className={styles['chip']}>신청 후 승인 사용</span>
+                <span className={styles['chip']}>최대 3일 예약 권장</span>
+              </div>
+            </div>
+            <div className={styles['dispatch-hero__status']}>
+              <div className={styles['stat-card']}>
+                <p className={styles['stat-label']}>신청/반납 규칙</p>
+                <p className={styles['stat-value']}>최대 3일</p>
+                <small className={styles['stat-desc']}>
+                  장기 예약은 제한될 수 있습니다.
+                </small>
+              </div>
+              <div className={styles['stat-card']}>
+                <p className={styles['stat-label']}>사용 후 필수</p>
+                <p className={styles['stat-value']}>케이스+케이블 반납</p>
+                <small className={styles['stat-desc']}>
+                  이상 발견 시 관리팀에 바로 알림.
+                </small>
+              </div>
+            </div>
+          </section>
 
-              {!isMobile && (
-                <div className={styles['info-grid']}>
-                  <div className={styles['info-card']}>
-                    <p>
-                      <sup>필독</sup>
-                      <b>휴대용 모니터 사용 지침</b>
-                    </p>
-                    <ul>
-                      <li>예약 신청 후 사용 가능합니다.</li>
-                      <li>
-                        다른 사용자를 위해 <b>3일 초과 예약</b>은 자제해 주세요.
-                      </li>
-                      <li>
-                        사용 후 케이블 등 부속을 케이스에 함께 보관해 주세요.
-                      </li>
-                      <li>
-                        <b>제품 이상</b> 발견 시 관리팀에 즉시 문의해 주세요.
-                      </li>
-                      <li>
-                        사용자 부주의 파손 시 <b>본인 부담</b>으로 수리 또는
-                        구매합니다.
-                      </li>
-                    </ul>
-                  </div>
-                  <div
-                    className={`${styles['info-card']} ${styles['info-spec']}`}
-                  >
-                    <p>
-                      <b>모니터 정보</b>
-                    </p>
-                    <ul>
-                      <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
-                      <li>
-                        관리번호 : <b>A-261</b>
-                        <sup
-                          id="supNoA-261"
-                          style={{
-                            backgroundColor: '#808080',
-                            marginLeft: '6px',
-                          }}
-                        >
-                          미사용
-                        </sup>
-                      </li>
-                      <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
-                      <li>
-                        관리번호 : <b>A-262</b>
-                        <sup
-                          id="supNoA-262"
-                          style={{
-                            backgroundColor: '#808080',
-                            marginLeft: '6px',
-                          }}
-                        >
-                          미사용
-                        </sup>
-                      </li>
-                      <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
-                      <li>
-                        관리번호 : <b>A-263</b>
-                        <sup
-                          id="supNoA-263"
-                          style={{
-                            backgroundColor: '#808080',
-                            marginLeft: '6px',
-                          }}
-                        >
-                          미사용
-                        </sup>
-                      </li>
-                    </ul>
-                  </div>
+          {!isMobile && (
+            <div className={styles['info-grid']}>
+              <div className={styles['info-card']}>
+                <p>
+                  <sup>필독</sup>
+                  <b>휴대용 모니터 사용 지침</b>
+                </p>
+                <ul>
+                  <li>예약 신청 후 사용 가능합니다.</li>
+                  <li>
+                    다른 사용자를 위해 <b>3일 초과 예약</b>은 자제해 주세요.
+                  </li>
+                  <li>사용 후 케이블 등 부속을 케이스에 함께 보관해 주세요.</li>
+                  <li>
+                    <b>제품 이상</b> 발견 시 관리팀에 즉시 문의해 주세요.
+                  </li>
+                  <li>
+                    사용자 부주의 파손 시 <b>본인 부담</b>으로 수리 또는
+                    구매합니다.
+                  </li>
+                </ul>
+              </div>
+              <div className={`${styles['info-card']} ${styles['info-spec']}`}>
+                <p>
+                  <b>모니터 정보</b>
+                </p>
+                <ul>
+                  <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
+                  <li>
+                    관리번호 : <b>A-261</b>
+                    <sup
+                      id="supNoA-261"
+                      style={{
+                        backgroundColor: '#808080',
+                        marginLeft: '6px',
+                      }}
+                    >
+                      미사용
+                    </sup>
+                  </li>
+                  <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
+                  <li>
+                    관리번호 : <b>A-262</b>
+                    <sup
+                      id="supNoA-262"
+                      style={{
+                        backgroundColor: '#808080',
+                        marginLeft: '6px',
+                      }}
+                    >
+                      미사용
+                    </sup>
+                  </li>
+                  <li>모델명 : 제우스랩 휴대용 모니터 P15A</li>
+                  <li>
+                    관리번호 : <b>A-263</b>
+                    <sup
+                      id="supNoA-263"
+                      style={{
+                        backgroundColor: '#808080',
+                        marginLeft: '6px',
+                      }}
+                    >
+                      미사용
+                    </sup>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          <div className={styles['ad-row']}>
+            <div className={`${styles['ad-card']} ${styles['pc-ad']}`}>
+              <ins
+                className="kakao_ad_area"
+                data-ad-unit="DAN-rcLaDXdMxv9mHsky"
+                data-ad-width="728"
+                data-ad-height="90"
+              ></ins>
+            </div>
+            <div className={`${styles['ad-card']} ${styles['mobile-ad']}`}>
+              <ins
+                className="kakao_ad_area"
+                data-ad-unit="DAN-F48lGg5Zh7muOpDY"
+                data-ad-width="320"
+                data-ad-height="50"
+              ></ins>
+            </div>
+          </div>
+
+          <div className={styles['dispatch-toolbar']}>
+            <i className={styles['infoI']}>
+              💡 작성된 신청 내역은 <b>신청번호*</b>를 클릭하여 수정할 수
+              있습니다.
+            </i>
+            <div className={styles['toolbar-actions']}>
+              <button
+                id="helpDispatch"
+                className={`${styles['btnHelp']} ${styles['btn-ghost']}`}
+              >
+                신청 안내
+              </button>
+              <button
+                id="openDispatch"
+                className={`${styles['btn']} ${styles['btn-elevated']}`}
+              >
+                모니터 신청
+              </button>
+            </div>
+          </div>
+
+          <section>
+            <div className={styles['table-wrapper']}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>신청번호*</th>
+                    <th>신청일</th>
+                    <th>관리번호</th>
+                    <th>사용일 (시간)</th>
+                    <th>종료일 (시간)</th>
+                    <th>출장지</th>
+                    <th>사용자</th>
+                    <th>특이사항</th>
+                  </tr>
+                </thead>
+                <tbody id="tbDispatch"></tbody>
+              </table>
+              {loading && (
+                <div className={styles.tableSkeleton} aria-hidden="true">
+                  {skeletonRows.map((_, idx) => (
+                    <div
+                      key={`monitor-skeleton-${idx}`}
+                      className={styles.skeletonRow}
+                    >
+                      {skeletonCols.map((__, colIdx) => (
+                        <span
+                          key={`monitor-skeleton-cell-${idx}-${colIdx}`}
+                          className={styles.skeletonCell}
+                        />
+                      ))}
+                    </div>
+                  ))}
                 </div>
               )}
+            </div>
+          </section>
+        </main>
 
-              <div className={styles['ad-row']}>
-                <div className={`${styles['ad-card']} ${styles['pc-ad']}`}>
-                  <ins
-                    className="kakao_ad_area"
-                    data-ad-unit="DAN-rcLaDXdMxv9mHsky"
-                    data-ad-width="728"
-                    data-ad-height="90"
-                  ></ins>
-                </div>
-                <div className={`${styles['ad-card']} ${styles['mobile-ad']}`}>
-                  <ins
-                    className="kakao_ad_area"
-                    data-ad-unit="DAN-F48lGg5Zh7muOpDY"
-                    data-ad-width="320"
-                    data-ad-height="50"
-                  ></ins>
+        <div className={styles['form-popup']} id="myForm">
+          <form id="formDispatch" className={styles['form-container']}>
+            <h3>모니터 신청</h3>
+            <hr style={{ margin: '0 0 1rem 0' }} />
+
+            <div className={styles['form-row']}>
+              <div className={`${styles['field']} ${styles['field--full']}`}>
+                <label htmlFor="dispatchNo">
+                  <b>신청번호</b>
+                </label>
+                <input
+                  type="text"
+                  id="dispatchNo"
+                  name="dispatchNo"
+                  placeholder="자동생성"
+                  readOnly
+                />
+              </div>
+              <div className={styles['field']}>
+                <label htmlFor="appDate">
+                  <b>신청일</b>
+                </label>
+                <input
+                  type="date"
+                  id="appDate"
+                  name="appDate"
+                  required
+                  readOnly
+                />
+              </div>
+            </div>
+
+            <div className={styles['form-row']}>
+              <div className={styles['field']}>
+                <label htmlFor="appNo">
+                  <b>모니터 선택</b>
+                </label>
+                <select id="appNo" name="appNo" required>
+                  <option value="">선택하세요</option>
+                  <option value="A-261">A-261(P15A)</option>
+                  <option value="A-262">A-262(P15A)</option>
+                  <option value="A-263">A-263(P15A)</option>
+                </select>
+              </div>
+              <div className={styles['field']}>
+                <label htmlFor="rideUserName">
+                  <b>사용자</b>
+                </label>
+                <input
+                  type="text"
+                  id="rideUserName"
+                  name="rideUserName"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className={styles['form-row']}>
+              <div className={styles['field']}>
+                <label htmlFor="useDate">
+                  <b>사용일</b>
+                </label>
+                <div className={styles['inline-row']}>
+                  <input
+                    type="date"
+                    placeholder="출발"
+                    id="useDateFrom"
+                    name="useDateFrom"
+                    onChange={changeDateFrom}
+                    defaultValue={useDateFrom}
+                    required
+                  />
+                  <input
+                    type="date"
+                    placeholder="복귀"
+                    id="useDateTo"
+                    name="useDateTo"
+                    defaultValue={useDateTo}
+                    required
+                  />
                 </div>
               </div>
 
-              <div className={styles['dispatch-toolbar']}>
-                <i className={styles['infoI']}>
-                  💡 작성된 신청 내역은 <b>신청번호*</b>를 클릭하여 수정할 수
-                  있습니다.
-                </i>
-                <div className={styles['toolbar-actions']}>
-                  <button
-                    id="helpDispatch"
-                    className={`${styles['btnHelp']} ${styles['btn-ghost']}`}
-                  >
-                    신청 안내
-                  </button>
-                  <button
-                    id="openDispatch"
-                    className={`${styles['btn']} ${styles['btn-elevated']}`}
-                  >
-                    모니터 신청
-                  </button>
+              <div className={styles['field']}>
+                <label htmlFor="useTime">
+                  <b>사용시간</b>
+                </label>
+                <div className={styles['inline-row']}>
+                  <input
+                    type="time"
+                    placeholder="출발"
+                    id="useTimeFrom"
+                    name="useTimeFrom"
+                    required
+                  />
+                  <input
+                    type="time"
+                    placeholder="복귀"
+                    id="useTimeTo"
+                    name="useTimeTo"
+                    required
+                  />
                 </div>
               </div>
-
-              <section>
-                <div className={styles['table-wrapper']}>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>No</th>
-                        <th>신청번호*</th>
-                        <th>신청일</th>
-                        <th>관리번호</th>
-                        <th>사용일 (시간)</th>
-                        <th>종료일 (시간)</th>
-                        <th>출장지</th>
-                        <th>사용자</th>
-                        <th>특이사항</th>
-                      </tr>
-                    </thead>
-                    <tbody id="tbDispatch"></tbody>
-                  </table>
-                </div>
-              </section>
-            </main>
-
-            <div className={styles['form-popup']} id="myForm">
-              <form id="formDispatch" className={styles['form-container']}>
-                <h3>모니터 신청</h3>
-                <hr className={styles['form-separator']} />
-
-                <div className={styles['form-row']}>
-                  <div
-                    className={`${styles['field']} ${styles['field--full']}`}
-                  >
-                    <label htmlFor="dispatchNo">
-                      <b>신청번호</b>
-                    </label>
-                    <input
-                      type="text"
-                      id="dispatchNo"
-                      name="dispatchNo"
-                      placeholder="자동생성"
-                      readOnly
-                    />
-                  </div>
-                </div>
-
-                <div className={styles['form-row']}>
-                  <div className={styles.field}>
-                    <label htmlFor="appDate">
-                      <b>신청일</b>
-                    </label>
-                    <input
-                      type="date"
-                      id="appDate"
-                      name="appDate"
-                      required
-                      readOnly
-                    />
-                  </div>
-                  <div className={styles.field}>
-                    <label htmlFor="appNo">
-                      <b>모니터 선택</b>
-                    </label>
-                    <select id="appNo" name="appNo" required>
-                      <option value="">선택하세요</option>
-                      <option value="A-261">A-261(P15A)</option>
-                      <option value="A-262">A-262(P15A)</option>
-                      <option value="A-263">A-263(P15A)</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className={styles['form-row']}>
-                  <div className={styles.field}>
-                    <label htmlFor="rideUserName">
-                      <b>사용자</b>
-                    </label>
-                    <input
-                      type="text"
-                      id="rideUserName"
-                      name="rideUserName"
-                      required
-                    />
-                  </div>
-                  <div className={styles.field}>
-                    <label htmlFor="locationName">
-                      <b>출장지</b>
-                    </label>
-                    <input
-                      type="text"
-                      id="locationName"
-                      name="locationName"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className={styles['form-row']}>
-                  <div className={styles.field}>
-                    <label htmlFor="useDate">
-                      <b>사용일</b>
-                    </label>
-                    <div className={styles['inline-row']}>
-                      <input
-                        type="date"
-                        placeholder="출발"
-                        id="useDateFrom"
-                        name="useDateFrom"
-                        onChange={changeDateFrom}
-                        defaultValue={useDateFrom}
-                        required
-                      />
-                      <input
-                        type="date"
-                        placeholder="복귀"
-                        id="useDateTo"
-                        name="useDateTo"
-                        defaultValue={useDateTo}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className={styles.field}>
-                    <label htmlFor="useTime">
-                      <b>사용시간</b>
-                    </label>
-                    <div className={styles['inline-row']}>
-                      <input
-                        type="time"
-                        placeholder="출발"
-                        id="useTimeFrom"
-                        name="useTimeFrom"
-                        required
-                      />
-                      <input
-                        type="time"
-                        placeholder="복귀"
-                        id="useTimeTo"
-                        name="useTimeTo"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div id="div01" className={styles['form-row']}>
-                  <div className={styles.field}>
-                    <label htmlFor="distance">
-                      <b>이동거리</b>
-                    </label>
-                    <input type="text" id="distance" name="distance" />
-                  </div>
-                  <div className={styles.field}>
-                    <label htmlFor="flux">
-                      <b>유량(%)</b>
-                    </label>
-                    <div className={styles['inline-row']}>
-                      <input
-                        type="number"
-                        placeholder="출발"
-                        id="fluxFrom"
-                        name="fluxFrom"
-                        min="0"
-                      />
-                      <input
-                        type="number"
-                        placeholder="복귀"
-                        id="fluxTo"
-                        name="fluxTo"
-                        min="0"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div id="div02" className={styles['form-row']}>
-                  <div className={styles.field}>
-                    <label htmlFor="oilingYn">
-                      <b>주유여부(경유)</b>
-                    </label>
-                    <input type="text" id="oilingYn" name="oilingYn" />
-                  </div>
-                  <div className={styles.field}>
-                    <label htmlFor="parkingArea">
-                      <b>주차구역</b>
-                    </label>
-                    <input type="text" id="parkingArea" name="parkingArea" />
-                  </div>
-                </div>
-
-                <div id="div03" className={styles['form-row']}>
-                  <div className={`${styles.field} ${styles['field--full']}`}>
-                    <label htmlFor="bigo">
-                      <b>특이사항</b>
-                    </label>
-                    <textarea
-                      id="bigo"
-                      name="bigo"
-                      rows="3"
-                      className={styles['textarea-lg']}
-                    ></textarea>
-                  </div>
-                </div>
-
-                <div className={styles['form-actions']}>
-                  <div className={styles['actions-left']}>
-                    <button
-                      type="button"
-                      id="btnDelete"
-                      className={`${styles['btn']} ${styles.cancel}`}
-                      style={{ display: 'none' }}
-                    >
-                      삭제하기
-                    </button>
-                  </div>
-                  <div className={styles['actions-right']}>
-                    <button
-                      type="submit"
-                      id="btnSave"
-                      className={styles['btn']}
-                    >
-                      신청하기
-                    </button>
-                    <button
-                      type="button"
-                      id="btnModify"
-                      className={styles['btn']}
-                      style={{ display: 'none' }}
-                    >
-                      수정하기
-                    </button>
-                    <button
-                      id="closeDispatch"
-                      type="button"
-                      className={`${styles['btn']} ${styles.cancel}`}
-                    >
-                      닫기
-                    </button>
-                  </div>
-                </div>
-              </form>
             </div>
 
-            <ModalHelp isOpen={isOpen} />
-            <div id="snackbar">Some text some message..</div>
-            <div id="lightbox">
-              <img id="lightboxImage" alt="상세 이미지" />
+            <div className={styles['form-row']}>
+              <div className={styles['field']}>
+                <label htmlFor="locationName">
+                  <b>출장지</b>
+                </label>
+                <input
+                  type="text"
+                  id="locationName"
+                  name="locationName"
+                  required
+                />
+              </div>
             </div>
-          </>
-        )}
+
+            <div id="div01" className={styles['form-row']}>
+              <div className={styles['field']}>
+                <label htmlFor="distance">
+                  <b>이동거리</b>
+                </label>
+                <input type="text" id="distance" name="distance" />
+              </div>
+              <div className={styles['field']}>
+                <label htmlFor="flux">
+                  <b>유량(%)</b>
+                </label>
+                <div className={styles['inline-row']}>
+                  <input
+                    type="number"
+                    placeholder="출발"
+                    id="fluxFrom"
+                    name="fluxFrom"
+                    min="0"
+                  />
+                  <input
+                    type="number"
+                    placeholder="복귀"
+                    id="fluxTo"
+                    name="fluxTo"
+                    min="0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div id="div02" className={styles['form-row']}>
+              <div className={styles['field']}>
+                <label htmlFor="oilingYn">
+                  <b>주유여부(경유)</b>
+                </label>
+                <input type="text" id="oilingYn" name="oilingYn" />
+              </div>
+              <div className={styles['field']}>
+                <label htmlFor="parkingArea">
+                  <b>주차구역</b>
+                </label>
+                <input type="text" id="parkingArea" name="parkingArea" />
+              </div>
+            </div>
+
+            <div id="div03" className={styles['form-row']}>
+              <div className={`${styles['field']} ${styles['field--full']}`}>
+                <label htmlFor="bigo">
+                  <b>특이사항</b>
+                </label>
+                <textarea
+                  className={styles['textarea-lg']}
+                  id="bigo"
+                  name="bigo"
+                  rows="3"
+                ></textarea>
+              </div>
+            </div>
+
+            <div className={styles['form-actions']}>
+              <button
+                type="button"
+                id="btnDelete"
+                className={styles['btn']}
+                style={{ display: 'none' }}
+              >
+                삭제하기
+              </button>
+              <div className={styles['form-actions-right']}>
+                <button type="submit" id="btnSave" className={styles['btn']}>
+                  신청하기
+                </button>
+                <button
+                  type="button"
+                  id="btnModify"
+                  className={styles['btn']}
+                  style={{ display: 'none' }}
+                >
+                  수정하기
+                </button>
+                <button
+                  id="closeDispatch"
+                  type="button"
+                  className={`${styles['btn']} ${styles['cancel']}`}
+                >
+                  닫기
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <ModalHelp isOpen={isOpen} />
+        <div id="snackbar">Some text some message..</div>
+        <div id="lightbox">
+          <img id="lightboxImage" alt="상세 이미지" />
+        </div>
       </div>
     </>
   );

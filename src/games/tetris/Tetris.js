@@ -44,10 +44,42 @@ const Tetris = () => {
   ];
 
   const themePalettes = {
-    red: ['#ff3333', '#ee5555', '#ff5555', '#dd4444', '#ff6666', '#ff4444', '#ff7777'],
-    blue: ['#4f8bff', '#65a5ff', '#7aa8ff', '#5c7cff', '#4f6bff', '#4560ff', '#7f96ff'],
-    green: ['#2ecc71', '#3fd68a', '#2fcf82', '#29b46f', '#34d399', '#27ae60', '#5adea8'],
-    mono: ['#b4b4b4', '#c2c2c2', '#a8a8a8', '#8f8f8f', '#9a9a9a', '#7f7f7f', '#cfcfcf'],
+    red: [
+      '#ff3333',
+      '#ee5555',
+      '#ff5555',
+      '#dd4444',
+      '#ff6666',
+      '#ff4444',
+      '#ff7777',
+    ],
+    blue: [
+      '#4f8bff',
+      '#65a5ff',
+      '#7aa8ff',
+      '#5c7cff',
+      '#4f6bff',
+      '#4560ff',
+      '#7f96ff',
+    ],
+    green: [
+      '#2ecc71',
+      '#3fd68a',
+      '#2fcf82',
+      '#29b46f',
+      '#34d399',
+      '#27ae60',
+      '#5adea8',
+    ],
+    mono: [
+      '#b4b4b4',
+      '#c2c2c2',
+      '#a8a8a8',
+      '#8f8f8f',
+      '#9a9a9a',
+      '#7f7f7f',
+      '#cfcfcf',
+    ],
   };
 
   const colorMap = React.useMemo(() => {
@@ -131,16 +163,23 @@ const Tetris = () => {
       <div className={`tetris-main theme-${theme}`}>
         <div className="tetris-header">
           <div className="tetris-header-top">
-            <h1 className="game-title" aria-label="TETRIS">TETRIS</h1>
+            <h1 className="game-title" aria-label="TETRIS">
+              TETRIS
+            </h1>
             <div className="header-badges">
               <div className="badge badge-level" aria-label={`레벨 ${level}`}>
                 <span className="badge-label">LV</span>
                 <span className="badge-value">{level}</span>
               </div>
-              <div className="badge badge-time" aria-label="남은 시간" aria-live="polite">
+              <div
+                className="badge badge-time"
+                aria-label="남은 시간"
+                aria-live="polite"
+              >
                 <span className="badge-label">TIME</span>
                 <span className="badge-value">
-                  {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
+                  {Math.floor(timeLeft / 60)}:
+                  {String(timeLeft % 60).padStart(2, '0')}
                 </span>
               </div>
               <div className="badge badge-score" aria-label={`점수 ${score}`}>
@@ -149,9 +188,9 @@ const Tetris = () => {
               </div>
             </div>
             <div className="header-right">
-              <select 
-                className="theme-select" 
-                value={theme} 
+              <select
+                className="theme-select"
+                value={theme}
                 onChange={(e) => handleThemeChange(e.target.value)}
                 aria-label="테마 변경"
               >
@@ -164,14 +203,22 @@ const Tetris = () => {
             </div>
           </div>
           <div className="tetris-header-bottom">
-            <div className="time-bar" role="meter" aria-valuemin={0} aria-valuemax={300} aria-valuenow={timeLeft}>
+            <div
+              className="time-bar"
+              role="meter"
+              aria-valuemin={0}
+              aria-valuemax={300}
+              aria-valuenow={timeLeft}
+            >
               <div
                 className="time-bar-fill"
                 style={{ width: `${(timeLeft / 300) * 100}%` }}
               />
             </div>
           </div>
-          <div className="controls-inline">← → 이동 · ↑ 회전 · SPACE 하드드롭</div>
+          <div className="controls-inline">
+            ← → 이동 · ↑ 회전 · SPACE 하드드롭
+          </div>
         </div>
         <section className="tetris-content">
           <div className="tetris-board-wrap">
@@ -203,7 +250,9 @@ const Tetris = () => {
                 {gameOver && (
                   <>
                     <p className="final-score">최종 점수: {score}</p>
-                    <p className="final-score-sub">닉네임을 입력하고 점수를 저장해보세요!</p>
+                    <p className="final-score-sub">
+                      닉네임을 입력하고 점수를 저장해보세요!
+                    </p>
                   </>
                 )}
                 <button onClick={startGame}>게임 시작</button>
@@ -228,6 +277,8 @@ const Tetris = () => {
           isSaving={isSaving}
           onSave={() => handleSaveName(playerName, score, userId)}
           onCancel={handleCancelModal}
+          level={level}
+          board={board}
         />
       </div>
     </>

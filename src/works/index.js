@@ -186,7 +186,14 @@ export default function Works() {
         icon: '💰',
         path: '/works/expense',
         category: '업무',
-        requiresAdmin: false,
+        isNew: true,
+      },
+      {
+        title: 'H/W 관리대장',
+        description: '자산(하드웨어)을 등록하고 관리하세요',
+        icon: '🖥️',
+        path: '/works/asset',
+        category: '업무',
         isNew: true,
       },
       {
@@ -291,6 +298,12 @@ export default function Works() {
   }, [checked, categoriesWithItems, selectedTab]);
 
   const updates = [
+    {
+      date: '2025.12.22',
+      title: 'H/W 관리대장 기능 출시',
+      description:
+        'H/W 관리대장 페이지가 새롭게 오픈 되었습니다. 납품 및 A/S 접수 내역을 기록하고 조회할 수 있습니다.',
+    },
     {
       date: '2025.12.16',
       title: '배차/모니터/뉴스피드 UI/UX 개선',
@@ -443,9 +456,11 @@ export default function Works() {
         >
           {categoryOrder.map((catName) => {
             // 일반 카테고리는 publicFeatures에서, 관리 카테고리는 체크 여부나 캐시 여부에 따라 표시
-            const catData = categoriesWithItems.find(c => c.category === catName);
+            const catData = categoriesWithItems.find(
+              (c) => c.category === catName
+            );
             const isAdminCat = catName === '관리';
-            
+
             // 관리 카테고리인데 아직 체크 안됐으면 스켈레톤
             if (isAdminCat && !skipAdminSkeleton) {
               return (
@@ -460,10 +475,10 @@ export default function Works() {
                 />
               );
             }
-            
+
             // 카테고리에 아이템이 없으면 표시 안함
             if (!catData) return null;
-            
+
             const isActive = catData.category === activeCategory.category;
             const newCount = catData.items.filter((item) => item.isNew).length;
             return (
@@ -537,34 +552,35 @@ export default function Works() {
 
           <div className="features-grid">
             {/* 관리 카테고리이고 아직 체크/캐시 안됐으면 스켈레톤 */}
-            {activeCategory.isAdminCategory && !skipAdminSkeleton ? (
-              [...Array(2)].map((_, index) => (
-                <div key={index} className="skeleton-card" />
-              ))
-            ) : (
-              visibleItems.map((feature, index) => (
-                <div
-                  key={`${activeCategory.category}-${index}`}
-                  className="feature-card"
-                  onClick={() => handleNavigate(feature.path)}
-                >
-                  {feature.isNew && (
-                    <span className="feature-badge-new" aria-label="신규">
-                      NEW
-                    </span>
-                  )}
-                  {feature.isUpdated && (
-                    <span className="feature-badge-updated" aria-label="업데이트">
-                      UPDATE
-                    </span>
-                  )}
-                  <div className="feature-category">{feature.category}</div>
-                  <h3 className="feature-title">{feature.title}</h3>
-                  <p className="feature-description">{feature.description}</p>
-                  <div className="feature-arrow">→</div>
-                </div>
-              ))
-            )}
+            {activeCategory.isAdminCategory && !skipAdminSkeleton
+              ? [...Array(2)].map((_, index) => (
+                  <div key={index} className="skeleton-card" />
+                ))
+              : visibleItems.map((feature, index) => (
+                  <div
+                    key={`${activeCategory.category}-${index}`}
+                    className="feature-card"
+                    onClick={() => handleNavigate(feature.path)}
+                  >
+                    {feature.isNew && (
+                      <span className="feature-badge-new" aria-label="신규">
+                        NEW
+                      </span>
+                    )}
+                    {feature.isUpdated && (
+                      <span
+                        className="feature-badge-updated"
+                        aria-label="업데이트"
+                      >
+                        UPDATE
+                      </span>
+                    )}
+                    <div className="feature-category">{feature.category}</div>
+                    <h3 className="feature-title">{feature.title}</h3>
+                    <p className="feature-description">{feature.description}</p>
+                    <div className="feature-arrow">→</div>
+                  </div>
+                ))}
           </div>
         </div>
       </div>

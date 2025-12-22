@@ -1,8 +1,7 @@
 import styles from './Car.module.css';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async'; // 추가
-import ClipLoader from 'react-spinners/ClipLoader'; //설치한 cliploader을 import한다
+import { Helmet } from 'react-helmet-async';
 
 import ModalHelp from '../components/ModalHelp';
 
@@ -39,7 +38,6 @@ export default function Car() {
         }
         setAuthUser(window.sessionStorage.getItem('extensionLogin'));
       }
-      setLoading(false);
 
       const script = document.createElement('script');
       script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
@@ -373,6 +371,7 @@ export default function Car() {
       '&dateTo=' +
       '&dispatchGbn=01';
 
+    setLoading(true);
     fetch(`${API_BASE_URL}/jvWorksGetDispatch?` + query, {})
       .then((e) => e.json())
       .then((e) => {
@@ -496,6 +495,12 @@ export default function Car() {
             onModifyForm(this);
           })
         );
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
@@ -577,6 +582,9 @@ export default function Car() {
     setUseDateTo(newDateTo);
   };
 
+  const skeletonRows = Array.from({ length: 5 });
+  const skeletonCols = Array.from({ length: 13 });
+
   return (
     <>
       <Helmet>
@@ -589,353 +597,344 @@ export default function Car() {
         <meta property="og:url" content={`https://f1works.netlify.app/`} />
       </Helmet>
       <div className={`${styles['car-shell']} ${styles['div-car']}`}>
-        {loading ? (
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              minHeight: '100vh',
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 9999,
-            }}
-          >
-            <ClipLoader color="#667eea" loading={loading} size={100} />
+        <main className={styles['car-content']}>
+          {loading && (
+            <div
+              className={styles.loadingBar}
+              role="status"
+              aria-label="데이터 로딩 중"
+            >
+              <div className={styles.loadingBarIndicator} />
+            </div>
+          )}
+          <section className={styles['dispatch-hero']}>
+            <div className={styles['dispatch-hero__text']}>
+              {/* <p className="eyebrow">F1Works</p> */}
+              <h1 className={styles['hero-title']}>업무 차량 배차 신청</h1>
+              <p className={styles['hero-sub']}>
+                안전하고 효율적인 출장 운행을 위해 사전에 신청하고, 사용 후에는
+                이동거리와 주유 정보를 빠짐없이 업데이트하세요.
+              </p>
+              <div className={styles['hero-meta']}>
+                <span className={`${styles['chip']} ${styles['chip--solid']}`}>
+                  245로 4279 · 카니발
+                </span>
+                <span className={styles['chip']}>하이패스 · 주유카드 구비</span>
+                <span className={styles['chip']}>실시간 신청 · 수정</span>
+              </div>
+            </div>
+            <div className={styles['dispatch-hero__status']}>
+              <div className={styles['stat-card']}>
+                <p className={styles['stat-label']}>현재 상태</p>
+                <p className={styles['stat-value']}>{carStatus}</p>
+                <small className={styles['stat-desc']}>{carStatusDesc}</small>
+              </div>
+              <div className={styles['stat-card']}>
+                <p className={styles['stat-label']}>필수 체크</p>
+                <p className={styles['stat-value']}>출발·복귀 시간</p>
+                <small className={styles['stat-desc']}>
+                  유량/주차 위치 기재
+                </small>
+              </div>
+            </div>
+          </section>
+
+          <div className={styles['ad-row']}>
+            <div className={`${styles['ad-card']} ${styles['pc-ad']}`}>
+              <ins
+                className="kakao_ad_area"
+                data-ad-unit="DAN-0oWzN1iMfbRwhBwd"
+                data-ad-width="728"
+                data-ad-height="90"
+              ></ins>
+            </div>
+            <div className={`${styles['ad-card']} ${styles['mobile-ad']}`}>
+              <ins
+                className="kakao_ad_area"
+                data-ad-unit="DAN-oggtfE3ed1r7kKEV"
+                data-ad-width="320"
+                data-ad-height="50"
+              ></ins>
+            </div>
           </div>
-        ) : (
-          <>
-            <main className={styles['car-content']}>
-              <section className={styles['dispatch-hero']}>
-                <div className={styles['dispatch-hero__text']}>
-                  {/* <p className="eyebrow">F1Works</p> */}
-                  <h1 className={styles['hero-title']}>업무 차량 배차 신청</h1>
-                  <p className={styles['hero-sub']}>
-                    안전하고 효율적인 출장 운행을 위해 사전에 신청하고, 사용
-                    후에는 이동거리와 주유 정보를 빠짐없이 업데이트하세요.
-                  </p>
-                  <div className={styles['hero-meta']}>
-                    <span
-                      className={`${styles['chip']} ${styles['chip--solid']}`}
-                    >
-                      245로 4279 · 카니발
-                    </span>
-                    <span className={styles['chip']}>
-                      하이패스 · 주유카드 구비
-                    </span>
-                    <span className={styles['chip']}>실시간 신청 · 수정</span>
-                  </div>
-                </div>
-                <div className={styles['dispatch-hero__status']}>
-                  <div className={styles['stat-card']}>
-                    <p className={styles['stat-label']}>현재 상태</p>
-                    <p className={styles['stat-value']}>{carStatus}</p>
-                    <small className={styles['stat-desc']}>
-                      {carStatusDesc}
-                    </small>
-                  </div>
-                  <div className={styles['stat-card']}>
-                    <p className={styles['stat-label']}>필수 체크</p>
-                    <p className={styles['stat-value']}>출발·복귀 시간</p>
-                    <small className={styles['stat-desc']}>
-                      유량/주차 위치 기재
-                    </small>
-                  </div>
-                </div>
-              </section>
 
-              <div className={styles['ad-row']}>
-                <div className={`${styles['ad-card']} ${styles['pc-ad']}`}>
-                  <ins
-                    className="kakao_ad_area"
-                    data-ad-unit="DAN-0oWzN1iMfbRwhBwd"
-                    data-ad-width="728"
-                    data-ad-height="90"
-                  ></ins>
+          <div className={styles['dispatch-toolbar']}>
+            <i className={styles['infoI']}>
+              💡 작성된 배차 신청 내역은 <b>신청번호*</b>를 클릭하여 수정할 수
+              있습니다.
+            </i>
+            <div className={styles['toolbar-actions']}>
+              <button
+                type="button"
+                id="btn-help"
+                className={`${styles['btnHelp']} ${styles['btn-ghost']}`}
+              >
+                배차 안내 보기
+              </button>
+              <button
+                id="openDispatch"
+                className={`${styles['btn']} ${styles['btn-elevated']}`}
+              >
+                배차 신청
+              </button>
+            </div>
+          </div>
+          <section>
+            <div className={styles['table-wrapper']}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>신청번호*</th>
+                    <th>신청일</th>
+                    <th>관리번호</th>
+                    <th>출발일 (시간)</th>
+                    <th>복귀일 (시간)</th>
+                    <th>출장지</th>
+                    <th>이동거리</th>
+                    <th>출발유량/복귀유량</th>
+                    <th>주유여부(경유)</th>
+                    <th>운전자</th>
+                    <th>주차구역</th>
+                    <th>정비이력 등 특이사항</th>
+                  </tr>
+                </thead>
+                <tbody id="tbDispatch"></tbody>
+              </table>
+              {loading && (
+                <div className={styles.tableSkeleton} aria-hidden="true">
+                  {skeletonRows.map((_, idx) => (
+                    <div
+                      key={`car-skeleton-${idx}`}
+                      className={styles.skeletonRow}
+                    >
+                      {skeletonCols.map((__, colIdx) => (
+                        <span
+                          key={`car-skeleton-cell-${idx}-${colIdx}`}
+                          className={styles.skeletonCell}
+                        />
+                      ))}
+                    </div>
+                  ))}
                 </div>
-                <div className={`${styles['ad-card']} ${styles['mobile-ad']}`}>
-                  <ins
-                    className="kakao_ad_area"
-                    data-ad-unit="DAN-oggtfE3ed1r7kKEV"
-                    data-ad-width="320"
-                    data-ad-height="50"
-                  ></ins>
+              )}
+            </div>
+          </section>
+        </main>
+        <div className={styles['form-popup']} id="myForm">
+          <form id="formDispatch" className={styles['form-container']}>
+            <h3>배차 신청</h3>
+            <hr style={{ margin: '0 0 1rem 0' }} />
+
+            <div className={styles['form-row']}>
+              <div className={`${styles['field']} ${styles['field--full']}`}>
+                <label htmlFor="dispatchNo">
+                  <b>신청번호</b>
+                </label>
+                <input
+                  type="text"
+                  id="dispatchNo"
+                  name="dispatchNo"
+                  placeholder="자동생성"
+                  readOnly
+                />
+              </div>
+              <div className={styles['field']}>
+                <label htmlFor="appDate">
+                  <b>신청일</b>
+                </label>
+                <input
+                  type="date"
+                  id="appDate"
+                  name="appDate"
+                  required
+                  readOnly
+                />
+              </div>
+            </div>
+
+            <div className={styles['form-row']}>
+              <div className={styles['field']}>
+                <label htmlFor="appNo">
+                  <b>차량 선택</b>
+                </label>
+                <select id="appNo" name="appNo" required>
+                  <option value="">선택하세요</option>
+                  <option value="245-4279">245-4279(카니발)</option>
+                </select>
+              </div>
+              <div className={styles['field']}>
+                <label htmlFor="rideUserName">
+                  <b>사용자</b>
+                </label>
+                <input
+                  type="text"
+                  id="rideUserName"
+                  name="rideUserName"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className={styles['form-row']}>
+              <div className={styles['field']}>
+                <label htmlFor="useDate">
+                  <b>사용일</b>
+                </label>
+                <div className={styles['inline-row']}>
+                  <input
+                    type="date"
+                    placeholder="출발"
+                    id="useDateFrom"
+                    name="useDateFrom"
+                    onChange={changeDateFrom}
+                    defaultValue={useDateFrom}
+                    required
+                  />
+                  <input
+                    type="date"
+                    placeholder="복귀"
+                    id="useDateTo"
+                    name="useDateTo"
+                    defaultValue={useDateTo}
+                    required
+                  />
                 </div>
               </div>
 
-              <div className={styles['dispatch-toolbar']}>
-                <i className={styles['infoI']}>
-                  💡 작성된 배차 신청 내역은 <b>신청번호*</b>를 클릭하여 수정할
-                  수 있습니다.
-                </i>
-                <div className={styles['toolbar-actions']}>
-                  <button
-                    type="button"
-                    id="btn-help"
-                    className={`${styles['btnHelp']} ${styles['btn-ghost']}`}
-                  >
-                    배차 안내 보기
-                  </button>
-                  <button
-                    id="openDispatch"
-                    className={`${styles['btn']} ${styles['btn-elevated']}`}
-                  >
-                    배차 신청
-                  </button>
+              <div className={styles['field']}>
+                <label htmlFor="useTime">
+                  <b>사용시간</b>
+                </label>
+                <div className={styles['inline-row']}>
+                  <input
+                    type="time"
+                    placeholder="출발"
+                    id="useTimeFrom"
+                    name="useTimeFrom"
+                    required
+                  />
+                  <input
+                    type="time"
+                    placeholder="복귀"
+                    id="useTimeTo"
+                    name="useTimeTo"
+                    required
+                  />
                 </div>
               </div>
-              <section>
-                <div className={styles['table-wrapper']}>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>No</th>
-                        <th>신청번호*</th>
-                        <th>신청일</th>
-                        <th>관리번호</th>
-                        <th>출발일 (시간)</th>
-                        <th>복귀일 (시간)</th>
-                        <th>출장지</th>
-                        <th>이동거리</th>
-                        <th>출발유량/복귀유량</th>
-                        <th>주유여부(경유)</th>
-                        <th>운전자</th>
-                        <th>주차구역</th>
-                        <th>정비이력 등 특이사항</th>
-                      </tr>
-                    </thead>
-                    <tbody id="tbDispatch"></tbody>
-                  </table>
-                </div>
-              </section>
-            </main>
-            <div className={styles['form-popup']} id="myForm">
-              <form id="formDispatch" className={styles['form-container']}>
-                <h3>배차 신청</h3>
-                <hr style={{ margin: '0 0 1rem 0' }} />
-
-                <div className={styles['form-row']}>
-                  <div
-                    className={`${styles['field']} ${styles['field--full']}`}
-                  >
-                    <label htmlFor="dispatchNo">
-                      <b>신청번호</b>
-                    </label>
-                    <input
-                      type="text"
-                      id="dispatchNo"
-                      name="dispatchNo"
-                      placeholder="자동생성"
-                      readOnly
-                    />
-                  </div>
-                  <div className={styles['field']}>
-                    <label htmlFor="appDate">
-                      <b>신청일</b>
-                    </label>
-                    <input
-                      type="date"
-                      id="appDate"
-                      name="appDate"
-                      required
-                      readOnly
-                    />
-                  </div>
-                </div>
-
-                <div className={styles['form-row']}>
-                  <div className={styles['field']}>
-                    <label htmlFor="appNo">
-                      <b>차량 선택</b>
-                    </label>
-                    <select id="appNo" name="appNo" required>
-                      <option value="">선택하세요</option>
-                      <option value="245-4279">245-4279(카니발)</option>
-                    </select>
-                  </div>
-                  <div className={styles['field']}>
-                    <label htmlFor="rideUserName">
-                      <b>사용자</b>
-                    </label>
-                    <input
-                      type="text"
-                      id="rideUserName"
-                      name="rideUserName"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className={styles['form-row']}>
-                  <div className={styles['field']}>
-                    <label htmlFor="useDate">
-                      <b>사용일</b>
-                    </label>
-                    <div className={styles['inline-row']}>
-                      <input
-                        type="date"
-                        placeholder="출발"
-                        id="useDateFrom"
-                        name="useDateFrom"
-                        onChange={changeDateFrom}
-                        defaultValue={useDateFrom}
-                        required
-                      />
-                      <input
-                        type="date"
-                        placeholder="복귀"
-                        id="useDateTo"
-                        name="useDateTo"
-                        defaultValue={useDateTo}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className={styles['field']}>
-                    <label htmlFor="useTime">
-                      <b>사용시간</b>
-                    </label>
-                    <div className={styles['inline-row']}>
-                      <input
-                        type="time"
-                        placeholder="출발"
-                        id="useTimeFrom"
-                        name="useTimeFrom"
-                        required
-                      />
-                      <input
-                        type="time"
-                        placeholder="복귀"
-                        id="useTimeTo"
-                        name="useTimeTo"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles['form-row']}>
-                  <div className={styles['field']}>
-                    <label htmlFor="locationName">
-                      <b>출장지</b>
-                    </label>
-                    <input
-                      type="text"
-                      id="locationName"
-                      name="locationName"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div id="div01" className={styles['form-row']}>
-                  <div className={styles['field']}>
-                    <label htmlFor="distance">
-                      <b>이동거리</b>
-                    </label>
-                    <input type="text" id="distance" name="distance" />
-                  </div>
-                  <div className={styles['field']}>
-                    <label htmlFor="flux">
-                      <b>유량(%)</b>
-                    </label>
-                    <div className={styles['inline-row']}>
-                      <input
-                        type="number"
-                        placeholder="출발"
-                        id="fluxFrom"
-                        name="fluxFrom"
-                        min="0"
-                      />
-                      <input
-                        type="number"
-                        placeholder="복귀"
-                        id="fluxTo"
-                        name="fluxTo"
-                        min="0"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div id="div02" className={styles['form-row']}>
-                  <div className={styles['field']}>
-                    <label htmlFor="oilingYn">
-                      <b>주유여부(경유)</b>
-                    </label>
-                    <input type="text" id="oilingYn" name="oilingYn" />
-                  </div>
-                  <div className={styles['field']}>
-                    <label htmlFor="parkingArea">
-                      <b>주차구역</b>
-                    </label>
-                    <input type="text" id="parkingArea" name="parkingArea" />
-                  </div>
-                </div>
-
-                <div id="div03" className={styles['form-row']}>
-                  <div
-                    className={`${styles['field']} ${styles['field--full']}`}
-                  >
-                    <label htmlFor="bigo">
-                      <b>정비이력 등 특이사항</b>
-                    </label>
-                    <textarea
-                      className={styles['textarea-lg']}
-                      id="bigo"
-                      name="bigo"
-                      rows="3"
-                    ></textarea>
-                  </div>
-                </div>
-
-                <div className={styles['form-actions']}>
-                  <button
-                    type="button"
-                    id="btnDelete"
-                    className={styles['btn']}
-                    style={{ display: 'none' }}
-                  >
-                    삭제하기
-                  </button>
-                  <div className={styles['form-actions-right']}>
-                    <button
-                      type="submit"
-                      id="btnSave"
-                      className={styles['btn']}
-                    >
-                      신청하기
-                    </button>
-                    <button
-                      type="button"
-                      id="btnModify"
-                      className={styles['btn']}
-                      style={{ display: 'none' }}
-                    >
-                      수정하기
-                    </button>
-                    <button
-                      id="closeDispatch"
-                      type="button"
-                      className={`${styles['btn']} ${styles['cancel']}`}
-                    >
-                      닫기
-                    </button>
-                  </div>
-                </div>
-              </form>
             </div>
-            <ModalHelp isOpen={isOpen} />
-            <div id="snackbar">Some text some message..</div>
-            <div id="lightbox">
-              <img id="lightboxImage" />
+
+            <div className={styles['form-row']}>
+              <div className={styles['field']}>
+                <label htmlFor="locationName">
+                  <b>출장지</b>
+                </label>
+                <input
+                  type="text"
+                  id="locationName"
+                  name="locationName"
+                  required
+                />
+              </div>
             </div>
-          </>
-        )}
+
+            <div id="div01" className={styles['form-row']}>
+              <div className={styles['field']}>
+                <label htmlFor="distance">
+                  <b>이동거리</b>
+                </label>
+                <input type="text" id="distance" name="distance" />
+              </div>
+              <div className={styles['field']}>
+                <label htmlFor="flux">
+                  <b>유량(%)</b>
+                </label>
+                <div className={styles['inline-row']}>
+                  <input
+                    type="number"
+                    placeholder="출발"
+                    id="fluxFrom"
+                    name="fluxFrom"
+                    min="0"
+                  />
+                  <input
+                    type="number"
+                    placeholder="복귀"
+                    id="fluxTo"
+                    name="fluxTo"
+                    min="0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div id="div02" className={styles['form-row']}>
+              <div className={styles['field']}>
+                <label htmlFor="oilingYn">
+                  <b>주유여부(경유)</b>
+                </label>
+                <input type="text" id="oilingYn" name="oilingYn" />
+              </div>
+              <div className={styles['field']}>
+                <label htmlFor="parkingArea">
+                  <b>주차구역</b>
+                </label>
+                <input type="text" id="parkingArea" name="parkingArea" />
+              </div>
+            </div>
+
+            <div id="div03" className={styles['form-row']}>
+              <div className={`${styles['field']} ${styles['field--full']}`}>
+                <label htmlFor="bigo">
+                  <b>정비이력 등 특이사항</b>
+                </label>
+                <textarea
+                  className={styles['textarea-lg']}
+                  id="bigo"
+                  name="bigo"
+                  rows="3"
+                ></textarea>
+              </div>
+            </div>
+
+            <div className={styles['form-actions']}>
+              <button
+                type="button"
+                id="btnDelete"
+                className={styles['btn']}
+                style={{ display: 'none' }}
+              >
+                삭제하기
+              </button>
+              <div className={styles['form-actions-right']}>
+                <button type="submit" id="btnSave" className={styles['btn']}>
+                  신청하기
+                </button>
+                <button
+                  type="button"
+                  id="btnModify"
+                  className={styles['btn']}
+                  style={{ display: 'none' }}
+                >
+                  수정하기
+                </button>
+                <button
+                  id="closeDispatch"
+                  type="button"
+                  className={`${styles['btn']} ${styles['cancel']}`}
+                >
+                  닫기
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+        <ModalHelp isOpen={isOpen} />
+        <div id="snackbar">Some text some message..</div>
+        <div id="lightbox">
+          <img id="lightboxImage" />
+        </div>
       </div>
     </>
   );

@@ -13,6 +13,7 @@ import Expense from './works/expense/Expense';
 import ExpenseManagement from './works/expense/ExpenseManagement';
 import SpecialItems from './works/expense/SpecialItems';
 import ExpenseSummary from './works/expense/ExpenseSummary';
+import Asset from './works/asset/index';
 import Wordle from './games/wordle/Wordle';
 import Tetris from './games/tetris/Tetris';
 import Runner from './games/runner/Runner';
@@ -50,6 +51,7 @@ function App() {
             path="/works/expense-summary/:encodedYear"
             element={<ExpenseSummary />}
           ></Route>
+          <Route path="/works/asset" element={<Asset />}></Route>
           {/* <Route path="/works/dispatch/:id" element={<Dispatch />}></Route> */}
           <Route path="/games/wordle" element={<Wordle />}></Route>
           <Route path="/games/tetris" element={<Tetris />}></Route>
