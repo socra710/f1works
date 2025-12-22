@@ -21,6 +21,40 @@
   box-sizing: border-box;
   max-width: 100%;
   overflow-x: hidden;
+  position: relative;
+  overflow: hidden;
+}
+.loading-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(90, 117, 230, 0.15);
+  overflow: hidden;
+  z-index: 3;
+}
+
+.loading-bar__indicator {
+  position: absolute;
+  inset: 0;
+  width: 38%;
+  min-width: 120px;
+  background: linear-gradient(90deg, #5a75e6 0%, #7a56b5 60%, #5a75e6 100%);
+  animation: loadingBarMove 1.1s ease-in-out infinite;
+  transform: translateX(-120%);
+}
+
+@keyframes loadingBarMove {
+  0% {
+    transform: translateX(-120%);
+  }
+  50% {
+    transform: translateX(40%);
+  }
+  100% {
+    transform: translateX(140%);
+  }
 }
 .expenseSummary-header {
   display: flex;
@@ -132,6 +166,7 @@
   border: 1px solid #e9ecef;
   max-width: 100%;
   width: 100%;
+  position: relative;
 }
 .expenseSummary-table {
   width: 100%;
@@ -168,6 +203,36 @@
   vertical-align: middle;
   box-sizing: border-box;
   font-size: 0.85rem;
+}
+.skeleton-row td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.skeleton-row:hover {
+  background: transparent;
+}
+
+.skeleton-grid {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.skeleton-cell {
+  height: 36px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f4f6f8 0%, #e9ecef 45%, #f4f6f8 80%);
+  background-size: 200% 100%;
+  animation: expenseSkeletonPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes expenseSkeletonPulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 .expenseSummary-table tbody tr {
   transition: background-color 0.2s ease;

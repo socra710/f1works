@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import './ExpenseManagement.css';
-import { ClipLoader } from 'react-spinners';
 import { useToast } from '../../common/Toast';
 import { getCorporateCards, saveCorporateCard } from './expenseAPI';
 
@@ -40,6 +39,30 @@ export default function ExpenseManagement() {
   });
   const [editingCardId, setEditingCardId] = useState(null);
 
+  const renderSkeletonRows = (columnCount, rowCount = 6) => (
+    <>
+      {Array.from({ length: rowCount }).map((_, rowIdx) => (
+        <tr key={`skeleton-${columnCount}-${rowIdx}`} className="skeleton-row">
+          <td colSpan={columnCount}>
+            <div
+              className="skeleton-grid"
+              style={{
+                gridTemplateColumns: `repeat(${columnCount}, minmax(80px, 1fr))`,
+              }}
+            >
+              {Array.from({ length: columnCount }).map((__, cellIdx) => (
+                <div
+                  key={`skeleton-cell-${columnCount}-${rowIdx}-${cellIdx}`}
+                  className="skeleton-cell"
+                />
+              ))}
+            </div>
+          </td>
+        </tr>
+      ))}
+    </>
+  );
+
   // 권한 확인 및 초기화
   useEffect(() => {
     // React Strict Mode에서 초기 useEffect가 두 번 실행되는 것을 방지
@@ -76,7 +99,8 @@ export default function ExpenseManagement() {
       // 기본 월 설정 (이전 달 - 경비는 지난달 기준)
       // 이전 선택값이 있으면 복원, 없으면 기본 월(이전 달)
       const persistedMonth = sessionStorage.getItem('expenseMgmtMonth');
-      const persistedStatus = sessionStorage.getItem('expenseMgmtStatus') || 'ALL';
+      const persistedStatus =
+        sessionStorage.getItem('expenseMgmtStatus') || 'ALL';
       let initialMonth = persistedMonth;
       if (!initialMonth) {
         const now = new Date();
@@ -415,38 +439,17 @@ export default function ExpenseManagement() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="expense-management-wrapper">
-        <Helmet>
-          <title>경비 청구 관리</title>
-        </Helmet>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            minHeight: '100vh',
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 9999,
-          }}
-        >
-          <ClipLoader color="#667eea" loading={isLoading} size={100} />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="expense-management-wrapper">
       <Helmet>
         <title>경비 청구 관리</title>
       </Helmet>
       <div className="expense-management-container">
+        {isLoading && (
+          <div className="loading-bar">
+            <div className="loading-bar__indicator" />
+          </div>
+        )}
         <header className="management-header">
           <h1>경비 청구 관리</h1>
           <div className="header-buttons">
@@ -521,7 +524,23 @@ export default function ExpenseManagement() {
         </div>
 
         <div className="expense-list-table">
-          {filteredList.length === 0 ? (
+          {isLoading ? (
+            <table>
+              <thead>
+                <tr>
+                  <th style={{ width: '200px' }}>제출일</th>
+                  <th>사원명</th>
+                  <th>사원번호</th>
+                  <th>총 지급액</th>
+                  <th>상태</th>
+                  <th>관리팀 확인</th>
+                  <th style={{ width: '300px' }}>비고</th>
+                  <th>상세</th>
+                </tr>
+              </thead>
+              <tbody>{renderSkeletonRows(8)}</tbody>
+            </table>
+          ) : filteredList.length === 0 ? (
             <div className="empty-state">
               <p>조회된 경비 청구 내역이 없습니다.</p>
             </div>
@@ -532,7 +551,6 @@ export default function ExpenseManagement() {
                   <th style={{ width: '200px' }}>제출일</th>
                   <th>사원명</th>
                   <th>사원번호</th>
-                  {/* <th>총 청구액</th> */}
                   <th>총 지급액</th>
                   <th>상태</th>
                   <th>관리팀 확인</th>
@@ -546,9 +564,6 @@ export default function ExpenseManagement() {
                     <td>{formatDateTime(item.submitDate)}</td>
                     <td>{item.userName}</td>
                     <td>{item.userId}</td>
-                    {/* <td className="amount">
-                          {formatAmount(item.totalAmount)}원
-                        </td> */}
                     <td className="amount">{formatAmount(item.totalPay)}원</td>
                     <td>{getStatusBadge(item.status)}</td>
                     <td>
