@@ -2,7 +2,6 @@ import styles from './index.module.css';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Helmet } from 'react-helmet-async'; // 추가
-import ClipLoader from 'react-spinners/ClipLoader'; //설치한 cliploader을 import한다
 
 export default function Feed() {
   const [newsTop, setNewsTop] = useState([]);
@@ -17,20 +16,14 @@ export default function Feed() {
           `https://f1lab.co.kr/com/api/jvWorksGetNewsDesc?factoryCode=000001&userId=`
         );
 
-        setTimeout(() => {
-          setNewsNew(response.data.data);
-          setNewsTop(items);
-          setLoading(false);
+        setNewsNew(response.data.data);
+        setNewsTop(items);
+        setLoading(false);
 
-          const script = document.createElement('script');
-          script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
-          script.async = true;
-          document.body.appendChild(script);
-
-          return () => {
-            document.body.removeChild(script);
-          };
-        }, 500);
+        const script = document.createElement('script');
+        script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
+        script.async = true;
+        document.body.appendChild(script);
       } catch (error) {
         setError('Error fetching news data.');
       } finally {
@@ -90,7 +83,9 @@ export default function Feed() {
 
           {loading ? (
             <section className={styles.loadingContainer}>
-              <ClipLoader color="#667eea" loading={loading} size={150} />
+              <div className={styles.loadingBar} role="status" aria-label="로딩 중">
+                <div className={styles.loadingBarIndicator} />
+              </div>
             </section>
           ) : (
             <>
