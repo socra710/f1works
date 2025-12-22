@@ -7,6 +7,7 @@ import {
   getAttendanceRanking,
   getDispatchRanking,
 } from './expense/expenseAPI';
+import { waitForExtensionLogin, decodeUserId } from '../common/extensionLogin';
 
 export default function Works() {
   const navigate = useNavigate();
@@ -100,33 +101,23 @@ export default function Works() {
   }, []);
 
   useEffect(() => {
-    // 확장 프로그램에서 전달하는 로그인 정보를 받기 위해 0.5초 대기
-    const timer = setTimeout(async () => {
-      if (adminCheckRef.current) return;
-      adminCheckRef.current = true;
+    if (adminCheckRef.current) return;
+    adminCheckRef.current = true;
 
+    (async () => {
       try {
-        let userId = null;
-        const extensionLogin =
-          localStorage.getItem('extensionLogin') ||
-          sessionStorage.getItem('extensionLogin');
+        const sessionUser = await waitForExtensionLogin({
+          minWait: 500,
+          maxWait: 2000,
+        });
+        const decodedUserId = sessionUser ? decodeUserId(sessionUser) : null;
+        const fallbackUserId =
+          localStorage.getItem('userId') || sessionStorage.getItem('userId');
+        const userId = (decodedUserId || fallbackUserId || '').trim();
 
-        if (extensionLogin) {
+        if (userId) {
           try {
-            userId = atob(extensionLogin);
-          } catch (e) {
-            userId = extensionLogin;
-          }
-        }
-
-        if (!userId) {
-          userId =
-            localStorage.getItem('userId') || sessionStorage.getItem('userId');
-        }
-
-        if (userId && userId.trim()) {
-          try {
-            const adminStatus = await checkAdminStatus(userId.trim());
+            const adminStatus = await checkAdminStatus(userId);
             setIsAdmin(adminStatus);
             persistAdminStatus(adminStatus);
           } catch (apiError) {
@@ -145,9 +136,7 @@ export default function Works() {
       } finally {
         setChecked(true);
       }
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    })();
   }, []);
 
   const categoryOrder = useMemo(
