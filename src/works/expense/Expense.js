@@ -1572,7 +1572,7 @@ export default function Expense() {
     );
   };
   
-  // 인증 완료 전에는 화면을 비워 두고 상단 바만 표시
+  // 인증 완료 전에는 화면을 비워 두고 상단 바만 표시 s
   if (!authChecked) {
     return <div className="auth-wait-screen" />;
   }
