@@ -92,9 +92,11 @@ export default function ExpenseSummary() {
     const encodedYear = encodeWithKey(year);
     const link = `/works/expense-summary/${encodedYear}`;
 
-    // 클립보드에 복사
+    // 클립보드에 복사 (추가 정보 포함)
+    const shareText = `📊 경비 청구 집계 (${year}년)\n\n${window.location.origin}${link}`;
+
     navigator.clipboard
-      .writeText(`${window.location.origin}${link}`)
+      .writeText(shareText)
       .then(() => {
         showToast('링크가 클립보드에 복사되었습니다.', 'success');
       })
