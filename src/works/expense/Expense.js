@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import './Expense.css';
+import { waitForExtensionLogin, decodeUserId } from '../../common/extensionLogin';
 import { useToast, useDialog } from '../../common/Toast';
 import {
   checkAdminStatus,
@@ -77,6 +78,7 @@ export default function Expense() {
   const [allChecked, setAllChecked] = useState(false);
   const [corporateCards, setCorporateCards] = useState([]);
   const authCheckRef = useRef(false);
+  const [authChecked, setAuthChecked] = useState(false);
   // 관리자 대리 신청용 상태
   const [proxyMode, setProxyMode] = useState(false);
   const [proxyUserIdInput] = useState('');
@@ -114,34 +116,20 @@ export default function Expense() {
     if (authCheckRef.current) return;
     authCheckRef.current = true;
 
-    // const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(
-    //   navigator.userAgent
-    // );
-
-    setTimeout(async () => {
-      const sessionUser = window.sessionStorage.getItem('extensionLogin');
+    (async () => {
+      const sessionUser = await waitForExtensionLogin({ minWait: 500, maxWait: 2000 });
       if (!sessionUser) {
         showToast('로그인이 필요한 서비스입니다.', 'warning');
         navigate('/works');
         return;
       }
 
-      // Expense 페이지에서만 관리자 모드 권한 확인
       if (isManagerMode) {
-        let decodedUserId = null;
         try {
-          decodedUserId = atob(sessionUser);
-        } catch (e) {
-          decodedUserId = sessionUser;
-        }
-
-        try {
-          const isAdmin = await checkAdminStatus((decodedUserId || '').trim());
+          const decodedUserId = decodeUserId(sessionUser).trim();
+          const isAdmin = await checkAdminStatus(decodedUserId);
           if (!isAdmin) {
-            showToast(
-              '해당 페이지를 이용할 수 없습니다, 관리자 권한이 없습니다.',
-              'warning'
-            );
+            showToast('해당 페이지를 이용할 수 없습니다, 관리자 권한이 없습니다.', 'warning');
             navigate('/works');
             return;
           }
@@ -154,9 +142,36 @@ export default function Expense() {
       }
 
       initializeExpense(sessionUser);
-    }, 500);
+      setAuthChecked(true);
+    })();
     // eslint-disable-next-line
-  }, [navigate, expenseId]);
+  }, [navigate, expenseId, isManagerMode]);
+
+  // 인증 대기 시 상단 고정 로딩바 표시
+  useEffect(() => {
+    const id = 'global-auth-topbar';
+    if (!authChecked) {
+      const container = document.createElement('div');
+      container.id = id;
+      Object.assign(container.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        right: '0',
+        zIndex: '2147483647',
+      });
+      container.innerHTML =
+        '<div class="loading-bar" role="status" aria-label="인증 확인 중"><div class="loading-bar__indicator"></div></div>';
+      document.body.appendChild(container);
+      return () => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+      };
+    } else {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+  }, [authChecked]);
 
   // 임시 저장 데이터 체크 함수
   const checkAndLoadTempData = (month, userId) => {
@@ -1556,6 +1571,11 @@ export default function Expense() {
       prevRows.map((row) => ({ ...row, managerConfirmed: checked }))
     );
   };
+  
+  // 인증 완료 전에는 화면을 비워 두고 상단 바만 표시
+  if (!authChecked) {
+    return <div className="auth-wait-screen" />;
+  }
 
   return (
     <div className="expense-container">
@@ -1570,7 +1590,7 @@ export default function Expense() {
           <div
             className="loading-bar"
             role="status"
-            aria-label="데이터 로딩 중"
+            aria-label={'데이터 로딩 중'}
           >
             <div className="loading-bar__indicator" />
           </div>

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import './ExpenseManagement.css';
 import { useToast } from '../../common/Toast';
 import { getCorporateCards, saveCorporateCard } from './expenseAPI';
+import { waitForExtensionLogin, decodeUserId } from '../../common/extensionLogin';
 
 export default function ExpenseManagement() {
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
@@ -12,10 +13,11 @@ export default function ExpenseManagement() {
 
   // const [userId, setUserId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState('');
   const [expenseList, setExpenseList] = useState([]);
   const [filterStatus, setFilterStatus] = useState('ALL'); // ALL, SUBMITTED, APPROVED, REJECTED
-  const initializedRef = useRef(false);
+  const authCheckRef = useRef(false);
   const userIdEncodedRef = useRef(null);
 
   // 유류비 설정 모달
@@ -63,17 +65,40 @@ export default function ExpenseManagement() {
     </>
   );
 
+  // 상단 로딩바 표시
+  useEffect(() => {
+    const id = 'global-auth-topbar';
+    if (!authChecked) {
+      const container = document.createElement('div');
+      container.id = id;
+      Object.assign(container.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        right: '0',
+        zIndex: '2147483647',
+        background: '#fff',
+      });
+      container.innerHTML =
+        '<div class="loading-bar" role="status" aria-label="인증 확인 중"><div class="loading-bar__indicator"></div></div>';
+      document.body.appendChild(container);
+      return () => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+      };
+    } else {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+  }, [authChecked]);
+
   // 권한 확인 및 초기화
   useEffect(() => {
-    // React Strict Mode에서 초기 useEffect가 두 번 실행되는 것을 방지
-    if (initializedRef.current) return;
-    initializedRef.current = true;
-    // const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(
-    //   navigator.userAgent
-    // );
+    if (authCheckRef.current) return;
+    authCheckRef.current = true;
 
-    setTimeout(() => {
-      const sessionUser = window.sessionStorage.getItem('extensionLogin');
+    (async () => {
+      const sessionUser = await waitForExtensionLogin({ minWait: 500, maxWait: 2000 });
       if (!sessionUser) {
         showToast('로그인이 필요한 서비스입니다.', 'warning');
         navigate('/works');
@@ -81,20 +106,16 @@ export default function ExpenseManagement() {
       }
 
       checkManagerPermission(sessionUser);
-    }, 500);
+      setAuthChecked(true);
+    })();
     // eslint-disable-next-line
-  }, [navigate]);
+  }, [navigate, showToast]);
 
   // 관리자 권한 확인
   const checkManagerPermission = async (userIdEncoded) => {
     try {
       const factoryCode =
         window.sessionStorage.getItem('factoryCode') || '000001';
-
-      // TODO: 실제 권한 확인 API 호출 (임시로 통과)
-      // const response = await fetch(...)
-      // if (!response.data.isManager) { alert('권한이 없습니다.'); return; }
-      // setUserId(userIdEncoded);
 
       // 기본 월 설정 (이전 달 - 경비는 지난달 기준)
       // 이전 선택값이 있으면 복원, 없으면 기본 월(이전 달)
@@ -133,7 +154,7 @@ export default function ExpenseManagement() {
       const formData = new FormData();
       formData.append('factoryCode', factoryCode);
       formData.append('month', month);
-      formData.append('userId', atob(userIdEncoded));
+      formData.append('userId', decodeUserId(userIdEncoded));
 
       const response = await fetch(`${API_BASE_URL}/jvWorksGetExpenseList`, {
         method: 'POST',
@@ -439,6 +460,11 @@ export default function ExpenseManagement() {
     }
   };
 
+  // 인증 완료 전에는 흰 배경만 표시
+  if (!authChecked) {
+    return <div className="auth-wait-screen" />;
+  }
+
   return (
     <div className="expense-management-wrapper">
       <Helmet>
@@ -446,7 +472,7 @@ export default function ExpenseManagement() {
       </Helmet>
       <div className="expense-management-container">
         {isLoading && (
-          <div className="loading-bar">
+          <div className="loading-bar" role="status" aria-label="데이터 로딩 중">
             <div className="loading-bar__indicator" />
           </div>
         )}

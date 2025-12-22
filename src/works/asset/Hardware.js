@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from './Hardware.module.css';
 import HardwareForm from './HardwareForm';
 import HardwareInfo from './components/HardwareInfo';
 import HardwareFilter from './components/HardwareFilter';
 import HardwareTable from './components/HardwareTable';
 import { useHardwareAPI } from './hooks/useHardwareAPI';
+import { useToast } from '../../common/Toast';
+import { waitForExtensionLogin, decodeUserId } from '../../common/extensionLogin';
 
 const Hardware = () => {
   const { hardwareList, loading, fetchHardwareList, deleteHardware } =
     useHardwareAPI();
+  const { showToast } = useToast();
+  const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
   const [selectedHardware, setSelectedHardware] = useState(null);
   const [filter, setFilter] = useState('all'); // all, new, repair
@@ -16,27 +21,28 @@ const Hardware = () => {
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    const sessionUser = window.sessionStorage.getItem('extensionLogin');
+    let mounted = true;
+    const checkAuth = async () => {
+      const rawUser = await waitForExtensionLogin({ minWait: 500, maxWait: 2000 });
+      if (!mounted) return;
 
-    let decodedUser = sessionUser || '';
-    if (sessionUser) {
-      try {
-        decodedUser = atob(sessionUser);
-      } catch (e) {
-        decodedUser = sessionUser;
+      const decodedUser = decodeUserId(rawUser);
+      if (!decodedUser || !decodedUser.trim()) {
+        showToast('로그인이 필요한 서비스입니다.', 'warning');
+        navigate('/works');
+        return;
       }
-    }
 
-    if (!decodedUser || !decodedUser.trim()) {
-      alert('로그인이 필요한 서비스입니다.');
-      window.location.href = '/works';
-      return;
-    }
+      setIsAuthorized(true);
+      setAuthChecked(true);
+      fetchHardwareList();
+    };
 
-    setIsAuthorized(true);
-    setAuthChecked(true);
-    fetchHardwareList();
-  }, [fetchHardwareList]);
+    checkAuth();
+    return () => {
+      mounted = false;
+    };
+  }, [fetchHardwareList, navigate, showToast]);
 
   const handleAdd = () => {
     setSelectedHardware(null);
@@ -71,7 +77,18 @@ const Hardware = () => {
     return true;
   });
 
-  if (!authChecked || !isAuthorized) return null;
+  // if (!authChecked || !isAuthorized) return null;
+
+  // 변경: 로딩 표시
+  if (!authChecked) {
+    return (
+      <div className={styles.hardwareContainer}>
+        <div className={styles.loadingBar} role="status" aria-label="인증 확인 중">
+          <div className={styles.loadingBarIndicator} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.hardwareContainer}>

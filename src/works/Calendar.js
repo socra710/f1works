@@ -2,7 +2,7 @@ import './Calendar.css';
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async'; // 추가
-import ClipLoader from 'react-spinners/ClipLoader'; //설치한 cliploader을 import한다
+import { waitForExtensionLogin, isMobileUA } from '../common/extensionLogin';
 
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -33,33 +33,37 @@ export default function Calendar() {
   const calendarRef = useRef(null);
 
   useEffect(() => {
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (isMobile) {
-      setIsMobile(true);
-    } else {
-      setIsMobile(false);
-    }
+    let mounted = true;
+    const run = async () => {
+      const uaMobile = isMobileUA();
+      if (!mounted) return;
+      setIsMobile(uaMobile);
 
-    setTimeout(() => {
-      // 처음 컴포넌트가 마운트될 때 체크
-      if (isMobile) {
+      if (uaMobile) {
         setAuthUser('m');
       } else {
-        if (!window.sessionStorage.getItem('extensionLogin')) {
+        const extLogin = await waitForExtensionLogin({ minWait: 500, maxWait: 2000 });
+        if (!mounted) return;
+        if (!extLogin) {
           alert('로그인이 필요한 서비스입니다.');
           navigate('/works');
           return;
         }
-        setAuthUser(window.sessionStorage.getItem('extensionLogin'));
+        setAuthUser(extLogin);
       }
-      setLoading(false);
 
       const script = document.createElement('script');
       script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
       script.async = true;
       document.body.appendChild(script);
-    }, 500);
-  }, [isMobile]);
+
+      setLoading(false);
+    };
+    run();
+    return () => {
+      mounted = false;
+    };
+  }, [navigate]);
 
   useEffect(() => {
     if (!authUser) {
@@ -181,11 +185,9 @@ export default function Calendar() {
 
       {loading ? (
         <section className="section-calendar">
-          <ClipLoader
-            color="#667eea"
-            loading={loading} //useState로 관리
-            size={100}
-          />
+          <div className="loading-bar" role="status" aria-label="로딩 중">
+            <div className="loading-bar__indicator" />
+          </div>
         </section>
       ) : (
         <>
