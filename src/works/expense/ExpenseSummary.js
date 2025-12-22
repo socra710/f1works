@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
 import './ExpenseSummary.css';
-import { ClipLoader } from 'react-spinners';
 import { useToast } from '../../common/Toast';
 import {
   getExpenseAggregationByYear,
@@ -136,6 +135,30 @@ export default function ExpenseSummary() {
   const [factoryCode] = useState('000001'); // 예시, 실제로는 로그인 정보에서 가져옴
   const [userId] = useState(
     window.sessionStorage.getItem('extensionLogin') || ''
+  );
+
+  const renderSkeletonRows = (columnCount, rowCount = 6) => (
+    <>
+      {Array.from({ length: rowCount }).map((_, rowIdx) => (
+        <tr key={`skeleton-${columnCount}-${rowIdx}`} className="skeleton-row">
+          <td colSpan={columnCount}>
+            <div
+              className="skeleton-grid"
+              style={{
+                gridTemplateColumns: `repeat(${columnCount}, minmax(70px, 1fr))`,
+              }}
+            >
+              {Array.from({ length: columnCount }).map((__, cellIdx) => (
+                <div
+                  key={`skeleton-cell-${columnCount}-${rowIdx}-${cellIdx}`}
+                  className="skeleton-cell"
+                />
+              ))}
+            </div>
+          </td>
+        </tr>
+      ))}
+    </>
   );
 
   // 사용 가능한 연도 목록 생성 (2020 ~ 현재년도)
@@ -564,32 +587,6 @@ export default function ExpenseSummary() {
   // const grandTotal = getGrandTotal();
   // const specialItemsDept = getSpecialItemsByDepartment();
 
-  if (isLoading) {
-    return (
-      <div className="expenseSummary-container">
-        <Helmet>
-          <title>경비 청구 집계</title>
-        </Helmet>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            minHeight: '100vh',
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 9999,
-          }}
-        >
-          <ClipLoader color="#667eea" loading={isLoading} size={100} />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
       <Helmet>
@@ -598,6 +595,11 @@ export default function ExpenseSummary() {
 
       <div className="expenseSummary-container">
         <section className="expenseSummary-content">
+          {isLoading && (
+            <div className="loading-bar">
+              <div className="loading-bar__indicator" />
+            </div>
+          )}
           <header className="expenseSummary-header">
             <div className="header-left">
               <h1>경비 청구 집계</h1>
@@ -640,84 +642,66 @@ export default function ExpenseSummary() {
             </div>
           </header>
 
-          {isLoading ? (
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                minHeight: '100vh',
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 9999,
-              }}
-            >
-              <ClipLoader color="#f88c6b" loading={isLoading} size={120} />
+          {closingData.length === 0 && !isLoading ? (
+            <div className="empty-state">
+              <p>{year}년 경비 청구 데이터가 없습니다.</p>
             </div>
           ) : (
             <>
-              {/* 월별 카테고리 집계 */}
-              {closingData.length === 0 ? (
-                <div className="empty-state">
-                  <p>{year}년 경비 청구 데이터가 없습니다.</p>
-                </div>
-              ) : (
-                <>
-                  <div className="expenseSummary-section">
-                    <div
+              <div className="expenseSummary-section">
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <h2 className="section-title">{year}년 집계</h2>
+
+                  {!isSharedLink && (
+                    <button
+                      className="btn-create-link"
+                      onClick={handleCreateLink}
                       style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
+                        padding: '8px 16px',
+                        backgroundColor: '#f88c6b',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
                       }}
                     >
-                      <h2 className="section-title">{year}년 집계</h2>
-
-                      {!isSharedLink && (
-                        <button
-                          className="btn-create-link"
-                          onClick={handleCreateLink}
-                          style={{
-                            padding: '8px 16px',
-                            backgroundColor: '#f88c6b',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                            fontWeight: 'bold',
-                          }}
-                        >
-                          공유하기
-                        </button>
-                      )}
-                    </div>
-                    <div className="expenseSummary-table-container yearly-table">
-                      <table className="yearly-summary-table">
-                        <thead>
-                          <tr>
-                            <th colSpan="2">비목</th>
-                            <th>1월</th>
-                            <th>2월</th>
-                            <th>3월</th>
-                            <th>4월</th>
-                            <th>5월</th>
-                            <th>6월</th>
-                            <th>7월</th>
-                            <th>8월</th>
-                            <th>9월</th>
-                            <th>10월</th>
-                            <th>11월</th>
-                            <th>12월</th>
-                            <th></th>
-                            <th></th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {(() => {
+                      공유하기
+                    </button>
+                  )}
+                </div>
+                <div className="expenseSummary-table-container yearly-table">
+                  <table className="yearly-summary-table">
+                    <thead>
+                      <tr>
+                        <th colSpan="2">비목</th>
+                        <th>1월</th>
+                        <th>2월</th>
+                        <th>3월</th>
+                        <th>4월</th>
+                        <th>5월</th>
+                        <th>6월</th>
+                        <th>7월</th>
+                        <th>8월</th>
+                        <th>9월</th>
+                        <th>10월</th>
+                        <th>11월</th>
+                        <th>12월</th>
+                        <th></th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {isLoading
+                        ? renderSkeletonRows(16)
+                        : (() => {
                             const allRows = [];
 
                             // ========== 1. 년별 집계 섹션 ==========
@@ -1718,12 +1702,10 @@ export default function ExpenseSummary() {
                             );
                             return allRows;
                           })()}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </>
-              )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </>
           )}
         </section>

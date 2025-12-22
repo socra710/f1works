@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import './SpecialItems.css';
-import { ClipLoader } from 'react-spinners';
 import { useToast, useDialog } from '../../common/Toast';
 
 /**
@@ -27,6 +26,30 @@ export default function SpecialItems() {
     memo: '',
   });
   const initializedRef = useRef(false);
+
+  const renderSkeletonRows = (columnCount, rowCount = 6) => (
+    <>
+      {Array.from({ length: rowCount }).map((_, rowIdx) => (
+        <tr key={`skeleton-${columnCount}-${rowIdx}`} className="skeleton-row">
+          <td colSpan={columnCount}>
+            <div
+              className="skeleton-grid"
+              style={{
+                gridTemplateColumns: `repeat(${columnCount}, minmax(70px, 1fr))`,
+              }}
+            >
+              {Array.from({ length: columnCount }).map((__, cellIdx) => (
+                <div
+                  key={`skeleton-cell-${columnCount}-${rowIdx}-${cellIdx}`}
+                  className="skeleton-cell"
+                />
+              ))}
+            </div>
+          </td>
+        </tr>
+      ))}
+    </>
+  );
 
   // 권한 확인 및 초기화
   useEffect(() => {
@@ -196,38 +219,17 @@ export default function SpecialItems() {
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="special-items-wrapper">
-        <Helmet>
-          <title>특별 항목 관리</title>
-        </Helmet>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            minHeight: '100vh',
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 9999,
-          }}
-        >
-          <ClipLoader color="#667eea" loading={isLoading} size={100} />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="special-items-wrapper">
       <Helmet>
         <title>특별 항목 관리 - F1Soft Works</title>
       </Helmet>
       <div className="special-items-container">
+        {isLoading && (
+          <div className="loading-bar">
+            <div className="loading-bar__indicator" />
+          </div>
+        )}
         <header className="management-header">
           <h1>특별 항목 관리</h1>
           <div className="header-buttons">
@@ -271,7 +273,29 @@ export default function SpecialItems() {
         </div>
 
         <div className="special-items-list">
-          {specialItemsList.length === 0 ? (
+          {isLoading ? (
+            <>
+              <div className="department-group">
+                <div className="skeleton-title" />
+                <table>
+                  <thead>
+                    <tr>
+                      <th>항목명</th>
+                      <th>수량</th>
+                      <th>단가</th>
+                      <th>총액</th>
+                      <th>비고</th>
+                      <th>작업</th>
+                    </tr>
+                  </thead>
+                  <tbody>{renderSkeletonRows(6)}</tbody>
+                </table>
+              </div>
+              <div className="total-summary skeleton-total">
+                <div className="skeleton-cell" style={{ width: '220px' }} />
+              </div>
+            </>
+          ) : specialItemsList.length === 0 ? (
             <div className="empty-state">
               <p>등록된 특별 항목이 없습니다.</p>
             </div>
@@ -363,9 +387,9 @@ export default function SpecialItems() {
                   }
                 >
                   <option value="LUNCH_SODAM">점심(소담)</option>
-                  <option value="DINNER_SODAM">저녘(소담)</option>
+                  <option value="DINNER_SODAM">저녁(소담)</option>
                   <option value="LUNCH_SEJONG">점심(세종)</option>
-                  <option value="DINNER_SEJONG">저녘(세종)</option>
+                  <option value="DINNER_SEJONG">저녁(세종)</option>
                 </select>
               </div>
               <div className="modal-grid">

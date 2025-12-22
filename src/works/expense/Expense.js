@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import './Expense.css';
-import { ClipLoader } from 'react-spinners';
 import { useToast, useDialog } from '../../common/Toast';
 import {
   checkAdminStatus,
@@ -85,6 +84,30 @@ export default function Expense() {
   const [showUserSelectModal, setShowUserSelectModal] = useState(false);
   const [userList, setUserList] = useState([]);
   const [userSearchTerm, setUserSearchTerm] = useState('');
+
+  const renderSkeletonRows = (columnCount, rowCount = 5) => (
+    <>
+      {Array.from({ length: rowCount }).map((_, rowIdx) => (
+        <tr key={`skeleton-${columnCount}-${rowIdx}`} className="skeleton-row">
+          <td colSpan={columnCount}>
+            <div
+              className="skeleton-grid"
+              style={{
+                gridTemplateColumns: `repeat(${columnCount}, minmax(60px, 1fr))`,
+              }}
+            >
+              {Array.from({ length: columnCount }).map((__, cellIdx) => (
+                <div
+                  key={`skeleton-cell-${columnCount}-${rowIdx}-${cellIdx}`}
+                  className="skeleton-cell"
+                />
+              ))}
+            </div>
+          </td>
+        </tr>
+      ))}
+    </>
+  );
 
   // 인증 및 초기화
   useEffect(() => {
@@ -1526,35 +1549,6 @@ export default function Expense() {
     }
   };
 
-  // 로딩 중 표시
-  if (isLoading) {
-    return (
-      <div className="expense-container">
-        <Helmet>
-          <title>경비 청구서 제출</title>
-        </Helmet>
-        <section className="container">
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              minHeight: '100vh',
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 9999,
-            }}
-          >
-            <ClipLoader color="#667eea" loading={isLoading} size={100} />
-          </div>
-        </section>
-      </div>
-    );
-  }
-
   const handleCheckAll = (event) => {
     const checked = event.target.checked;
     setAllChecked(checked);
@@ -1572,6 +1566,15 @@ export default function Expense() {
       </Helmet>
 
       <div className="expense-content">
+        {isLoading && (
+          <div
+            className="loading-bar"
+            role="status"
+            aria-label="데이터 로딩 중"
+          >
+            <div className="loading-bar__indicator" />
+          </div>
+        )}
         <header className="expense-header">
           <div className="header-left">
             <h1>{isManagerMode ? '경비 청구 관리' : '경비 청구서 제출'}</h1>
@@ -2019,281 +2022,291 @@ export default function Expense() {
                 </tr>
               </thead>
               <tbody>
-                {rows
-                  .filter((row) => row.gbn === 'EXPENSE' || !row.gbn)
-                  .map((row, idx) => {
-                    const originalIdx = rows.indexOf(row);
-                    return (
-                      <tr key={originalIdx}>
-                        {/* 구분 셀 제거 */}
-                        <td>
-                          {row.type === 'fuel' ? (
-                            <input
-                              type="text"
-                              value="유류비"
-                              className="input-field"
-                              disabled
+                {isLoading
+                  ? renderSkeletonRows(
+                      isManagerMode && status === 'SUBMITTED' ? 10 : 9
+                    )
+                  : rows
+                      .filter((row) => row.gbn === 'EXPENSE' || !row.gbn)
+                      .map((row, idx) => {
+                        const originalIdx = rows.indexOf(row);
+                        return (
+                          <tr key={originalIdx}>
+                            {/* 구분 셀 제거 */}
+                            <td>
+                              {row.type === 'fuel' ? (
+                                <input
+                                  type="text"
+                                  value="유류비"
+                                  className="input-field"
+                                  disabled
+                                  style={{
+                                    backgroundColor: '#f5f5f5',
+                                    cursor: 'not-allowed',
+                                  }}
+                                />
+                              ) : (
+                                <select
+                                  value={row.category}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      originalIdx,
+                                      'category',
+                                      e.target.value
+                                    )
+                                  }
+                                  className="select-field"
+                                  disabled={isInputDisabled()}
+                                >
+                                  <option value="">선택</option>
+                                  {categories.map((cat) => (
+                                    <option key={cat.code} value={cat.code}>
+                                      {cat.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              )}
+                            </td>
+                            <td>
+                              <input
+                                type="date"
+                                value={row.date}
+                                onChange={(e) =>
+                                  updateRow(originalIdx, 'date', e.target.value)
+                                }
+                                className="input-field"
+                                disabled={isInputDisabled()}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="text"
+                                value={row.description}
+                                onChange={(e) =>
+                                  updateRow(
+                                    originalIdx,
+                                    'description',
+                                    e.target.value
+                                  )
+                                }
+                                className="input-field"
+                                placeholder={
+                                  row.category === 'LUNCH' ||
+                                  row.category === 'DINNER'
+                                    ? '동행자만 기입(본인 미기입)'
+                                    : '비고(유류비일 경우 필수)'
+                                }
+                                disabled={isInputDisabled()}
+                              />
+                            </td>
+                            <td>
+                              {row.type === 'fuel' ? (
+                                <select
+                                  value={row.fuelType || '휘발유'}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      originalIdx,
+                                      'fuelType',
+                                      e.target.value
+                                    )
+                                  }
+                                  className="select-field"
+                                  style={{ fontSize: '0.85rem' }}
+                                  disabled={isInputDisabled()}
+                                >
+                                  {fuelTypes.map((fuel) => (
+                                    <option key={fuel.name} value={fuel.name}>
+                                      {fuel.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <span
+                                  style={{ fontSize: '0.85rem', color: '#999' }}
+                                >
+                                  -
+                                </span>
+                              )}
+                            </td>
+                            <td>
+                              {row.type === 'fuel' ? (
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.1"
+                                  value={row.distance || ''}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      originalIdx,
+                                      'distance',
+                                      e.target.value
+                                    )
+                                  }
+                                  className="input-field text-right"
+                                  placeholder="km"
+                                  disabled={isInputDisabled()}
+                                />
+                              ) : (
+                                <input
+                                  type="number"
+                                  min="1"
+                                  value={row.people || 1}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      originalIdx,
+                                      'people',
+                                      e.target.value
+                                    )
+                                  }
+                                  className="input-field text-right"
+                                  disabled={isInputDisabled()}
+                                />
+                              )}
+                            </td>
+                            <td>
+                              {row.type === 'fuel' ? (
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={row.tollFee || ''}
+                                  onChange={(e) =>
+                                    handleMoneyChange(
+                                      originalIdx,
+                                      'tollFee',
+                                      e.target.value
+                                    )
+                                  }
+                                  onBlur={() =>
+                                    handleMoneyBlur(originalIdx, 'tollFee')
+                                  }
+                                  className="input-field text-right"
+                                  placeholder="0"
+                                  disabled={isInputDisabled()}
+                                />
+                              ) : (
+                                <span
+                                  style={{ fontSize: '0.85rem', color: '#999' }}
+                                >
+                                  -
+                                </span>
+                              )}
+                            </td>
+                            <td>
+                              {row.type === 'fuel' ? (
+                                <span
+                                  style={{
+                                    fontSize: '0.85rem',
+                                    color: '#999',
+                                    textAlign: 'center',
+                                    display: 'block',
+                                  }}
+                                >
+                                  자동계산
+                                </span>
+                              ) : (
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={row.amount || ''}
+                                  onChange={(e) =>
+                                    handleMoneyChange(
+                                      originalIdx,
+                                      'amount',
+                                      e.target.value
+                                    )
+                                  }
+                                  onBlur={() =>
+                                    handleMoneyBlur(originalIdx, 'amount')
+                                  }
+                                  className="input-field text-right"
+                                  placeholder="0"
+                                  disabled={isInputDisabled()}
+                                />
+                              )}
+                            </td>
+                            <td
                               style={{
-                                backgroundColor: '#f5f5f5',
-                                cursor: 'not-allowed',
-                              }}
-                            />
-                          ) : (
-                            <select
-                              value={row.category}
-                              onChange={(e) =>
-                                updateRow(
-                                  originalIdx,
-                                  'category',
-                                  e.target.value
-                                )
-                              }
-                              className="select-field"
-                              disabled={isInputDisabled()}
-                            >
-                              <option value="">선택</option>
-                              {categories.map((cat) => (
-                                <option key={cat.code} value={cat.code}>
-                                  {cat.name}
-                                </option>
-                              ))}
-                            </select>
-                          )}
-                        </td>
-                        <td>
-                          <input
-                            type="date"
-                            value={row.date}
-                            onChange={(e) =>
-                              updateRow(originalIdx, 'date', e.target.value)
-                            }
-                            className="input-field"
-                            disabled={isInputDisabled()}
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="text"
-                            value={row.description}
-                            onChange={(e) =>
-                              updateRow(
-                                originalIdx,
-                                'description',
-                                e.target.value
-                              )
-                            }
-                            className="input-field"
-                            placeholder={
-                              row.category === 'LUNCH' ||
-                              row.category === 'DINNER'
-                                ? '동행자만 기입(본인 미기입)'
-                                : '비고(유류비일 경우 필수)'
-                            }
-                            disabled={isInputDisabled()}
-                          />
-                        </td>
-                        <td>
-                          {row.type === 'fuel' ? (
-                            <select
-                              value={row.fuelType || '휘발유'}
-                              onChange={(e) =>
-                                updateRow(
-                                  originalIdx,
-                                  'fuelType',
-                                  e.target.value
-                                )
-                              }
-                              className="select-field"
-                              style={{ fontSize: '0.85rem' }}
-                              disabled={isInputDisabled()}
-                            >
-                              {fuelTypes.map((fuel) => (
-                                <option key={fuel.name} value={fuel.name}>
-                                  {fuel.name}
-                                </option>
-                              ))}
-                            </select>
-                          ) : (
-                            <span
-                              style={{ fontSize: '0.85rem', color: '#999' }}
-                            >
-                              -
-                            </span>
-                          )}
-                        </td>
-                        <td>
-                          {row.type === 'fuel' ? (
-                            <input
-                              type="number"
-                              min="0"
-                              step="0.1"
-                              value={row.distance || ''}
-                              onChange={(e) =>
-                                updateRow(
-                                  originalIdx,
-                                  'distance',
-                                  e.target.value
-                                )
-                              }
-                              className="input-field text-right"
-                              placeholder="km"
-                              disabled={isInputDisabled()}
-                            />
-                          ) : (
-                            <input
-                              type="number"
-                              min="1"
-                              value={row.people || 1}
-                              onChange={(e) =>
-                                updateRow(originalIdx, 'people', e.target.value)
-                              }
-                              className="input-field text-right"
-                              disabled={isInputDisabled()}
-                            />
-                          )}
-                        </td>
-                        <td>
-                          {row.type === 'fuel' ? (
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              value={row.tollFee || ''}
-                              onChange={(e) =>
-                                handleMoneyChange(
-                                  originalIdx,
-                                  'tollFee',
-                                  e.target.value
-                                )
-                              }
-                              onBlur={() =>
-                                handleMoneyBlur(originalIdx, 'tollFee')
-                              }
-                              className="input-field text-right"
-                              placeholder="0"
-                              disabled={isInputDisabled()}
-                            />
-                          ) : (
-                            <span
-                              style={{ fontSize: '0.85rem', color: '#999' }}
-                            >
-                              -
-                            </span>
-                          )}
-                        </td>
-                        <td>
-                          {row.type === 'fuel' ? (
-                            <span
-                              style={{
-                                fontSize: '0.85rem',
-                                color: '#999',
-                                textAlign: 'center',
-                                display: 'block',
+                                textAlign: 'right',
+                                color: '#2c3e50',
+                                fontWeight: 600,
                               }}
                             >
-                              자동계산
-                            </span>
-                          ) : (
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              value={row.amount || ''}
-                              onChange={(e) =>
-                                handleMoneyChange(
-                                  originalIdx,
-                                  'amount',
-                                  e.target.value
-                                )
-                              }
-                              onBlur={() =>
-                                handleMoneyBlur(originalIdx, 'amount')
-                              }
-                              className="input-field text-right"
-                              placeholder="0"
-                              disabled={isInputDisabled()}
-                            />
-                          )}
-                        </td>
-                        <td
-                          style={{
-                            textAlign: 'right',
-                            color: '#2c3e50',
-                            fontWeight: 600,
-                          }}
-                        >
-                          {calcPay(row).toLocaleString()}
-                        </td>
-                        {isManagerMode && status === 'SUBMITTED' && (
-                          <td
-                            style={{
-                              textAlign: 'center',
-                              verticalAlign: 'middle',
-                            }}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={row.managerConfirmed || false}
-                              onChange={(e) => {
-                                const updated = [...rows];
-                                updated[originalIdx].managerConfirmed =
-                                  e.target.checked;
-                                setRows(updated);
-                                // 모든 행의 체크 상태 확인
-                                setAllChecked(
-                                  updated.every((r) => r.managerConfirmed)
-                                );
-                              }}
-                              disabled={status === 'COMPLETED'}
-                              style={{
-                                cursor:
-                                  status === 'COMPLETED'
-                                    ? 'not-allowed'
-                                    : 'pointer',
-                                width: '18px',
-                                height: '18px',
-                                opacity: status === 'COMPLETED' ? 0.5 : 1,
-                              }}
-                            />
-                          </td>
-                        )}
-                        <td
-                          style={{
-                            textAlign: 'center',
-                            verticalAlign: 'middle',
-                          }}
-                        >
-                          {((status === 'DRAFT' || status === 'REJECTED') ||
-                            (isManagerMode && status === 'SUBMITTED')) &&
-                            !managerChecked && (
-                              <button
-                                className="btn-delete"
-                                onClick={() => deleteRow(originalIdx)}
+                              {calcPay(row).toLocaleString()}
+                            </td>
+                            {isManagerMode && status === 'SUBMITTED' && (
+                              <td
+                                style={{
+                                  textAlign: 'center',
+                                  verticalAlign: 'middle',
+                                }}
                               >
-                                삭제
-                              </button>
-
-                              // <button
-                              //   type="button"
-                              //   onClick={() => deleteRow(originalIdx)}
-                              //   className="btn-icon btn-delete"
-                              //   title="삭제"
-                              //   style={{
-                              //     display: 'inline-flex',
-                              //     alignItems: 'center',
-                              //     justifyContent: 'center',
-                              //     height: '100%',
-                              //   }}
-                              // >
-                              //   🗑️
-                              // </button>
+                                <input
+                                  type="checkbox"
+                                  checked={row.managerConfirmed || false}
+                                  onChange={(e) => {
+                                    const updated = [...rows];
+                                    updated[originalIdx].managerConfirmed =
+                                      e.target.checked;
+                                    setRows(updated);
+                                    // 모든 행의 체크 상태 확인
+                                    setAllChecked(
+                                      updated.every((r) => r.managerConfirmed)
+                                    );
+                                  }}
+                                  disabled={status === 'COMPLETED'}
+                                  style={{
+                                    cursor:
+                                      status === 'COMPLETED'
+                                        ? 'not-allowed'
+                                        : 'pointer',
+                                    width: '18px',
+                                    height: '18px',
+                                    opacity: status === 'COMPLETED' ? 0.5 : 1,
+                                  }}
+                                />
+                              </td>
                             )}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                            <td
+                              style={{
+                                textAlign: 'center',
+                                verticalAlign: 'middle',
+                              }}
+                            >
+                              {(status === 'DRAFT' ||
+                                status === 'REJECTED' ||
+                                (isManagerMode && status === 'SUBMITTED')) &&
+                                !managerChecked && (
+                                  <button
+                                    className="btn-delete"
+                                    onClick={() => deleteRow(originalIdx)}
+                                  >
+                                    삭제
+                                  </button>
+
+                                  // <button
+                                  //   type="button"
+                                  //   onClick={() => deleteRow(originalIdx)}
+                                  //   className="btn-icon btn-delete"
+                                  //   title="삭제"
+                                  //   style={{
+                                  //     display: 'inline-flex',
+                                  //     alignItems: 'center',
+                                  //     justifyContent: 'center',
+                                  //     height: '100%',
+                                  //   }}
+                                  // >
+                                  //   🗑️
+                                  // </button>
+                                )}
+                            </td>
+                          </tr>
+                        );
+                      })}
               </tbody>
             </table>
           </div>
-          {((status === 'DRAFT' || status === 'REJECTED') ||
+          {(status === 'DRAFT' ||
+            status === 'REJECTED' ||
             (isManagerMode && status === 'SUBMITTED')) &&
             !(isManagerMode && !proxyMode && !isIdBasedQuery) && (
               <div
@@ -2441,201 +2454,216 @@ export default function Expense() {
                       </tr>
                     </thead>
                     <tbody>
-                      {rows
-                        .filter((row) => row.gbn === 'CORPORATE')
-                        .map((row) => {
-                          const originalIdx = rows.indexOf(row);
-                          return (
-                            <tr key={originalIdx}>
-                              <td
-                                style={{
-                                  textAlign: 'center',
-                                  fontWeight: 600,
-                                  color: '#2c3e50',
-                                }}
-                              >
-                                법인
-                              </td>
-                              <td>
-                                <select
-                                  value={row.corporateCard || ''}
-                                  onChange={(e) =>
-                                    updateRow(
-                                      originalIdx,
-                                      'corporateCard',
-                                      e.target.value
-                                    )
-                                  }
-                                  className="select-field"
-                                  disabled={!isManagerMode || isInputDisabled()}
-                                >
-                                  <option value="">선택</option>
-                                  {corporateCards.map((card) => (
-                                    <option
-                                      key={card.cardId}
-                                      value={card.cardId}
-                                    >
-                                      {card.cardName}
-                                    </option>
-                                  ))}
-                                </select>
-                              </td>
-                              <td>
-                                <select
-                                  value={row.category || ''}
-                                  onChange={(e) =>
-                                    updateRow(
-                                      originalIdx,
-                                      'category',
-                                      e.target.value
-                                    )
-                                  }
-                                  className="select-field"
-                                  disabled={!isManagerMode || isInputDisabled()}
-                                >
-                                  <option value="">선택</option>
-                                  {categories.map((cat) => (
-                                    <option key={cat.code} value={cat.code}>
-                                      {cat.name}
-                                    </option>
-                                  ))}
-                                </select>
-                              </td>
-                              <td>
-                                <input
-                                  type="date"
-                                  value={row.date}
-                                  onChange={(e) =>
-                                    updateRow(
-                                      originalIdx,
-                                      'date',
-                                      e.target.value
-                                    )
-                                  }
-                                  className="input-field"
-                                  disabled={!isManagerMode || isInputDisabled()}
-                                />
-                              </td>
-                              <td>
-                                <input
-                                  type="text"
-                                  value={row.merchant || ''}
-                                  onChange={(e) =>
-                                    updateRow(
-                                      originalIdx,
-                                      'merchant',
-                                      e.target.value
-                                    )
-                                  }
-                                  className="input-field"
-                                  placeholder="가맹점명"
-                                  disabled={!isManagerMode || isInputDisabled()}
-                                />
-                              </td>
-                              <td>
-                                <input
-                                  type="text"
-                                  value={row.description}
-                                  onChange={(e) =>
-                                    updateRow(
-                                      originalIdx,
-                                      'description',
-                                      e.target.value
-                                    )
-                                  }
-                                  className="input-field"
-                                  placeholder="비고"
-                                  disabled={isInputDisabled()}
-                                />
-                              </td>
-                              <td>
-                                <input
-                                  type="text"
-                                  inputMode="numeric"
-                                  value={row.amount || ''}
-                                  onChange={(e) =>
-                                    handleMoneyChange(
-                                      originalIdx,
-                                      'amount',
-                                      e.target.value
-                                    )
-                                  }
-                                  onBlur={() =>
-                                    handleMoneyBlur(originalIdx, 'amount')
-                                  }
-                                  className="input-field text-right"
-                                  placeholder="0"
-                                  disabled={!isManagerMode || isInputDisabled()}
-                                />
-                              </td>
-                              <td
-                                style={{
-                                  textAlign: 'right',
-                                  color: '#2c3e50',
-                                  fontWeight: 600,
-                                }}
-                              >
-                                {unformatToInt(
-                                  row.amount || 0
-                                ).toLocaleString()}
-                              </td>
-                              {isManagerMode && status === 'SUBMITTED' && (
-                                <td
-                                  style={{
-                                    textAlign: 'center',
-                                    verticalAlign: 'middle',
-                                  }}
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={row.managerConfirmed || false}
-                                    onChange={(e) =>
-                                      updateRow(
-                                        originalIdx,
-                                        'managerConfirmed',
-                                        e.target.checked
-                                      )
-                                    }
-                                    disabled={status === 'COMPLETED'}
+                      {isLoading
+                        ? renderSkeletonRows(
+                            isManagerMode && status === 'SUBMITTED' ? 10 : 9
+                          )
+                        : rows
+                            .filter((row) => row.gbn === 'CORPORATE')
+                            .map((row) => {
+                              const originalIdx = rows.indexOf(row);
+                              return (
+                                <tr key={originalIdx}>
+                                  <td
                                     style={{
-                                      cursor:
-                                        status === 'COMPLETED'
-                                          ? 'not-allowed'
-                                          : 'pointer',
-                                      width: '18px',
-                                      height: '18px',
+                                      textAlign: 'center',
+                                      fontWeight: 600,
+                                      color: '#2c3e50',
                                     }}
-                                  />
-                                </td>
-                              )}
-                              <td
-                                style={{
-                                  textAlign: 'center',
-                                  verticalAlign: 'middle',
-                                }}
-                              >
-                                {isManagerMode &&
-                                  ((status === 'DRAFT' ||
-                                    status === 'REJECTED') ||
-                                    status === 'SUBMITTED') &&
-                                  !managerChecked && (
-                                    <button
-                                      className="btn-delete"
-                                      onClick={() => deleteRow(originalIdx)}
+                                  >
+                                    법인
+                                  </td>
+                                  <td>
+                                    <select
+                                      value={row.corporateCard || ''}
+                                      onChange={(e) =>
+                                        updateRow(
+                                          originalIdx,
+                                          'corporateCard',
+                                          e.target.value
+                                        )
+                                      }
+                                      className="select-field"
+                                      disabled={
+                                        !isManagerMode || isInputDisabled()
+                                      }
                                     >
-                                      삭제
-                                    </button>
+                                      <option value="">선택</option>
+                                      {corporateCards.map((card) => (
+                                        <option
+                                          key={card.cardId}
+                                          value={card.cardId}
+                                        >
+                                          {card.cardName}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                  <td>
+                                    <select
+                                      value={row.category || ''}
+                                      onChange={(e) =>
+                                        updateRow(
+                                          originalIdx,
+                                          'category',
+                                          e.target.value
+                                        )
+                                      }
+                                      className="select-field"
+                                      disabled={
+                                        !isManagerMode || isInputDisabled()
+                                      }
+                                    >
+                                      <option value="">선택</option>
+                                      {categories.map((cat) => (
+                                        <option key={cat.code} value={cat.code}>
+                                          {cat.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                  <td>
+                                    <input
+                                      type="date"
+                                      value={row.date}
+                                      onChange={(e) =>
+                                        updateRow(
+                                          originalIdx,
+                                          'date',
+                                          e.target.value
+                                        )
+                                      }
+                                      className="input-field"
+                                      disabled={
+                                        !isManagerMode || isInputDisabled()
+                                      }
+                                    />
+                                  </td>
+                                  <td>
+                                    <input
+                                      type="text"
+                                      value={row.merchant || ''}
+                                      onChange={(e) =>
+                                        updateRow(
+                                          originalIdx,
+                                          'merchant',
+                                          e.target.value
+                                        )
+                                      }
+                                      className="input-field"
+                                      placeholder="가맹점명"
+                                      disabled={
+                                        !isManagerMode || isInputDisabled()
+                                      }
+                                    />
+                                  </td>
+                                  <td>
+                                    <input
+                                      type="text"
+                                      value={row.description}
+                                      onChange={(e) =>
+                                        updateRow(
+                                          originalIdx,
+                                          'description',
+                                          e.target.value
+                                        )
+                                      }
+                                      className="input-field"
+                                      placeholder="비고"
+                                      disabled={isInputDisabled()}
+                                    />
+                                  </td>
+                                  <td>
+                                    <input
+                                      type="text"
+                                      inputMode="numeric"
+                                      value={row.amount || ''}
+                                      onChange={(e) =>
+                                        handleMoneyChange(
+                                          originalIdx,
+                                          'amount',
+                                          e.target.value
+                                        )
+                                      }
+                                      onBlur={() =>
+                                        handleMoneyBlur(originalIdx, 'amount')
+                                      }
+                                      className="input-field text-right"
+                                      placeholder="0"
+                                      disabled={
+                                        !isManagerMode || isInputDisabled()
+                                      }
+                                    />
+                                  </td>
+                                  <td
+                                    style={{
+                                      textAlign: 'right',
+                                      color: '#2c3e50',
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    {unformatToInt(
+                                      row.amount || 0
+                                    ).toLocaleString()}
+                                  </td>
+                                  {isManagerMode && status === 'SUBMITTED' && (
+                                    <td
+                                      style={{
+                                        textAlign: 'center',
+                                        verticalAlign: 'middle',
+                                      }}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={row.managerConfirmed || false}
+                                        onChange={(e) =>
+                                          updateRow(
+                                            originalIdx,
+                                            'managerConfirmed',
+                                            e.target.checked
+                                          )
+                                        }
+                                        disabled={status === 'COMPLETED'}
+                                        style={{
+                                          cursor:
+                                            status === 'COMPLETED'
+                                              ? 'not-allowed'
+                                              : 'pointer',
+                                          width: '18px',
+                                          height: '18px',
+                                        }}
+                                      />
+                                    </td>
                                   )}
-                              </td>
-                            </tr>
-                          );
-                        })}
+                                  <td
+                                    style={{
+                                      textAlign: 'center',
+                                      verticalAlign: 'middle',
+                                    }}
+                                  >
+                                    {isManagerMode &&
+                                      (status === 'DRAFT' ||
+                                        status === 'REJECTED' ||
+                                        status === 'SUBMITTED') &&
+                                      !managerChecked && (
+                                        <button
+                                          className="btn-delete"
+                                          onClick={() => deleteRow(originalIdx)}
+                                        >
+                                          삭제
+                                        </button>
+                                      )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
                     </tbody>
                   </table>
                 </div>
 
                 {isManagerMode &&
-                  ((status === 'DRAFT' || status === 'REJECTED') ||
+                  (status === 'DRAFT' ||
+                    status === 'REJECTED' ||
                     status === 'SUBMITTED') &&
                   !(isManagerMode && !proxyMode && !isIdBasedQuery) && (
                     <div style={{ marginTop: '0.5rem' }}>
@@ -2757,106 +2785,108 @@ export default function Expense() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {cardRows.map((row) => {
-                                  const originalIdx = rows.indexOf(row);
-                                  const categoryInfo = categories.find(
-                                    (cat) => cat.code === row.category
-                                  );
-                                  const categoryName = categoryInfo
-                                    ? categoryInfo.name
-                                    : row.category || '';
+                                {isLoading
+                                  ? renderSkeletonRows(7)
+                                  : cardRows.map((row) => {
+                                      const originalIdx = rows.indexOf(row);
+                                      const categoryInfo = categories.find(
+                                        (cat) => cat.code === row.category
+                                      );
+                                      const categoryName = categoryInfo
+                                        ? categoryInfo.name
+                                        : row.category || '';
 
-                                  return (
-                                    <tr key={originalIdx}>
-                                      <td
-                                        style={{
-                                          textAlign: 'center',
-                                          fontWeight: 600,
-                                          color: '#2c3e50',
-                                        }}
-                                      >
-                                        법인
-                                      </td>
-                                      <td>
-                                        <select
-                                          value={row.category || ''}
-                                          onChange={(e) =>
-                                            updateRow(
-                                              originalIdx,
-                                              'category',
-                                              e.target.value
-                                            )
-                                          }
-                                          className="select-field"
-                                          disabled={isInputDisabled()}
-                                        >
-                                          <option value="">선택</option>
-                                          {categories.map((cat) => (
-                                            <option
-                                              key={cat.code}
-                                              value={cat.code}
+                                      return (
+                                        <tr key={originalIdx}>
+                                          <td
+                                            style={{
+                                              textAlign: 'center',
+                                              fontWeight: 600,
+                                              color: '#2c3e50',
+                                            }}
+                                          >
+                                            법인
+                                          </td>
+                                          <td>
+                                            <select
+                                              value={row.category || ''}
+                                              onChange={(e) =>
+                                                updateRow(
+                                                  originalIdx,
+                                                  'category',
+                                                  e.target.value
+                                                )
+                                              }
+                                              className="select-field"
+                                              disabled={isInputDisabled()}
                                             >
-                                              {cat.name}
-                                            </option>
-                                          ))}
-                                        </select>
-                                      </td>
-                                      <td>
-                                        <input
-                                          type="date"
-                                          value={row.date}
-                                          onChange={(e) =>
-                                            updateRow(
-                                              originalIdx,
-                                              'date',
-                                              e.target.value
-                                            )
-                                          }
-                                          className="input-field"
-                                          disabled={isInputDisabled()}
-                                        />
-                                      </td>
-                                      <td>{row.merchant || '-'}</td>
-                                      <td>
-                                        <input
-                                          type="text"
-                                          value={row.description}
-                                          onChange={(e) =>
-                                            updateRow(
-                                              originalIdx,
-                                              'description',
-                                              e.target.value
-                                            )
-                                          }
-                                          className="input-field"
-                                          placeholder="비고"
-                                          disabled={isInputDisabled()}
-                                        />
-                                      </td>
-                                      <td
-                                        style={{
-                                          textAlign: 'right',
-                                          fontWeight: 600,
-                                        }}
-                                      >
-                                        {unformatToInt(
-                                          row.amount || 0
-                                        ).toLocaleString()}
-                                      </td>
-                                      <td
-                                        style={{
-                                          textAlign: 'right',
-                                          color: '#2c3e50',
-                                          fontWeight: 600,
-                                        }}
-                                      >
-                                        {unformatToInt(
-                                          row.amount || 0
-                                        ).toLocaleString()}
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
+                                              <option value="">선택</option>
+                                              {categories.map((cat) => (
+                                                <option
+                                                  key={cat.code}
+                                                  value={cat.code}
+                                                >
+                                                  {cat.name}
+                                                </option>
+                                              ))}
+                                            </select>
+                                          </td>
+                                          <td>
+                                            <input
+                                              type="date"
+                                              value={row.date}
+                                              onChange={(e) =>
+                                                updateRow(
+                                                  originalIdx,
+                                                  'date',
+                                                  e.target.value
+                                                )
+                                              }
+                                              className="input-field"
+                                              disabled={isInputDisabled()}
+                                            />
+                                          </td>
+                                          <td>{row.merchant || '-'}</td>
+                                          <td>
+                                            <input
+                                              type="text"
+                                              value={row.description}
+                                              onChange={(e) =>
+                                                updateRow(
+                                                  originalIdx,
+                                                  'description',
+                                                  e.target.value
+                                                )
+                                              }
+                                              className="input-field"
+                                              placeholder="비고"
+                                              disabled={isInputDisabled()}
+                                            />
+                                          </td>
+                                          <td
+                                            style={{
+                                              textAlign: 'right',
+                                              fontWeight: 600,
+                                            }}
+                                          >
+                                            {unformatToInt(
+                                              row.amount || 0
+                                            ).toLocaleString()}
+                                          </td>
+                                          <td
+                                            style={{
+                                              textAlign: 'right',
+                                              color: '#2c3e50',
+                                              fontWeight: 600,
+                                            }}
+                                          >
+                                            {unformatToInt(
+                                              row.amount || 0
+                                            ).toLocaleString()}
+                                          </td>
+                                        </tr>
+                                      );
+                                    })}
                               </tbody>
                             </table>
                           </div>
