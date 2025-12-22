@@ -8,41 +8,70 @@ const formatDate = (value) => {
   return value;
 };
 
+const TableHeader = () => (
+  <thead>
+    <tr className={styles.groupHeaderRow}>
+      <th colSpan="10" className={styles.groupHeaderMain}>
+        기본 정보
+      </th>
+      <th colSpan="3" className={styles.groupHeaderAccent}>
+        A/S 접수
+      </th>
+      <th className={styles.groupHeaderAction}>관리</th>
+    </tr>
+    <tr>
+      <th>NO</th>
+      <th>구분</th>
+      <th>접수번호</th>
+      <th>H/W 명</th>
+      <th>대수</th>
+      <th>담당자</th>
+      <th>회수일</th>
+      <th>회수처</th>
+      <th>납품일</th>
+      <th>납품처</th>
+      <th>A/S 상태</th>
+      <th>H/W 증상</th>
+      <th>제작사/담당자/연락처</th>
+      <th>관리</th>
+    </tr>
+  </thead>
+);
+
 const HardwareTable = ({ filteredList, onEdit, onDelete, loading }) => {
   if (loading) {
-    return <div className={styles.loading}>로딩 중...</div>;
+    const skeletonRows = Array.from({ length: 5 });
+    const skeletonCols = Array.from({ length: 14 });
+
+    return (
+      <div className={styles.hardwareTableWrapper}>
+        <table className={styles.hardwareTable}>
+          <TableHeader />
+          <tbody>
+            {skeletonRows.map((_, idx) => (
+              <tr key={`skeleton-${idx}`}>
+                <td colSpan="14">
+                  <div className={styles.skeletonRow}>
+                    {skeletonCols.map((__, colIdx) => (
+                      <span
+                        key={`skeleton-cell-${idx}-${colIdx}`}
+                        className={styles.skeletonCell}
+                      />
+                    ))}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
   }
 
   return (
     <div className={styles.hardwareTableWrapper}>
       <table className={styles.hardwareTable}>
-        <thead>
-          <tr className={styles.groupHeaderRow}>
-            <th colSpan="10" className={styles.groupHeaderMain}>
-              기본 정보
-            </th>
-            <th colSpan="3" className={styles.groupHeaderAccent}>
-              A/S 접수
-            </th>
-            <th className={styles.groupHeaderAction}>관리</th>
-          </tr>
-          <tr>
-            <th>NO</th>
-            <th>구분</th>
-            <th>접수번호</th>
-            <th>H/W 명</th>
-            <th>대수</th>
-            <th>담당자</th>
-            <th>회수일</th>
-            <th>회수처</th>
-            <th>납품일</th>
-            <th>납품처</th>
-            <th>A/S 상태</th>
-            <th>H/W 증상</th>
-            <th>제작사/담당자/연락처</th>
-            <th>관리</th>
-          </tr>
-        </thead>
+        <TableHeader />
         <tbody>
           {filteredList.length === 0 ? (
             <tr>

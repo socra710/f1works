@@ -30,6 +30,39 @@
   overflow: hidden;
 }
 
+.loadingBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(90, 117, 230, 0.15);
+  overflow: hidden;
+  z-index: 2;
+}
+
+.loadingBarIndicator {
+  position: absolute;
+  inset: 0;
+  width: 38%;
+  min-width: 120px;
+  background: linear-gradient(90deg, #5a75e6 0%, #7a56b5 60%, #5a75e6 100%);
+  animation: loadingBarMove 1.1s ease-in-out infinite;
+  transform: translateX(-120%);
+}
+
+@keyframes loadingBarMove {
+  0% {
+    transform: translateX(-120%);
+  }
+  50% {
+    transform: translateX(40%);
+  }
+  100% {
+    transform: translateX(140%);
+  }
+}
+
 .hardwareContent::before {
   content: '';
   position: absolute;
@@ -321,6 +354,30 @@
 
 .hardwareTable tbody tr:hover {
   background: #f5f7ff;
+}
+
+.skeletonRow {
+  display: grid;
+  grid-template-columns: repeat(14, minmax(40px, 1fr));
+  gap: 8px;
+  padding: 10px 0;
+}
+
+.skeletonCell {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f1f3f8 0%, #e4e7ef 50%, #f1f3f8 100%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .noData {

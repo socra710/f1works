@@ -76,6 +76,15 @@ const Hardware = () => {
   return (
     <div className={styles.hardwareContainer}>
       <div className={styles.hardwareContent}>
+        {loading && (
+          <div
+            className={styles.loadingBar}
+            role="status"
+            aria-label="데이터 로딩 중"
+          >
+            <div className={styles.loadingBarIndicator} />
+          </div>
+        )}
         <div className={styles.hardwareHeader}>
           <div className={styles.hardwareHeaderText}>
             <h1>고객사 H/W 관리대장</h1>
