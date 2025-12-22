@@ -213,7 +213,7 @@ export default function Monitor() {
           td = document.createElement('td');
           td.setAttribute('style', 'text-align:center;');
           td.innerHTML =
-            '<a href="#" class="aTagDispatCh" style="cursor:pointer;color:#667eea;">' +
+            '<a href="javascript:void(0)" class="aTagDispatCh" style="cursor:pointer;color:#667eea;">' +
             item.DISPATCH_NO +
             '</a>';
           tr.append(td);
@@ -754,7 +754,7 @@ export default function Monitor() {
             <div className={styles['form-popup']} id="myForm">
               <form id="formDispatch" className={styles['form-container']}>
                 <h3>모니터 신청</h3>
-                <hr className={styles['form-separator']} />
+                <hr style={{ margin: '0 0 1rem 0' }} />
 
                 <div className={styles['form-row']}>
                   <div
@@ -771,10 +771,7 @@ export default function Monitor() {
                       readOnly
                     />
                   </div>
-                </div>
-
-                <div className={styles['form-row']}>
-                  <div className={styles.field}>
+                  <div className={styles['field']}>
                     <label htmlFor="appDate">
                       <b>신청일</b>
                     </label>
@@ -786,7 +783,10 @@ export default function Monitor() {
                       readOnly
                     />
                   </div>
-                  <div className={styles.field}>
+                </div>
+
+                <div className={styles['form-row']}>
+                  <div className={styles['field']}>
                     <label htmlFor="appNo">
                       <b>모니터 선택</b>
                     </label>
@@ -797,10 +797,7 @@ export default function Monitor() {
                       <option value="A-263">A-263(P15A)</option>
                     </select>
                   </div>
-                </div>
-
-                <div className={styles['form-row']}>
-                  <div className={styles.field}>
+                  <div className={styles['field']}>
                     <label htmlFor="rideUserName">
                       <b>사용자</b>
                     </label>
@@ -811,21 +808,10 @@ export default function Monitor() {
                       required
                     />
                   </div>
-                  <div className={styles.field}>
-                    <label htmlFor="locationName">
-                      <b>출장지</b>
-                    </label>
-                    <input
-                      type="text"
-                      id="locationName"
-                      name="locationName"
-                      required
-                    />
-                  </div>
                 </div>
 
                 <div className={styles['form-row']}>
-                  <div className={styles.field}>
+                  <div className={styles['field']}>
                     <label htmlFor="useDate">
                       <b>사용일</b>
                     </label>
@@ -849,7 +835,8 @@ export default function Monitor() {
                       />
                     </div>
                   </div>
-                  <div className={styles.field}>
+
+                  <div className={styles['field']}>
                     <label htmlFor="useTime">
                       <b>사용시간</b>
                     </label>
@@ -872,14 +859,28 @@ export default function Monitor() {
                   </div>
                 </div>
 
+                <div className={styles['form-row']}>
+                  <div className={styles['field']}>
+                    <label htmlFor="locationName">
+                      <b>출장지</b>
+                    </label>
+                    <input
+                      type="text"
+                      id="locationName"
+                      name="locationName"
+                      required
+                    />
+                  </div>
+                </div>
+
                 <div id="div01" className={styles['form-row']}>
-                  <div className={styles.field}>
+                  <div className={styles['field']}>
                     <label htmlFor="distance">
                       <b>이동거리</b>
                     </label>
                     <input type="text" id="distance" name="distance" />
                   </div>
-                  <div className={styles.field}>
+                  <div className={styles['field']}>
                     <label htmlFor="flux">
                       <b>유량(%)</b>
                     </label>
@@ -903,13 +904,13 @@ export default function Monitor() {
                 </div>
 
                 <div id="div02" className={styles['form-row']}>
-                  <div className={styles.field}>
+                  <div className={styles['field']}>
                     <label htmlFor="oilingYn">
                       <b>주유여부(경유)</b>
                     </label>
                     <input type="text" id="oilingYn" name="oilingYn" />
                   </div>
-                  <div className={styles.field}>
+                  <div className={styles['field']}>
                     <label htmlFor="parkingArea">
                       <b>주차구역</b>
                     </label>
@@ -918,31 +919,31 @@ export default function Monitor() {
                 </div>
 
                 <div id="div03" className={styles['form-row']}>
-                  <div className={`${styles.field} ${styles['field--full']}`}>
+                  <div
+                    className={`${styles['field']} ${styles['field--full']}`}
+                  >
                     <label htmlFor="bigo">
                       <b>특이사항</b>
                     </label>
                     <textarea
+                      className={styles['textarea-lg']}
                       id="bigo"
                       name="bigo"
                       rows="3"
-                      className={styles['textarea-lg']}
                     ></textarea>
                   </div>
                 </div>
 
                 <div className={styles['form-actions']}>
-                  <div className={styles['actions-left']}>
-                    <button
-                      type="button"
-                      id="btnDelete"
-                      className={`${styles['btn']} ${styles.cancel}`}
-                      style={{ display: 'none' }}
-                    >
-                      삭제하기
-                    </button>
-                  </div>
-                  <div className={styles['actions-right']}>
+                  <button
+                    type="button"
+                    id="btnDelete"
+                    className={styles['btn']}
+                    style={{ display: 'none' }}
+                  >
+                    삭제하기
+                  </button>
+                  <div className={styles['form-actions-right']}>
                     <button
                       type="submit"
                       id="btnSave"
@@ -961,7 +962,7 @@ export default function Monitor() {
                     <button
                       id="closeDispatch"
                       type="button"
-                      className={`${styles['btn']} ${styles.cancel}`}
+                      className={`${styles['btn']} ${styles['cancel']}`}
                     >
                       닫기
                     </button>
