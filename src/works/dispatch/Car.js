@@ -2,6 +2,8 @@ import styles from './Car.module.css';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { useToast } from '../../common/Toast';
+import { waitForExtensionLogin, isMobileUA } from '../../common/extensionLogin';
 
 import ModalHelp from '../components/ModalHelp';
 
@@ -9,6 +11,7 @@ export default function Car() {
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [isMobile, setIsMobile] = useState(false);
   const [authUser, setAuthUser] = useState(false);
@@ -19,32 +22,37 @@ export default function Car() {
     useState('배차 요청 후 담당자 확인');
 
   useEffect(() => {
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (isMobile) {
-      setIsMobile(true);
-    } else {
-      setIsMobile(false);
-    }
+    let mounted = true;
+    const run = async () => {
+      const uaMobile = isMobileUA();
+      if (!mounted) return;
+      setIsMobile(uaMobile);
 
-    setTimeout(() => {
-      // 처음 컴포넌트가 마운트될 때 체크
-      if (isMobile) {
+      if (uaMobile) {
         setAuthUser('m');
       } else {
-        if (!window.sessionStorage.getItem('extensionLogin')) {
-          alert('로그인이 필요한 서비스입니다.');
+        const extLogin = await waitForExtensionLogin({ minWait: 500, maxWait: 2000 });
+        if (!mounted) return;
+        if (!extLogin) {
+          showToast('로그인이 필요한 서비스입니다.', 'warning');
           navigate('/works');
           return;
         }
-        setAuthUser(window.sessionStorage.getItem('extensionLogin'));
+        setAuthUser(extLogin);
       }
 
-      const script = document.createElement('script');
-      script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
-      script.async = true;
-      document.body.appendChild(script);
-    }, 500);
-  }, [isMobile]);
+      if (!document.querySelector('script[src="https://t1.daumcdn.net/kas/static/ba.min.js"]')) {
+        const script = document.createElement('script');
+        script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
+        script.async = true;
+        document.body.appendChild(script);
+      }
+    };
+    run();
+    return () => {
+      mounted = false;
+    };
+  }, [navigate, showToast]);
 
   useEffect(() => {
     if (!authUser) {
@@ -584,6 +592,17 @@ export default function Car() {
 
   const skeletonRows = Array.from({ length: 5 });
   const skeletonCols = Array.from({ length: 13 });
+
+  // 변경: 로딩 표시
+  if (!authUser) {
+    return (
+      <div className={styles.hardwareContainer}>
+        <div className={styles.loadingBar} role="status" aria-label="인증 확인 중">
+          <div className={styles.loadingBarIndicator} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

@@ -2,12 +2,15 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { useToast } from '../../common/Toast';
+import { waitForExtensionLogin, isMobileUA } from '../../common/extensionLogin';
 
 import ModalHelp from '../components/ModalHelp2';
 
 export default function Monitor() {
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [isMobile, setIsMobile] = useState(false);
   const [authUser, setAuthUser] = useState(false);
@@ -17,27 +20,37 @@ export default function Monitor() {
   const [useDateTo, setUseDateTo] = useState('');
 
   useEffect(() => {
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    setIsMobile(isMobile);
+    let mounted = true;
+    const run = async () => {
+      const uaMobile = isMobileUA();
+      if (!mounted) return;
+      setIsMobile(uaMobile);
 
-    setTimeout(() => {
-      if (isMobile) {
+      if (uaMobile) {
         setAuthUser('m');
       } else {
-        if (!window.sessionStorage.getItem('extensionLogin')) {
-          alert('로그인이 필요한 서비스입니다.');
+        const extLogin = await waitForExtensionLogin({ minWait: 500, maxWait: 2000 });
+        if (!mounted) return;
+        if (!extLogin) {
+          showToast('로그인이 필요한 서비스입니다.', 'warning');
           navigate('/works');
           return;
         }
-        setAuthUser(window.sessionStorage.getItem('extensionLogin'));
+        setAuthUser(extLogin);
       }
 
-      const script = document.createElement('script');
-      script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
-      script.async = true;
-      document.body.appendChild(script);
-    }, 500);
-  }, [navigate]);
+      if (!document.querySelector('script[src="https://t1.daumcdn.net/kas/static/ba.min.js"]')) {
+        const script = document.createElement('script');
+        script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
+        script.async = true;
+        document.body.appendChild(script);
+      }
+    };
+    run();
+    return () => {
+      mounted = false;
+    };
+  }, [navigate, showToast]);
 
   const getStringToDate = () => {
     const curDate = new Date();
@@ -566,6 +579,17 @@ export default function Monitor() {
       deleteDispatch?.removeEventListener('click', handleDelete);
     };
   }, [authUser, API_BASE_URL, onSetDefault, onViewDispatch]);
+
+  // 변경: 로딩 표시
+  if (!authUser) {
+    return (
+      <div className={styles.hardwareContainer}>
+        <div className={styles.loadingBar} role="status" aria-label="인증 확인 중">
+          <div className={styles.loadingBarIndicator} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
