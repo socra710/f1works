@@ -931,41 +931,42 @@ export default function Monitor() {
                   </div>
                 </div>
 
-                <div
-                  className={styles['form-row']}
-                  style={{ justifyContent: 'flex-end' }}
-                >
-                  <div className={styles['toolbar-actions']}>
-                    <button
-                      type="button"
-                      id="btnDelete"
-                      className={`${styles['btn']} ${styles.cancel}`}
-                      style={{ display: 'none' }}
-                    >
-                      삭제하기
-                    </button>
-                    <button
-                      id="closeDispatch"
-                      type="button"
-                      className={`${styles['btn']} ${styles.cancel}`}
-                    >
-                      닫기
-                    </button>
-                    <button
-                      type="submit"
-                      id="btnSave"
-                      className={styles['btn']}
-                    >
-                      신청하기
-                    </button>
-                    <button
-                      type="button"
-                      id="btnModify"
-                      className={styles['btn']}
-                      style={{ display: 'none' }}
-                    >
-                      수정하기
-                    </button>
+                <div className={styles['form-row']}>
+                  <div className={styles['form-actions']}>
+                    <div className={styles['actions-left']}>
+                      <button
+                        type="button"
+                        id="btnDelete"
+                        className={`${styles['btn']} ${styles.cancel}`}
+                        style={{ display: 'none' }}
+                      >
+                        삭제하기
+                      </button>
+                    </div>
+                    <div className={styles['actions-right']}>
+                      <button
+                        type="submit"
+                        id="btnSave"
+                        className={styles['btn']}
+                      >
+                        신청하기
+                      </button>
+                      <button
+                        type="button"
+                        id="btnModify"
+                        className={styles['btn']}
+                        style={{ display: 'none' }}
+                      >
+                        수정하기
+                      </button>
+                      <button
+                        id="closeDispatch"
+                        type="button"
+                        className={`${styles['btn']} ${styles.cancel}`}
+                      >
+                        닫기
+                      </button>
+                    </div>
                   </div>
                 </div>
               </form>
