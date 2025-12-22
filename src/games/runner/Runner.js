@@ -452,7 +452,7 @@ const Runner = () => {
         const targetSpeed =
           BASE_GAME_SPEED +
           (score / SPEED_INCREASE_INTERVAL) * SPEED_INCREASE_PER_LEVEL;
-        const maxSpeed = BASE_GAME_SPEED + 20; // 최대 속도 제한 (최대 25배속)
+        const maxSpeed = BASE_GAME_SPEED + 30; // 최대 속도 제한 (최대 30배속)
         const cappedTargetSpeed = Math.min(targetSpeed, maxSpeed);
 
         // 부드러운 전환: 목표 속도에 천천히 접근
@@ -2240,9 +2240,9 @@ const Runner = () => {
                             </li>
                           ))}
                           {(highScores || []).length === 0 && (
-                            <li className={styles['panel-empty']}>
+                            <div className={styles['panel-empty']}>
                               랭킹 데이터가 없습니다
-                            </li>
+                            </div>
                           )}
                         </ul>
                       )}

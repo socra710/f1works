@@ -20,6 +20,10 @@
   font-size: 0.9rem;
 }
 
+.runner-scoreboard p {
+  width: 95%;
+}
+
 .score-list {
   list-style: none;
   padding: 0;
