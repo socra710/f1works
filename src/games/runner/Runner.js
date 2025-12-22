@@ -2240,9 +2240,9 @@ const Runner = () => {
                             </li>
                           ))}
                           {(highScores || []).length === 0 && (
-                            <li className={styles['panel-empty']}>
+                            <div className={styles['panel-empty']}>
                               랭킹 데이터가 없습니다
-                            </li>
+                            </div>
                           )}
                         </ul>
                       )}
