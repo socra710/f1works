@@ -443,10 +443,18 @@
 
 .form-actions {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   gap: 0.75rem;
-  grid-column: 1 / -1;
+  margin-top: 1rem;
+  /* 버튼 위에 풀블리드 구분선 */
+  border-top: 1px solid #e5e7ef;
+  padding-top: 0.75rem;
+  /* 좌우 패딩을 상쇄해 선을 카드 전체로 */
+  margin-left: -1.25rem;
+  margin-right: -1.25rem;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
 }
 
 .actions-left,
