@@ -7,7 +7,10 @@ import HardwareFilter from './components/HardwareFilter';
 import HardwareTable from './components/HardwareTable';
 import { useHardwareAPI } from './hooks/useHardwareAPI';
 import { useToast } from '../../common/Toast';
-import { waitForExtensionLogin, decodeUserId } from '../../common/extensionLogin';
+import {
+  waitForExtensionLogin,
+  decodeUserId,
+} from '../../common/extensionLogin';
 
 const Hardware = () => {
   const { hardwareList, loading, fetchHardwareList, deleteHardware } =
@@ -23,7 +26,10 @@ const Hardware = () => {
   useEffect(() => {
     let mounted = true;
     const checkAuth = async () => {
-      const rawUser = await waitForExtensionLogin({ minWait: 500, maxWait: 2000 });
+      const rawUser = await waitForExtensionLogin({
+        minWait: 500,
+        maxWait: 2000,
+      });
       if (!mounted) return;
 
       const decodedUser = decodeUserId(rawUser);
@@ -83,7 +89,11 @@ const Hardware = () => {
   if (!authChecked) {
     return (
       <div className={styles.hardwareContainer}>
-        <div className={styles.loadingBar} role="status" aria-label="인증 확인 중">
+        <div
+          className={styles.loadingBar}
+          role="status"
+          aria-label="인증 확인 중"
+        >
           <div className={styles.loadingBarIndicator} />
         </div>
       </div>
@@ -104,10 +114,10 @@ const Hardware = () => {
         )}
         <div className={styles.hardwareHeader}>
           <div className={styles.hardwareHeaderText}>
-            <h1>고객사 H/W 관리대장</h1>
+            <h1>H/W 관리대장</h1>
             <p className={styles['hero-sub']}>
-              고객사에서 사용하는 H/W 자산을 관리합니다. 납품 및 A/S 접수 내역을
-              기록하고 조회할 수 있습니다.
+              보유 중인 하드웨어 자산을 효율적으로 관리합니다. 납품, A/S, 폐기
+              등 모든 내역을 한곳에서 기록하고 조회할 수 있습니다.
             </p>
           </div>
           <div className={styles.hardwareHeaderActions}>
