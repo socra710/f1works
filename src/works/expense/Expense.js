@@ -147,6 +147,32 @@ export default function Expense() {
     // eslint-disable-next-line
   }, [navigate, expenseId, isManagerMode]);
 
+  // 인증 대기 시 상단 고정 로딩바 표시
+  useEffect(() => {
+    const id = 'global-auth-topbar';
+    if (!authChecked) {
+      const container = document.createElement('div');
+      container.id = id;
+      Object.assign(container.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        right: '0',
+        zIndex: '2147483647',
+      });
+      container.innerHTML =
+        '<div class="loading-bar" role="status" aria-label="인증 확인 중"><div class="loading-bar__indicator"></div></div>';
+      document.body.appendChild(container);
+      return () => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+      };
+    } else {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+  }, [authChecked]);
+
   // 임시 저장 데이터 체크 함수
   const checkAndLoadTempData = (month, userId) => {
     const tempKey = `expense_temp_${month}_${userId}`;
@@ -1546,20 +1572,10 @@ export default function Expense() {
     );
   };
   
-
-  // 인증 전 로딩 표시 (Expense.css 스타일 사용)
+  // 인증 완료 전에는 화면을 비워 두고 상단 바만 표시
   if (!authChecked) {
-    return (
-      <div className="expense-container">
-        <div className="expense-content">
-          <div className="loading-bar" role="status" aria-label="인증 확인 중">
-            <div className="loading-bar__indicator" />
-          </div>
-        </div>
-      </div>
-    );
+    return <div className="auth-wait-screen" />;
   }
-
 
   return (
     <div className="expense-container">
@@ -1570,11 +1586,11 @@ export default function Expense() {
       </Helmet>
 
       <div className="expense-content">
-        {(isLoading) && (
+        {isLoading && (
           <div
             className="loading-bar"
             role="status"
-            aria-label={!authChecked ? '인증 확인 중' : '데이터 로딩 중'}
+            aria-label={'데이터 로딩 중'}
           >
             <div className="loading-bar__indicator" />
           </div>

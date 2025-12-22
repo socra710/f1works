@@ -1,9 +1,18 @@
 /* 경비 관리 페이지 - Expense 페이지와 동일한 디자인 */
 
+/* 인증 대기 화면 (공통) */
+.auth-wait-screen {
+  background: #fff;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .expense-management-wrapper {
   min-height: 100vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 2rem 1rem;
+  padding: 16px;
   box-sizing: border-box;
 }
 

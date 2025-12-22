@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import './SpecialItems.css';
 import { useToast, useDialog } from '../../common/Toast';
+import { waitForExtensionLogin } from '../../common/extensionLogin';
 
 /**
  * 특별 항목 관리 페이지
@@ -16,6 +17,7 @@ export default function SpecialItems() {
   const { showDialog } = useDialog();
 
   const [isLoading, setIsLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState('');
   const [specialItemsList, setSpecialItemsList] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -25,7 +27,7 @@ export default function SpecialItems() {
     amount: '',
     memo: '',
   });
-  const initializedRef = useRef(false);
+  const authCheckRef = useRef(false);
 
   const renderSkeletonRows = (columnCount, rowCount = 6) => (
     <>
@@ -51,18 +53,48 @@ export default function SpecialItems() {
     </>
   );
 
+  // 상단 로딩바 표시
+  useEffect(() => {
+    const id = 'global-auth-topbar';
+    if (!authChecked) {
+      const container = document.createElement('div');
+      container.id = id;
+      Object.assign(container.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        right: '0',
+        zIndex: '2147483647',
+        background: '#fff',
+      });
+      container.innerHTML =
+        '<div class="loading-bar" role="status" aria-label="인증 확인 중"><div class="loading-bar__indicator"></div></div>';
+      document.body.appendChild(container);
+      return () => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+      };
+    } else {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+  }, [authChecked]);
+
   // 권한 확인 및 초기화
   useEffect(() => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
+    if (authCheckRef.current) return;
+    authCheckRef.current = true;
 
-    const sessionUser = window.sessionStorage.getItem('extensionLogin');
-    if (!sessionUser) {
-      showToast('로그인이 필요한 서비스입니다.', 'warning');
-      navigate('/works');
-      return;
-    }
-    checkManagerPermission(sessionUser);
+    (async () => {
+      const sessionUser = await waitForExtensionLogin({ minWait: 500, maxWait: 2000 });
+      if (!sessionUser) {
+        showToast('로그인이 필요한 서비스입니다.', 'warning');
+        navigate('/works');
+        return;
+      }
+      checkManagerPermission(sessionUser);
+      setAuthChecked(true);
+    })();
     // eslint-disable-next-line
   }, [navigate, showToast]);
 
@@ -218,6 +250,11 @@ export default function SpecialItems() {
       },
     });
   };
+
+  // 인증 완료 전에는 흰 배경만 표시
+  if (!authChecked) {
+    return <div className="auth-wait-screen" />;
+  }
 
   return (
     <div className="special-items-wrapper">
