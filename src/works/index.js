@@ -192,7 +192,7 @@ export default function Works() {
         title: 'H/W 관리대장',
         description: '자산(하드웨어)을 등록하고 관리하세요',
         icon: '🖥️',
-        path: '/works/asset',
+        path: '/works/asset/hw',
         category: '업무',
         isNew: true,
       },
