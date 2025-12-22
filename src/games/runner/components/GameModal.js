@@ -15,10 +15,12 @@ const GameModal = ({
 }) => {
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState('');
+  const [showShareToast, setShowShareToast] = useState(false);
 
   if (!showModal) return null;
 
-  const displayName = playerName || `Runner${Math.floor(Math.random() * 10000)}`;
+  const displayName =
+    playerName || `Runner${Math.floor(Math.random() * 10000)}`;
 
   const handleEditClick = () => {
     setTempName(displayName);
@@ -43,17 +45,76 @@ const GameModal = ({
     setTempName('');
   };
 
-  const modalTitle = title || (isNewRecord ? '🎉 신기록 달성! 🎉' : '게임 종료');
+  const handleShare = () => {
+    // 점수를 시각화 (100점당 하나의 별)
+    const starCount = Math.floor(score / 100);
+    const stars = '⭐'.repeat(Math.min(starCount, 10)); // 최대 10개
+
+    // 코인을 시각화 (10개당 하나의 코인)
+    const coinVisual = Math.floor(coins / 10);
+    const coinIcons = '💰'.repeat(Math.min(coinVisual, 10)); // 최대 10개
+
+    // 점수 구간별 이모지
+    let trophy = '🏃';
+    if (score >= 1000) trophy = '🏆';
+    else if (score >= 500) trophy = '🥇';
+    else if (score >= 300) trophy = '🥈';
+    else if (score >= 100) trophy = '🥉';
+
+    // 공유 텍스트 생성
+    const shareText =
+      `🏃 러너 게임 결과 ${trophy}\n\n` +
+      `👤 ${displayName}\n` +
+      `📊 점수: ${score}점 ${stars}\n` +
+      `💰 코인: ${coins}개 ${coinIcons}\n` +
+      (isNewRecord ? `\n🎉 신기록 달성! 🎉\n` : '') +
+      `\nhttps://f1works.netlify.app/games/runner`;
+
+    // 클립보드에 복사
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard
+        .writeText(shareText)
+        .then(() => {
+          setShowShareToast(true);
+          setTimeout(() => setShowShareToast(false), 2000);
+        })
+        .catch(() => {
+          // 폴백: 구형 브라우저용
+          fallbackCopyToClipboard(shareText);
+        });
+    } else {
+      fallbackCopyToClipboard(shareText);
+    }
+  };
+
+  const fallbackCopyToClipboard = (text) => {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-9999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      setShowShareToast(true);
+      setTimeout(() => setShowShareToast(false), 2000);
+    } catch (err) {
+      console.error('복사 실패:', err);
+    }
+    document.body.removeChild(textArea);
+  };
+
+  const modalTitle =
+    title || (isNewRecord ? '🎉 신기록 달성! 🎉' : '게임 종료');
 
   return (
     <div className={styles['modal-overlay']}>
       <div className={styles['modal-content']}>
-        {isNewRecord && (
-          <div className={styles['trophy-icon']}>🏆</div>
-        )}
-        
+        {isNewRecord && <div className={styles['trophy-icon']}>🏆</div>}
+
         <h2 className={styles['modal-title']}>{modalTitle}</h2>
-        
+
         {showStats && (
           <div className={styles['stats-container']}>
             <div className={styles['stat-item']}>
@@ -63,7 +124,7 @@ const GameModal = ({
                 <span className={styles['stat-value']}>{score}</span>
               </div>
             </div>
-            
+
             <div className={styles['stat-item']}>
               <div className={styles['stat-icon']}>💰</div>
               <div className={styles['stat-content']}>
@@ -89,7 +150,15 @@ const GameModal = ({
               const pos = positions[idx];
               const sparks = 35 + Math.floor(Math.random() * 10); // 35~44개
               const baseDelay = idx * 0.15; // 순차적 폭발
-              const colors = ['#ff3366', '#ffd700', '#00d4ff', '#ff66ff', '#66ff66', '#ff9933', '#cc66ff'];
+              const colors = [
+                '#ff3366',
+                '#ffd700',
+                '#00d4ff',
+                '#ff66ff',
+                '#66ff66',
+                '#ff9933',
+                '#cc66ff',
+              ];
               return (
                 <div key={idx}>
                   {/* 폭발 링 */}
@@ -108,8 +177,10 @@ const GameModal = ({
                   >
                     {Array.from({ length: sparks }).map((__, j) => {
                       const angle = (360 / sparks) * j;
-                      const color = colors[Math.floor(Math.random() * colors.length)];
-                      const delay = (baseDelay + Math.random() * 0.15).toFixed(2) + 's';
+                      const color =
+                        colors[Math.floor(Math.random() * colors.length)];
+                      const delay =
+                        (baseDelay + Math.random() * 0.15).toFixed(2) + 's';
                       const dist = 100 + Math.random() * 100; // 100~200px
                       return (
                         <span
@@ -138,10 +209,7 @@ const GameModal = ({
                 <div className={styles['nickname-label']}>플레이어</div>
                 <div className={styles['nickname-value']}>{displayName}</div>
               </div>
-              <button 
-                onClick={handleEditClick} 
-                className={styles['btn-edit']}
-              >
+              <button onClick={handleEditClick} className={styles['btn-edit']}>
                 <span>✏️</span> 닉네임 변경
               </button>
             </>
@@ -183,9 +251,69 @@ const GameModal = ({
         </div>
 
         {!editingName && (
-          <button onClick={onClose} className={styles['btn-close']}>
-            확인
-          </button>
+          <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
+            <button
+              onClick={handleShare}
+              className={styles['btn-share']}
+              style={{
+                flex: 1,
+                padding: '16px 24px',
+                border: 'none',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                fontSize: '1rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow =
+                  '0 6px 25px rgba(102, 126, 234, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow =
+                  '0 4px 15px rgba(102, 126, 234, 0.4)';
+              }}
+            >
+              <span>📤</span> 공유하기
+            </button>
+            <button
+              onClick={onClose}
+              className={styles['btn-close']}
+              style={{ flex: 1 }}
+            >
+              확인
+            </button>
+          </div>
+        )}
+
+        {showShareToast && (
+          <div
+            style={{
+              position: 'fixed',
+              bottom: '30px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: 'rgba(0, 0, 0, 0.8)',
+              color: 'white',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              fontSize: '0.9rem',
+              zIndex: 10000,
+              animation: 'fadeInOut 2s ease-in-out',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            }}
+          >
+            ✅ 클립보드에 복사되었습니다!
+          </div>
         )}
       </div>
     </div>
