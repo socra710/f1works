@@ -39,12 +39,10 @@ export default function Monitor() {
         setAuthUser(extLogin);
       }
 
-      if (!document.querySelector('script[src="https://t1.daumcdn.net/kas/static/ba.min.js"]')) {
-        const script = document.createElement('script');
-        script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
-        script.async = true;
-        document.body.appendChild(script);
-      }
+      const script = document.createElement('script');
+      script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
+      script.async = true;
+      document.body.appendChild(script);
     };
     run();
     return () => {
@@ -583,7 +581,7 @@ export default function Monitor() {
   // 변경: 로딩 표시
   if (!authUser) {
     return (
-      <div className={styles.hardwareContainer}>
+      <div className={`${styles['car-shell']} ${styles['div-monitor']}`}>
         <div className={styles.loadingBar} role="status" aria-label="인증 확인 중">
           <div className={styles.loadingBarIndicator} />
         </div>

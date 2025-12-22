@@ -2,7 +2,17 @@
 
 /* 인증 대기 화면 (공통) */
 .auth-wait-screen {
-  background: #fff;
+  background: radial-gradient(
+      1200px 600px at 10% 0%,
+      rgba(90, 117, 230, 0.06),
+      transparent 60%
+    ),
+    radial-gradient(
+      1000px 500px at 90% 20%,
+      rgba(122, 86, 181, 0.06),
+      transparent 65%
+    ),
+    linear-gradient(135deg, #f9fbff 0%, #f3f6fd 100%);
   height: 100vh;
   display: flex;
   align-items: center;
@@ -11,7 +21,17 @@
 
 .expense-management-wrapper {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: radial-gradient(
+      1200px 600px at 10% 0%,
+      rgba(90, 117, 230, 0.06),
+      transparent 60%
+    ),
+    radial-gradient(
+      1000px 500px at 90% 20%,
+      rgba(122, 86, 181, 0.06),
+      transparent 65%
+    ),
+    linear-gradient(135deg, #f9fbff 0%, #f3f6fd 100%);
   padding: 16px;
   box-sizing: border-box;
 }
