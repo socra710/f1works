@@ -8,13 +8,14 @@
   margin: 0 0 15px 0;
   font-size: 1.3rem;
   text-align: center;
-  color: #ffd700;
+  color: var(--runner-accent, #ffd700);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .runner-scoreboard .loading,
 .runner-scoreboard .empty {
   text-align: center;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--runner-muted, rgba(255, 255, 255, 0.6));
   padding: 20px;
   font-size: 0.9rem;
 }
@@ -74,7 +75,7 @@
 .score-list .rank {
   font-weight: bold;
   font-size: 1.1rem;
-  color: #ffd700;
+  color: var(--runner-accent, #ffd700);
   text-align: center;
 }
 
@@ -87,7 +88,7 @@
 
 .score-list .score {
   font-weight: bold;
-  color: #ffd700;
+  color: var(--runner-accent, #ffd700);
   white-space: nowrap;
 }
 
@@ -135,10 +136,8 @@
   max-width: 420px;
   width: 90%;
   color: white;
-  box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(255, 255, 255, 0.1) inset,
-    0 0 100px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset, 0 0 100px rgba(102, 126, 234, 0.3);
   animation: modalAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   overflow: hidden;
@@ -168,8 +167,12 @@
 }
 
 @keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 200% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
 }
 
 .trophy-icon {
@@ -181,8 +184,12 @@
 }
 
 @keyframes trophyBounce {
-  from { transform: translateY(0); }
-  to { transform: translateY(-10px); }
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-10px);
+  }
 }
 
 .modal-title {
@@ -472,7 +479,8 @@
   }
   20% {
     opacity: 1;
-    transform: rotate(var(--angle)) translate(calc(var(--burstDist) * 0.3)) scale(1);
+    transform: rotate(var(--angle)) translate(calc(var(--burstDist) * 0.3))
+      scale(1);
   }
   70% {
     opacity: 0.8;

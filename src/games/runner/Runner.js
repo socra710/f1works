@@ -133,7 +133,7 @@ const Runner = () => {
       body.classList.remove('no-scroll');
     };
   }, [gameState, panelCollapsed]);
-  
+
   // 파워업 아이템 관련 상태
   const [powerUps, setPowerUps] = useState([]); // 게임 화면에 존재하는 파워업들
   const [activePowerUp, setActivePowerUp] = useState(null); // {type, endTime}
@@ -221,7 +221,7 @@ const Runner = () => {
         localStorage.setItem('runnerUserId', id);
       }
       setUserId(id);
-      
+
       // 초기 닉네임 설정: 없으면 Runner + 랜덤 숫자
       let name = localStorage.getItem('runnerPlayerName');
       if (!name) {
@@ -238,7 +238,7 @@ const Runner = () => {
   useEffect(() => {
     if (userId && userId === 'user_1766141039009_ygdgjjqzh') {
       // 중복 추가 방지
-      if (!CHARACTERS.some(char => char.id === 'monkey')) {
+      if (!CHARACTERS.some((char) => char.id === 'monkey')) {
         CHARACTERS.push({ id: 'monkey', name: '🐵', emoji: '🐵' });
       }
     }
@@ -393,6 +393,24 @@ const Runner = () => {
     return palette[seasonEffects.isNight ? 'night' : 'day'];
   }, [seasonEffects.isNight, seasonEffects.season]);
 
+  // 배경 대비에 맞춰 읽기 쉬운 전경(글자) 색상 지정
+  const runnerTextColor = useMemo(() => {
+    // 밤에는 밝은 텍스트, 낮에는 짙은 텍스트로 대비 확보
+    return seasonEffects.isNight ? '#eef6ff' : '#102a43';
+  }, [seasonEffects.isNight]);
+
+  // 약한(보조) 텍스트 색상 변수
+  const runnerMutedColor = useMemo(() => {
+    return seasonEffects.isNight
+      ? 'rgba(238, 246, 255, 0.7)'
+      : 'rgba(16, 42, 67, 0.7)';
+  }, [seasonEffects.isNight]);
+
+  // 포인트(강조) 텍스트 색상: 밤엔 밝은 골드, 낮엔 대비되는 다크 골드
+  const runnerAccentColor = useMemo(() => {
+    return seasonEffects.isNight ? '#ffd700' : '#b07a00';
+  }, [seasonEffects.isNight]);
+
   // 로컬 스토리지에서 최고 점수 불러오기
   useEffect(() => {
     const savedHighScore = localStorage.getItem('runnerHighScore');
@@ -417,7 +435,9 @@ const Runner = () => {
   useEffect(() => {
     if (gameState !== 'gameOver') return;
     if (!userId) return;
-    const nameForServer = (playerName && playerName.trim()) || `Runner${Math.floor(Math.random() * 10000)}`;
+    const nameForServer =
+      (playerName && playerName.trim()) ||
+      `Runner${Math.floor(Math.random() * 10000)}`;
     syncCoinBank(userId, coinCount, highScore, nameForServer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState, userId, coinCount, highScore, syncCoinBank]);
@@ -429,13 +449,17 @@ const Runner = () => {
     const speedIncreaseInterval = setInterval(() => {
       setGameSpeed((prevSpeed) => {
         // 50점마다 0.5씩 증가하는 목표 속도 계산
-        const targetSpeed = BASE_GAME_SPEED + (score / SPEED_INCREASE_INTERVAL) * SPEED_INCREASE_PER_LEVEL;
+        const targetSpeed =
+          BASE_GAME_SPEED +
+          (score / SPEED_INCREASE_INTERVAL) * SPEED_INCREASE_PER_LEVEL;
         const maxSpeed = BASE_GAME_SPEED + 20; // 최대 속도 제한 (최대 25배속)
         const cappedTargetSpeed = Math.min(targetSpeed, maxSpeed);
-        
+
         // 부드러운 전환: 목표 속도에 천천히 접근
-        let newSpeed = prevSpeed + (cappedTargetSpeed - prevSpeed) * SPEED_INCREASE_SMOOTHNESS;
-        
+        let newSpeed =
+          prevSpeed +
+          (cappedTargetSpeed - prevSpeed) * SPEED_INCREASE_SMOOTHNESS;
+
         // 슬로우(속도 고정): 발동 순간의 속도로 잠시 고정
         if (slowMoActiveDurationRef.current > 0) {
           if (slowFreezeSpeedRef.current == null) {
@@ -443,7 +467,7 @@ const Runner = () => {
           }
           newSpeed = slowFreezeSpeedRef.current;
         }
-        
+
         return newSpeed;
       });
     }, 50); // 50ms마다 속도 업데이트
@@ -486,8 +510,18 @@ const Runner = () => {
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [gameState, score, highScore, playerName, sessionCoins, userId, saveScoreAuto, setShowNameModal]);
+    return () =>
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [
+    gameState,
+    score,
+    highScore,
+    playerName,
+    sessionCoins,
+    userId,
+    saveScoreAuto,
+    setShowNameModal,
+  ]);
 
   // 게임 시작 시 광고 렌더링 시도 (스크립트가 먼저 로드된 경우 대비)
   useEffect(() => {
@@ -558,7 +592,7 @@ const Runner = () => {
   const jump = useCallback(() => {
     // 트리플 점프 활성이면 최대 3회, 아니면 2회
     const maxJumps = tripleJumpCountRef.current > 0 ? 3 : 2;
-    
+
     if (gameState === 'playing' && jumpCount < maxJumps) {
       const willUseTriple = tripleJumpCountRef.current > 0 && jumpCount === 2;
       playerVelocityRef.current = Math.abs(JUMP_STRENGTH); // 위로 점프
@@ -629,7 +663,12 @@ const Runner = () => {
     const offsetY = clientY - rect.top;
 
     // 게임 컨테이너 내부 클릭만 처리
-    if (offsetX < 0 || offsetY < 0 || offsetX > rect.width || offsetY > rect.height) {
+    if (
+      offsetX < 0 ||
+      offsetY < 0 ||
+      offsetX > rect.width ||
+      offsetY > rect.height
+    ) {
       return;
     }
 
@@ -729,16 +768,18 @@ const Runner = () => {
       let randomType;
       const rand = Math.random();
       const difficultyFactor = Math.min(score / 300, 1.0); // 300점에서 100%, 150점에서 50%
-      
+
       if (rand < difficultyFactor) {
         // 높은 난이도: 뒤의 어려운 장애물들 선택
         const hardObstacles = OBSTACLE_TYPES.slice(7); // 인덱스 7부터 끝까지
-        randomType = hardObstacles[Math.floor(Math.random() * hardObstacles.length)];
+        randomType =
+          hardObstacles[Math.floor(Math.random() * hardObstacles.length)];
       } else {
         // 일반 난이도: 모든 장애물 중 선택
-        randomType = OBSTACLE_TYPES[Math.floor(Math.random() * OBSTACLE_TYPES.length)];
+        randomType =
+          OBSTACLE_TYPES[Math.floor(Math.random() * OBSTACLE_TYPES.length)];
       }
-      
+
       // 장애물 크기 변형 확률 조정
       // 점수(난이도)에 따라 극단값(작게/크게) 비율을 서서히 늘림
       const extremeWeight = 0.15 + 0.35 * difficultyFactor; // 15% → 최대 50%
@@ -748,15 +789,15 @@ const Runner = () => {
       let sizeVariation;
       if (rSize < commonWeight) {
         // 보통: 거의 기본 크기 (0.95 ~ 1.05)
-        sizeVariation = 0.95 + Math.random() * 0.10;
+        sizeVariation = 0.95 + Math.random() * 0.1;
       } else if (rSize < commonWeight + moderateWeight) {
         // 중간: 약간 변형 (0.85 ~ 1.15)
-        sizeVariation = 0.85 + Math.random() * 0.30;
+        sizeVariation = 0.85 + Math.random() * 0.3;
       } else {
         // 극단: 크게 변형 (0.70 ~ 1.30)
-        sizeVariation = 0.70 + Math.random() * 0.60;
+        sizeVariation = 0.7 + Math.random() * 0.6;
       }
-      
+
       const newObstacle = {
         id: Date.now(),
         x: 800,
@@ -771,15 +812,16 @@ const Runner = () => {
       if (shouldSpawnCoins) {
         const coinsToSpawn = [];
         const baseHeight = newObstacle.height; // 지면 기준 높이
-        
+
         // 1~3개 중 랜덤 개수 (가중치: 1개 30%, 2개 50%, 3개 20%)
         const rand = Math.random();
         const count = rand < 0.3 ? 1 : rand < 0.8 ? 2 : 3;
 
         // 큰 코인 생성 확률 (10%) - 각 코인마다 독립적으로 체크하되 한 번에 1개만
-        const isSingleBig = Math.random() < 0.10;
-        const isDoubleBig = isSingleBig ? false : Math.random() < 0.10;
-        const isTripleBig = (isSingleBig || isDoubleBig) ? false : Math.random() < 0.10;
+        const isSingleBig = Math.random() < 0.1;
+        const isDoubleBig = isSingleBig ? false : Math.random() < 0.1;
+        const isTripleBig =
+          isSingleBig || isDoubleBig ? false : Math.random() < 0.1;
 
         // 코인 위치 프리셋
         const singleCoin = {
@@ -819,7 +861,9 @@ const Runner = () => {
         if (count === 1) {
           // 하나만 생성: 싱글/더블/트리플 중 랜덤
           const choice = Math.random();
-          coinsToSpawn.push(choice < 0.4 ? singleCoin : choice < 0.7 ? doubleCoin : tripleCoin);
+          coinsToSpawn.push(
+            choice < 0.4 ? singleCoin : choice < 0.7 ? doubleCoin : tripleCoin
+          );
         } else if (count === 2) {
           // 두 개 생성
           coinsToSpawn.push(singleCoin, doubleCoin);
@@ -962,8 +1006,10 @@ const Runner = () => {
       terrainOffsetRef.current = Math.sin(terrainPhaseRef.current) * terrainAmp;
 
       // 패럴랙스: 속도에 비례해 좌우 이동 (좌측으로 흐름)
-      const pxSpeedFar = 12 * Math.max(1, gameSpeedRef.current) * dt * 60 * 0.15;
-      const pxSpeedNear = 12 * Math.max(1, gameSpeedRef.current) * dt * 60 * 0.35;
+      const pxSpeedFar =
+        12 * Math.max(1, gameSpeedRef.current) * dt * 60 * 0.15;
+      const pxSpeedNear =
+        12 * Math.max(1, gameSpeedRef.current) * dt * 60 * 0.35;
       parallaxFarXRef.current -= pxSpeedFar;
       parallaxNearXRef.current -= pxSpeedNear;
 
@@ -976,23 +1022,38 @@ const Runner = () => {
 
       // 밤 알파: 기본보다 약간 가변 (고속일수록 살짝 완화)
       const nightTarget = seasonEffectsRef.current.isNight
-        ? Math.min(0.82, Math.max(0.65, 0.72 + 0.10 * (1 - speedFactor)))
+        ? Math.min(0.82, Math.max(0.65, 0.72 + 0.1 * (1 - speedFactor)))
         : 0;
-      nightFadeRef.current += (nightTarget - nightFadeRef.current) * Math.min(1, dt * 3);
+      nightFadeRef.current +=
+        (nightTarget - nightFadeRef.current) * Math.min(1, dt * 3);
 
       // 안개 강도/블러: 구름 시즌일 때만 적용, 고속일수록 약간 약화 (극강 날씨 시 강화)
       const fogBaseTop = isCloudy ? 0.38 : 0;
       const fogBaseGround = isCloudy ? 0.46 : 0;
-      const intensityMultiplier = seasonEffectsRef.current.intensity === 'extreme' ? 1.8 : 
-                                  seasonEffectsRef.current.intensity === 'heavy' ? 1.4 : 1;
-      const fogTop = fogBaseTop * (1 - 0.25 * speedFactor) * intensityMultiplier;
-      const fogGround = fogBaseGround * (1 - 0.25 * speedFactor) * intensityMultiplier;
-      fogTopOpacityRef.current += (fogTop - fogTopOpacityRef.current) * Math.min(1, dt * 3);
-      fogGroundOpacityRef.current += (fogGround - fogGroundOpacityRef.current) * Math.min(1, dt * 3);
-      const fogTopBlur = isCloudy ? (2.8 - 1.0 * speedFactor) * intensityMultiplier : 0;
-      const fogGroundBlur = isCloudy ? (3.6 - 1.2 * speedFactor) * intensityMultiplier : 0;
-      fogTopBlurRef.current += (fogTopBlur - fogTopBlurRef.current) * Math.min(1, dt * 3);
-      fogGroundBlurRef.current += (fogGroundBlur - fogGroundBlurRef.current) * Math.min(1, dt * 3);
+      const intensityMultiplier =
+        seasonEffectsRef.current.intensity === 'extreme'
+          ? 1.8
+          : seasonEffectsRef.current.intensity === 'heavy'
+          ? 1.4
+          : 1;
+      const fogTop =
+        fogBaseTop * (1 - 0.25 * speedFactor) * intensityMultiplier;
+      const fogGround =
+        fogBaseGround * (1 - 0.25 * speedFactor) * intensityMultiplier;
+      fogTopOpacityRef.current +=
+        (fogTop - fogTopOpacityRef.current) * Math.min(1, dt * 3);
+      fogGroundOpacityRef.current +=
+        (fogGround - fogGroundOpacityRef.current) * Math.min(1, dt * 3);
+      const fogTopBlur = isCloudy
+        ? (2.8 - 1.0 * speedFactor) * intensityMultiplier
+        : 0;
+      const fogGroundBlur = isCloudy
+        ? (3.6 - 1.2 * speedFactor) * intensityMultiplier
+        : 0;
+      fogTopBlurRef.current +=
+        (fogTopBlur - fogTopBlurRef.current) * Math.min(1, dt * 3);
+      fogGroundBlurRef.current +=
+        (fogGroundBlur - fogGroundBlurRef.current) * Math.min(1, dt * 3);
 
       // 러너 잔상 업데이트: 최근 위치 5개 유지
       if (gameState === 'playing') {
@@ -1015,7 +1076,10 @@ const Runner = () => {
         0,
         particleCooldownRef.current - dt
       );
-      const spawnInterval = Math.max(0.03, 0.08 / Math.max(1, gameSpeedRef.current));
+      const spawnInterval = Math.max(
+        0.03,
+        0.08 / Math.max(1, gameSpeedRef.current)
+      );
       const shouldSpawn =
         gameState === 'playing' &&
         isOnGroundRef.current &&
@@ -1053,9 +1117,7 @@ const Runner = () => {
 
       // 모션 블러 업데이트 및 필터링 (최대 20개로 제한)
       setMotionBlurs((prev) =>
-        prev
-          .filter((blur) => (blur.delay -= dt) > -0.4)
-          .slice(-20)
+        prev.filter((blur) => (blur.delay -= dt) > -0.4).slice(-20)
       );
 
       // 점프 먼지 이펙트 업데이트 및 필터링 (최대 50개로 제한)
@@ -1101,7 +1163,8 @@ const Runner = () => {
 
         const moved = prevCoins
           .map((coin) => {
-            let coinX = coin.x - gameSpeedRef.current * (coin.speed || 1.2) * dt * 60;
+            let coinX =
+              coin.x - gameSpeedRef.current * (coin.speed || 1.2) * dt * 60;
             let coinY = coin.y;
 
             // 자석 파워업 활성 시 플레이어를 향해 끌어당김
@@ -1137,10 +1200,12 @@ const Runner = () => {
         const moved = prevPowerUps
           .map((powerUp) => ({
             ...powerUp,
-            x: powerUp.x - gameSpeedRef.current * (powerUp.speed || 0.8) * dt * 60,
+            x:
+              powerUp.x -
+              gameSpeedRef.current * (powerUp.speed || 0.8) * dt * 60,
           }))
           .filter((powerUp) => powerUp.x > -powerUp.size);
-        
+
         return moved;
       });
 
@@ -1210,7 +1275,7 @@ const Runner = () => {
             // 실드로 보호됨: 실드 해제 + 잠깐 무적 + 충돌 장애물 제거
             setShieldActive(false);
             invincibleUntilRef.current = nowTs + 600; // 0.6초 무적
-            
+
             // 쉴드 깨짐 이펙트: 쉴드 색깔과 동일한 파란색 파티클 폭발
             const shieldBreakParticles = [];
             const particleCount = 12; // 입자 개수
@@ -1230,7 +1295,7 @@ const Runner = () => {
               });
             }
             setParticles((prev) => [...prev, ...shieldBreakParticles]);
-            
+
             setObstacles((prev) => prev.filter((o) => o.id !== obstacle.id));
             return; // 게임 오버 안 함
           }
@@ -1274,7 +1339,7 @@ const Runner = () => {
             // 실드로 보호됨: 실드 해제 + 잠깐 무적 + 충돌 새 제거
             setShieldActive(false);
             invincibleUntilRef.current = nowTs + 600; // 0.6초 무적
-            
+
             // 쉴드 깨짐 이펙트: 쉴드 색깔과 동일한 파란색 파티클 폭발
             const shieldBreakParticles = [];
             const particleCount = 12;
@@ -1294,7 +1359,7 @@ const Runner = () => {
               });
             }
             setParticles((prev) => [...prev, ...shieldBreakParticles]);
-            
+
             setBirds((prev) => prev.filter((b) => b.id !== bird.id));
             return; // 게임 오버 안 함
           }
@@ -1338,7 +1403,7 @@ const Runner = () => {
 
         if (hit) {
           collected = true;
-          collectedValue += (coin.value || 1); // 코인 값 누적
+          collectedValue += coin.value || 1; // 코인 값 누적
         } else {
           remaining.push(coin);
         }
@@ -1405,7 +1470,11 @@ const Runner = () => {
           newDusts.push({
             id: Date.now() + Math.random(),
             left: 100 + Math.random() * 200,
-            top: GROUND_HEIGHT + playerY + terrainOffsetRef.current + PLAYER_SIZE / 2,
+            top:
+              GROUND_HEIGHT +
+              playerY +
+              terrainOffsetRef.current +
+              PLAYER_SIZE / 2,
             burstX: Math.cos(angle) * power,
             burstY: Math.sin(angle) * power,
             size: 6 + Math.random() * 4,
@@ -1417,7 +1486,21 @@ const Runner = () => {
     };
 
     checkCollision();
-  }, [obstacles, birds, coins, playerY, gameState, score, highScore, playerName, sessionCoins, userId, saveScoreAuto, setShowNameModal, shieldActive]);
+  }, [
+    obstacles,
+    birds,
+    coins,
+    playerY,
+    gameState,
+    score,
+    highScore,
+    playerName,
+    sessionCoins,
+    userId,
+    saveScoreAuto,
+    setShowNameModal,
+    shieldActive,
+  ]);
 
   return (
     <>
@@ -1437,7 +1520,14 @@ const Runner = () => {
       <div
         ref={containerRef}
         className={styles['runner-game']}
-        style={{ background: runnerBackground, transition: 'background 0.8s ease' }}
+        style={{
+          background: runnerBackground,
+          // CSS 변수로 전달해 전체 텍스트가 상속받도록 처리
+          '--runner-fg': runnerTextColor,
+          '--runner-muted': runnerMutedColor,
+          '--runner-accent': runnerAccentColor,
+          transition: 'background 0.8s ease, color 0.3s ease',
+        }}
       >
         <div className={styles['runner-header']}>
           <div className={styles['runner-toolbar']}>
@@ -1446,15 +1536,26 @@ const Runner = () => {
             <button
               type="button"
               className={`${styles['stat-pill']} ${styles['pill-name']}`}
-              onClick={() => { setEditingName(true); setShowNameModal(true); }}
+              onClick={() => {
+                setEditingName(true);
+                setShowNameModal(true);
+              }}
               aria-label="닉네임 변경"
             >
               👤 {playerName || 'Runner'}
             </button>
-            <div className={`${styles['stat-pill']} ${styles['pill-score']}`}>🏅 {score}</div>
-            <div className={`${styles['stat-pill']} ${styles['pill-speed']}`}>⚡ {gameSpeed.toFixed(1)}x</div>
-            <div className={`${styles['stat-pill']} ${styles['pill-high']}`}>🥇 {highScore}</div>
-            <div className={`${styles['stat-pill']} ${styles['pill-coins']}`}>💰 {coinCount}</div>
+            <div className={`${styles['stat-pill']} ${styles['pill-score']}`}>
+              🏅 {score}
+            </div>
+            <div className={`${styles['stat-pill']} ${styles['pill-speed']}`}>
+              ⚡ {gameSpeed.toFixed(1)}x
+            </div>
+            <div className={`${styles['stat-pill']} ${styles['pill-high']}`}>
+              🥇 {highScore}
+            </div>
+            <div className={`${styles['stat-pill']} ${styles['pill-coins']}`}>
+              💰 {coinCount}
+            </div>
           </div>
         </div>
 
@@ -1517,14 +1618,16 @@ const Runner = () => {
                   margin: '0 0 15px 0',
                   fontSize: '1.3rem',
                   textAlign: 'center',
-                  color: '#ffd700',
+                  color: 'var(--runner-accent)',
+                  textShadow: '0 1px 2px rgba(0,0,0,0.35)',
                 }}
               >
                 📖 게임 설명
               </h3>
               <p>
-                💡 <strong>조작</strong>: 스페이스바, 방향키 ↑ 또는 터치/마우스 클릭으로
-                점프하세요. <br/>더블 점프도 가능합니다!
+                💡 <strong>조작</strong>: 스페이스바, 방향키 ↑ 또는 터치/마우스
+                클릭으로 점프하세요. <br />
+                더블 점프도 가능합니다!
               </p>
             </div>
             <div className={styles.instructions} style={{ marginTop: '20px' }}>
@@ -1558,38 +1661,57 @@ const Runner = () => {
                     const contrastFactor = isAutumnNight ? 0.05 : 0.12;
                     const baseBrightness = isAutumnNight ? 0.94 : 0.86;
                     const baseSaturate = isAutumnNight ? 0.98 : 0.88;
-                    nightFilter = `saturate(${baseSaturate}) brightness(${(baseBrightness - nightFadeRef.current * brightnessFactor).toFixed(3)}) contrast(${(1.05 + nightFadeRef.current * contrastFactor).toFixed(3)})`;
+                    nightFilter = `saturate(${baseSaturate}) brightness(${(
+                      baseBrightness -
+                      nightFadeRef.current * brightnessFactor
+                    ).toFixed(3)}) contrast(${(
+                      1.05 +
+                      nightFadeRef.current * contrastFactor
+                    ).toFixed(3)})`;
                   }
-                  
+
                   // 시즌별 톤 필터 (극강 날씨 시 강화)
                   let seasonTone = '';
-                  const isIntenseWeather = seasonEffects.intensity === 'heavy' || seasonEffects.intensity === 'extreme';
+                  const isIntenseWeather =
+                    seasonEffects.intensity === 'heavy' ||
+                    seasonEffects.intensity === 'extreme';
                   if (seasonEffects.season === 'spring') {
-                    seasonTone = isIntenseWeather 
-                      ? `hue-rotate(-5deg) saturate(1.15)` 
+                    seasonTone = isIntenseWeather
+                      ? `hue-rotate(-5deg) saturate(1.15)`
                       : `saturate(1.05)`;
                   } else if (seasonEffects.season === 'summer') {
-                    seasonTone = isIntenseWeather 
-                      ? `hue-rotate(8deg) saturate(1.25) brightness(1.08)` 
+                    seasonTone = isIntenseWeather
+                      ? `hue-rotate(8deg) saturate(1.25) brightness(1.08)`
                       : `saturate(1.1) brightness(1.02)`;
                   } else if (seasonEffects.season === 'autumn') {
-                    seasonTone = isIntenseWeather 
-                      ? `hue-rotate(15deg) saturate(1.3) brightness(1.05)` 
+                    seasonTone = isIntenseWeather
+                      ? `hue-rotate(15deg) saturate(1.3) brightness(1.05)`
                       : `hue-rotate(8deg) saturate(1.15)`;
                   } else if (seasonEffects.season === 'winter') {
-                    seasonTone = isIntenseWeather 
-                      ? `hue-rotate(-12deg) saturate(0.95) brightness(0.98)` 
+                    seasonTone = isIntenseWeather
+                      ? `hue-rotate(-12deg) saturate(0.95) brightness(0.98)`
                       : `hue-rotate(-8deg) saturate(0.92)`;
                   }
-                  
+
                   // 평균 안개 블러 (구름 시즌에서만 의미 있게 적용)
-                  const isFoggy = (seasonEffects.base === 'clouds' || seasonEffects.extra === 'clouds');
+                  const isFoggy =
+                    seasonEffects.base === 'clouds' ||
+                    seasonEffects.extra === 'clouds';
                   const fogBlur = isFoggy
-                    ? parseFloat((((fogTopBlurRef.current + fogGroundBlurRef.current) / 2).toFixed(2)))
+                    ? parseFloat(
+                        (
+                          (fogTopBlurRef.current + fogGroundBlurRef.current) /
+                          2
+                        ).toFixed(2)
+                      )
                     : 0;
-                  
+
                   // 모든 필터를 결합
-                  const filters = [nightFilter, seasonTone, fogBlur > 0 ? `blur(${fogBlur}px)` : ''].filter(f => f);
+                  const filters = [
+                    nightFilter,
+                    seasonTone,
+                    fogBlur > 0 ? `blur(${fogBlur}px)` : '',
+                  ].filter((f) => f);
                   return filters.join(' ').trim();
                 })(),
                 transition: 'filter 0.4s ease',
@@ -1615,7 +1737,7 @@ const Runner = () => {
                         borderRadius: 4,
                         fontSize: 12,
                         color: '#002233',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.25)'
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.25)',
                       }}
                     >
                       🛡️ Shield
@@ -1629,7 +1751,7 @@ const Runner = () => {
                         borderRadius: 4,
                         fontSize: 12,
                         color: '#2b0a2b',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.25)'
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.25)',
                       }}
                     >
                       🧲 {(magnetActiveDurationRef.current / 1000).toFixed(1)}s
@@ -1643,7 +1765,7 @@ const Runner = () => {
                         borderRadius: 4,
                         fontSize: 12,
                         color: '#332b00',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.25)'
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.25)',
                       }}
                     >
                       ⏱️ {(slowMoActiveDurationRef.current / 1000).toFixed(1)}s
@@ -1657,7 +1779,7 @@ const Runner = () => {
                         borderRadius: 4,
                         fontSize: 12,
                         color: '#0d2b0d',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.25)'
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.25)',
                       }}
                     >
                       ⬆️ x1
@@ -1771,7 +1893,13 @@ const Runner = () => {
                         animationDelay: star.delay,
                         animationDuration: star.twinkleDuration,
                         filter: `blur(${star.blur}px)`,
-                        boxShadow: `0 0 ${Math.max(1.5, star.size * 1.6)}px rgba(255,255,255,${Math.min(1, star.opacity + 0.35)})`,
+                        boxShadow: `0 0 ${Math.max(
+                          1.5,
+                          star.size * 1.6
+                        )}px rgba(255,255,255,${Math.min(
+                          1,
+                          star.opacity + 0.35
+                        )})`,
                       }}
                     />
                   ))}
@@ -1804,9 +1932,16 @@ const Runner = () => {
                       'repeating-linear-gradient(120deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 2px, rgba(255,255,255,0.0) 3px, rgba(255,255,255,0.0) 12px)',
                     opacity: (() => {
                       // 극강 날씨일 때 비 스트릭 강도 증가
-                      const baseOpacity = Math.min(0.45, 0.25 + Math.max(0, (gameSpeedRef.current - 1) * 0.06));
-                      const intensityMultiplier = seasonEffects.intensity === 'extreme' ? 2.5 : 
-                                                   seasonEffects.intensity === 'heavy' ? 1.6 : 1;
+                      const baseOpacity = Math.min(
+                        0.45,
+                        0.25 + Math.max(0, (gameSpeedRef.current - 1) * 0.06)
+                      );
+                      const intensityMultiplier =
+                        seasonEffects.intensity === 'extreme'
+                          ? 2.5
+                          : seasonEffects.intensity === 'heavy'
+                          ? 1.6
+                          : 1;
                       return Math.min(0.95, baseOpacity * intensityMultiplier);
                     })(),
                     mixBlendMode: 'screen',
@@ -1870,7 +2005,8 @@ const Runner = () => {
 
               {/* 가시성 변화 오버레이 (안개/밤 페이드) */}
               {/* 구름 시즌일 때 은은한 안개 */}
-              {(seasonEffects.base === 'clouds' || seasonEffects.extra === 'clouds') && (
+              {(seasonEffects.base === 'clouds' ||
+                seasonEffects.extra === 'clouds') && (
                 <div
                   className="fog-overlay"
                   style={{
@@ -1883,8 +2019,10 @@ const Runner = () => {
                     opacity: Math.min(
                       0.55,
                       Math.max(
-                        0.20,
-                        ((fogTopOpacityRef.current + fogGroundOpacityRef.current) * 0.65)
+                        0.2,
+                        (fogTopOpacityRef.current +
+                          fogGroundOpacityRef.current) *
+                          0.65
                       )
                     ),
                     transition: 'opacity 0.3s ease',
@@ -2051,12 +2189,16 @@ const Runner = () => {
             {gameState === 'playing' && (
               <div className={styles['bottom-panel']}>
                 <div className={styles['bottom-header']}>
-                  <div className={styles['bottom-title']}>🎮 플레이 가이드 & 랭킹 요약</div>
+                  <div className={styles['bottom-title']}>
+                    🎮 플레이 가이드 & 랭킹 요약
+                  </div>
                   <button
                     type="button"
                     className={styles['bottom-toggle']}
                     onClick={() => setPanelCollapsed((v) => !v)}
-                    aria-label={panelCollapsed ? '하단 패널 펼치기' : '하단 패널 접기'}
+                    aria-label={
+                      panelCollapsed ? '하단 패널 펼치기' : '하단 패널 접기'
+                    }
                   >
                     {panelCollapsed ? '▲ 펼치기' : '▼ 접기'}
                   </button>
@@ -2079,18 +2221,28 @@ const Runner = () => {
                     <div className={styles['panel-section']}>
                       <h4 className={styles['panel-title']}>상위 랭킹</h4>
                       {isLoadingScores ? (
-                        <div className={styles['panel-loading']}>불러오는 중...</div>
+                        <div className={styles['panel-loading']}>
+                          불러오는 중...
+                        </div>
                       ) : (
                         <ul className={styles['mini-score-list']}>
                           {(highScores || []).slice(0, 5).map((row, idx) => (
                             <li key={`${row.name}-${row.date || idx}`}>
-                              <span className={styles['mini-rank']}>#{idx + 1}</span>
-                              <span className={styles['mini-name']}>{row.name}</span>
-                              <span className={styles['mini-score']}>{row.score}</span>
+                              <span className={styles['mini-rank']}>
+                                #{idx + 1}
+                              </span>
+                              <span className={styles['mini-name']}>
+                                {row.name}
+                              </span>
+                              <span className={styles['mini-score']}>
+                                {row.score}
+                              </span>
                             </li>
                           ))}
                           {(highScores || []).length === 0 && (
-                            <li className={styles['panel-empty']}>랭킹 데이터가 없습니다</li>
+                            <li className={styles['panel-empty']}>
+                              랭킹 데이터가 없습니다
+                            </li>
                           )}
                         </ul>
                       )}
