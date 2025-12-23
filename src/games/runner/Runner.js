@@ -16,6 +16,8 @@ import GameObstacles from './components/GameObstacles';
 import ParticleEffects from './components/ParticleEffects';
 import ScoreBoard from './components/ScoreBoard';
 import GameModal from './components/GameModal';
+import CharacterShop from './components/CharacterShop';
+import PurchaseHistory from './components/PurchaseHistory';
 
 // 훅
 import { useCommonElements } from './hooks/useCommonElements';
@@ -69,6 +71,10 @@ const CHARACTERS = [
   // { id: 'f1', name: 'F1', emoji: 'f1-emoji', image: f1EmojiImage },
   { id: 'dog', name: '🐶', emoji: '🐶' },
   { id: 'cat', name: '🐱', emoji: '🐱' },
+  // { id: 'fox', name: '🦊', emoji: '🦊' },
+  // { id: 'bear', name: '🐻', emoji: '🐻' },
+  // { id: 'pig', name: '🐷', emoji: '🐷' },
+  // { id: 'santa', name: '🎅', emoji: '🎅' },
   // { id: 'lion', name: '🦁', emoji: '🦁' },
   // { id: 'rabbit', name: '🐰', emoji: '🐰' },
   // { id: 'devil', name: '👿', emoji: '👿' },
@@ -80,7 +86,8 @@ const CHARACTERS = [
 ];
 
 const Runner = () => {
-  const [gameState, setGameState] = useState('menu'); // menu, playing, gameOver
+  const [gameState, setGameState] = useState('menu'); // menu, playing, gameOver, shop
+  const [availableCharacters, setAvailableCharacters] = useState(CHARACTERS); // 사용 가능한 캐릭터 목록
   const [selectedCharacter, setSelectedCharacter] = useState(CHARACTERS[0]);
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
@@ -101,6 +108,7 @@ const Runner = () => {
   const [isNewRecord, setIsNewRecord] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [panelCollapsed, setPanelCollapsed] = useState(false);
+  const [showPurchaseHistory, setShowPurchaseHistory] = useState(false);
   const containerRef = useRef(null);
 
   // 플레이 중: 컨텐츠가 화면 높이에 맞게 들어가는 경우에만 페이지 스크롤 비활성화
@@ -141,6 +149,49 @@ const Runner = () => {
 
   // userId 생성: 테트리스와 동일하게 sessionStorage 'extensionLogin'을 우선 사용
   const [userId, setUserId] = useState('');
+
+  // 구매한 캐릭터 로드
+  useEffect(() => {
+    if (!userId) return;
+
+    const loadPurchasedCharacters = async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/jvWorksGetUserPurchases?userId=${encodeURIComponent(
+            userId
+          )}`
+        );
+        if (!res.ok) return;
+
+        const json = await res.json();
+        if (json.success && json.items && json.items.length > 0) {
+          // CHARACTER 카테고리만 필터링
+          const purchasedChars = json.items
+            .filter(
+              (item) => item.itemCode && item.itemCode.startsWith('CHAR_')
+            )
+            .map((item) => ({
+              id: item.itemCode.toLowerCase(),
+              name: item.emoji,
+              emoji: item.emoji,
+            }));
+
+          // 기본 캐릭터 + 구매한 캐릭터 병합 (중복 제거)
+          const combined = [...CHARACTERS];
+          purchasedChars.forEach((pChar) => {
+            if (!combined.find((c) => c.id === pChar.id)) {
+              combined.push(pChar);
+            }
+          });
+          setAvailableCharacters(combined);
+        }
+      } catch (error) {
+        console.error('구매한 캐릭터 로드 실패:', error);
+      }
+    };
+
+    loadPurchasedCharacters();
+  }, [userId]);
 
   const gameLoopRef = useRef(null);
   const scoreIntervalRef = useRef(null);
@@ -229,19 +280,14 @@ const Runner = () => {
         localStorage.setItem('runnerPlayerName', name);
         setPlayerName(name);
       }
-    }, 500);
 
-    return () => clearTimeout(timer);
-  }, [setPlayerName]);
-
-  // 특정 유저에게만 숨겨진 캐릭터 활성화
-  useEffect(() => {
-    if (userId && userId === 'user_1766141039009_ygdgjjqzh') {
       // 중복 추가 방지
       if (!CHARACTERS.some((char) => char.id === 'monkey')) {
         CHARACTERS.push({ id: 'monkey', name: '🐵', emoji: '🐵' });
       }
-    }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [userId]);
 
   const syncCoinBank = useCallback(
@@ -1553,9 +1599,13 @@ const Runner = () => {
             <div className={`${styles['stat-pill']} ${styles['pill-high']}`}>
               🥇 {highScore}
             </div>
-            <div className={`${styles['stat-pill']} ${styles['pill-coins']}`}>
+            <button
+              className={`${styles['stat-pill']} ${styles['pill-coins']} ${styles['clickable']}`}
+              onClick={() => setShowPurchaseHistory(true)}
+              title="구매 이력 보기"
+            >
               💰 {coinCount}
-            </div>
+            </button>
           </div>
         </div>
 
@@ -1564,7 +1614,7 @@ const Runner = () => {
             <div className={styles['runner-menu']}>
               <h2 className={styles.subtitle}>캐릭터를 선택하세요</h2>
               <div className={styles['character-selection']}>
-                {CHARACTERS.map((character) => (
+                {availableCharacters.map((character) => (
                   <button
                     key={character.id}
                     className={`${styles['character-btn']} ${
@@ -1609,6 +1659,12 @@ const Runner = () => {
               </div>
               <button className={styles['start-btn']} onClick={startGame}>
                 게임 시작
+              </button>
+              <button
+                className={styles['shop-btn']}
+                onClick={() => setGameState('shop')}
+              >
+                🏪 상점
               </button>
             </div>
 
@@ -2254,6 +2310,37 @@ const Runner = () => {
           </div>
         )}
 
+        {gameState === 'shop' && (
+          <div className={styles['shop-wrapper']}>
+            <CharacterShop
+              userId={userId}
+              coins={coinCount}
+              onCoinsUpdate={(newBalance) => {
+                setCoinCount(newBalance);
+                localStorage.setItem('runnerCoins', newBalance.toString());
+              }}
+              onClose={() => setGameState('menu')}
+              onPurchase={(purchasedItem) => {
+                // 구매한 캐릭터가 CHARACTER 카테고리면 사용 가능한 캐릭터 목록에 추가
+                if (
+                  purchasedItem.itemCode &&
+                  purchasedItem.itemCode.startsWith('CHAR_')
+                ) {
+                  const newChar = {
+                    id: purchasedItem.itemCode.toLowerCase(),
+                    name: purchasedItem.emoji,
+                    emoji: purchasedItem.emoji,
+                  };
+                  setAvailableCharacters((prev) => {
+                    if (prev.find((c) => c.id === newChar.id)) return prev;
+                    return [...prev, newChar];
+                  });
+                }
+              }}
+            />
+          </div>
+        )}
+
         <GameModal
           showModal={showNameModal}
           score={score}
@@ -2278,6 +2365,14 @@ const Runner = () => {
             setEditingName(false);
           }}
         />
+
+        {/* 구매 이력 모달 */}
+        {showPurchaseHistory && (
+          <PurchaseHistory
+            userId={userId}
+            onClose={() => setShowPurchaseHistory(false)}
+          />
+        )}
       </div>
     </>
   );
