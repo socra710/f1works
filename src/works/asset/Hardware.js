@@ -117,10 +117,14 @@ const Hardware = () => {
     <div className={styles.hardwareContainer}>
       <Helmet>
         <title>H/W 관리대장</title>
-        <meta property="og:title" content="H/W 관리대장 - F1Works" />
+        <meta property="og:title" content="H/W 관리대장" />
         <meta
           property="og:description"
           content="보유 중인 하드웨어 자산을 효율적으로 관리합니다. 납품, A/S, 폐기 등 모든 내역을 한곳에서 기록하고 조회할 수 있습니다."
+        />
+        <meta
+          property="og:url"
+          content="https://codefeat.netlify.app/works/asset/hardware"
         />
       </Helmet>
       <div className={styles.hardwareContent}>

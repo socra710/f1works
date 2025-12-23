@@ -264,6 +264,15 @@ export default function SpecialItems() {
     <div className="special-items-wrapper">
       <Helmet>
         <title>특별 항목 관리 - F1Soft Works</title>
+        <meta property="og:title" content="특별 항목 관리" />
+        <meta
+          property="og:description"
+          content="특별 항목을 관리하고 추가할 수 있습니다."
+        />
+        <meta
+          property="og:url"
+          content="https://codefeat.netlify.app/works/expense/special-items"
+        />
       </Helmet>
       <div className="special-items-container">
         {isLoading && (

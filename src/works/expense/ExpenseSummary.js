@@ -627,6 +627,15 @@ export default function ExpenseSummary() {
     <>
       <Helmet>
         <title>경비 청구 집계</title>
+        <meta property="og:title" content="경비 청구 집계" />
+        <meta
+          property="og:description"
+          content="연도별 경비 청구 집계 현황을 확인하세요."
+        />
+        <meta
+          property="og:url"
+          content="https://codefeat.netlify.app/works/expense/expense-summary"
+        />
       </Helmet>
 
       <div className="expenseSummary-container">

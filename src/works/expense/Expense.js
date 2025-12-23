@@ -1591,8 +1591,12 @@ export default function Expense() {
     <div className="expense-container">
       <Helmet>
         <title>경비 청구서 제출</title>
-        <meta property="og:title" content="경비 청구서 제출 - F1Works" />
+        <meta property="og:title" content="경비 청구서 제출" />
         <meta property="og:description" content="월별 경비를 청구하세요" />
+        <meta
+          property="og:url"
+          content="https://codefeat.netlify.app/works/expense/"
+        />
       </Helmet>
 
       <div className="expense-content">
