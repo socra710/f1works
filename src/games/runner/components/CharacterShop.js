@@ -267,7 +267,7 @@ const CharacterShop = ({
         {/* 카테고리 탭 - 더 명확하게 구분 */}
         <div className={styles['tabs-container']}>
           {categories.map((category) => {
-            const isDisabled = category === 'POWERUP' || category === 'SKIN';
+            const isDisabled = false;
             return (
               <button
                 key={category}
