@@ -9,7 +9,7 @@ const HardwareInfo = () => {
           <strong>다품목일 경우 각각 작성</strong>
         </li>
         <li data-number="2">
-          <strong>접수번호</strong>는 백지선 선임에게 수령후 기재하여 H/W 뒷면에
+          <strong>접수번호</strong>는 백지선 과장에게 수령후 기재하여 H/W 뒷면에
           부착
         </li>
         <li data-number="3">

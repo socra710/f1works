@@ -476,6 +476,15 @@ export default function ExpenseManagement() {
     <div className="expense-management-wrapper">
       <Helmet>
         <title>경비 청구 관리</title>
+        <meta property="og:title" content="경비 청구 관리" />
+        <meta
+          property="og:description"
+          content="월별 경비를 관리하고 승인 상태를 확인할 수 있습니다."
+        />
+        <meta
+          property="og:url"
+          content="https://codefeat.netlify.app/works/expense/expense-management"
+        />
       </Helmet>
       <div className="expense-management-container">
         {isLoading && (

@@ -613,7 +613,10 @@ export default function Monitor() {
           property="og:description"
           content="F1Soft 회사 업무 모니터 신청하는 화면입니다."
         />
-        <meta property="og:url" content={`https://f1works.netlify.app/`} />
+        <meta
+          property="og:url"
+          content={`https://f1works.netlify.app/works/dispatch/monitor`}
+        />
       </Helmet>
       <div className={`${styles['car-shell']} ${styles['div-car']}`}>
         <main className={styles['car-content']}>

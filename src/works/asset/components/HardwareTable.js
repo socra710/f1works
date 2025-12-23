@@ -28,12 +28,12 @@ const TableHeader = ({ isNewView }) => (
       <th>구분</th>
       <th>접수번호</th>
       <th>H/W 명</th>
-      <th>대수</th>
+      <th>수량</th>
       <th>담당자</th>
-      {!isNewView && <th>회수일</th>}
-      {!isNewView && <th>회수처</th>}
       <th>납품일</th>
       <th>납품처</th>
+      {!isNewView && <th>회수일</th>}
+      {!isNewView && <th>회수처</th>}
       {!isNewView && <th>A/S 상태</th>}
       {!isNewView && <th>H/W 증상</th>}
       {!isNewView && <th>제작사/담당자/연락처</th>}
@@ -89,16 +89,16 @@ const HardwareTable = ({ filteredList, onEdit, onDelete, loading, filter }) => {
                 <td className={styles.hwName}>{hw.hwName}</td>
                 <td style={{ textAlign: 'center' }}>{hw.quantity}</td>
                 <td style={{ textAlign: 'center' }}>{hw.manager}</td>
+                <td style={{ textAlign: 'center' }}>
+                  {formatDate(hw.deliveryDate)}
+                </td>
+                <td>{hw.deliveryLocation || '-'}</td>
                 {!isNewView && (
                   <td style={{ textAlign: 'center' }}>
                     {formatDate(hw.collectionDate)}
                   </td>
                 )}
                 {!isNewView && <td>{hw.collectionLocation || '-'}</td>}
-                <td style={{ textAlign: 'center' }}>
-                  {formatDate(hw.deliveryDate)}
-                </td>
-                <td>{hw.deliveryLocation || '-'}</td>
                 {!isNewView && (
                   <td style={{ textAlign: 'center' }}>
                     <StatusBadge status={hw.asStatus} />

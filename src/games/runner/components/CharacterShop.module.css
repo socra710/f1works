@@ -370,6 +370,75 @@
   border-radius: 6px;
 }
 
+/* 할인 이벤트 뱃지 */
+.badge-discount {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: #fff;
+  font-weight: 800;
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+  animation: pulseDiscount 2s infinite;
+  z-index: 1;
+}
+
+@keyframes pulseDiscount {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* 할인 중인 카드 스타일 */
+.item-card.on-sale {
+  border-color: #e74c3c;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2);
+}
+
+.item-card.on-sale:hover:not(.purchased) {
+  border-color: #c0392b;
+  box-shadow: 0 12px 28px rgba(231, 76, 60, 0.3);
+}
+
+/* 가격 표시 (할인 적용) */
+.price-with-discount {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.original-price {
+  text-decoration: line-through;
+  color: #95a5a6;
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.discounted-price {
+  color: #e74c3c;
+  font-size: 18px;
+  font-weight: 900;
+  animation: priceGlow 2s infinite;
+}
+
+@keyframes priceGlow {
+  0%,
+  100% {
+    text-shadow: 0 0 5px rgba(231, 76, 60, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 12px rgba(231, 76, 60, 0.6);
+  }
+}
+
 .buy-button {
   width: 100%;
   padding: 10px;
@@ -486,6 +555,40 @@
   padding: 15px;
   background: #fff8e7;
   border-radius: 8px;
+}
+
+/* 모달 내 할인 라벨 */
+.discount-label {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  display: inline-block;
+}
+
+/* 모달 내 가격 비교 */
+.price-comparison {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.modal-original-price {
+  text-decoration: line-through;
+  color: #95a5a6;
+  font-size: 15px;
+  opacity: 0.7;
+}
+
+.modal-discounted-price {
+  color: #e74c3c;
+  font-size: 22px;
+  font-weight: 900;
+  text-shadow: 0 0 8px rgba(231, 76, 60, 0.4);
 }
 
 .buy-button-modal {
