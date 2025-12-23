@@ -6,7 +6,7 @@ import HardwareInfo from './components/HardwareInfo';
 import HardwareFilter from './components/HardwareFilter';
 import HardwareTable from './components/HardwareTable';
 import { useHardwareAPI } from './hooks/useHardwareAPI';
-import { useToast } from '../../common/Toast';
+import { useToast, useDialog } from '../../common/Toast';
 import {
   waitForExtensionLogin,
   decodeUserId,
@@ -16,6 +16,7 @@ const Hardware = () => {
   const { hardwareList, loading, fetchHardwareList, deleteHardware } =
     useHardwareAPI();
   const { showToast } = useToast();
+  const { showDialog } = useDialog();
   const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
   const [selectedHardware, setSelectedHardware] = useState(null);
@@ -61,11 +62,21 @@ const Hardware = () => {
   };
 
   const handleDelete = async (hwId) => {
-    if (!window.confirm('정말 삭제하시겠습니까?')) return;
-    const success = await deleteHardware(hwId);
-    if (success) {
-      fetchHardwareList();
-    }
+    const handleConfirmedDelete = async () => {
+      const success = await deleteHardware(hwId);
+      if (success) {
+        fetchHardwareList();
+      }
+    };
+
+    showDialog({
+      title: '삭제 확인',
+      message: '이 항목을 삭제하시겠습니까?',
+      okText: '네',
+      cancelText: '아니오',
+      onOk: handleConfirmedDelete,
+      type: 'confirm',
+    });
   };
 
   const handleFormClose = (refresh) => {
@@ -140,6 +151,7 @@ const Hardware = () => {
           onEdit={handleEdit}
           onDelete={handleDelete}
           loading={loading}
+          filter={filter}
         />
       </div>
 
