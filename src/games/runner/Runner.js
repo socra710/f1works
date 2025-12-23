@@ -875,21 +875,21 @@ const Runner = () => {
       };
       setObstacles((prev) => [...prev, newObstacle]);
 
-      // 장애물 위 코인 스폰 (랜덤): 30% 확률로 1~3개 생성
-      const shouldSpawnCoins = Math.random() < 0.3;
+      // 장애물 위 코인 스폰 (랜덤): 25% 확률로 1~3개 생성
+      const shouldSpawnCoins = Math.random() < 0.25;
       if (shouldSpawnCoins) {
         const coinsToSpawn = [];
         const baseHeight = newObstacle.height; // 지면 기준 높이
 
-        // 1~3개 중 랜덤 개수 (가중치: 1개 30%, 2개 50%, 3개 20%)
+        // 1~3개 중 랜덤 개수 (가중치: 1개 70%, 2개 30%, 3개 20%)
         const rand = Math.random();
-        const count = rand < 0.3 ? 1 : rand < 0.8 ? 2 : 3;
+        const count = rand < 0.7 ? 1 : rand < 1.0 ? 2 : 3;
 
-        // 큰 코인 생성 확률 (10%) - 각 코인마다 독립적으로 체크하되 한 번에 1개만
-        const isSingleBig = Math.random() < 0.1;
-        const isDoubleBig = isSingleBig ? false : Math.random() < 0.1;
+        // 큰 코인 생성 확률 (5%) - 각 코인마다 독립적으로 체크하되 한 번에 1개만
+        const isSingleBig = Math.random() < 0.05;
+        const isDoubleBig = isSingleBig ? false : Math.random() < 0.05;
         const isTripleBig =
-          isSingleBig || isDoubleBig ? false : Math.random() < 0.1;
+          isSingleBig || isDoubleBig ? false : Math.random() < 0.05;
 
         // 코인 위치 프리셋
         const singleCoin = {
@@ -1506,13 +1506,13 @@ const Runner = () => {
           // 파워업 효과 활성화
           switch (powerUp.type) {
             case 'magnet':
-              magnetActiveDurationRef.current = 7000; // 7초
+              magnetActiveDurationRef.current = 20000; // 20초
               break;
             case 'shield':
               setShieldActive(true);
               break;
             case 'slowmo':
-              slowMoActiveDurationRef.current = 5000; // 5초
+              slowMoActiveDurationRef.current = 15000; // 15초
               // 발동 시점의 속도로 고정
               slowFreezeSpeedRef.current = gameSpeedRef.current;
               break;

@@ -101,6 +101,67 @@
   transform: scale(1.05);
 }
 
+/* 보유 캐릭터 요약 */
+.owned-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(90deg, #f0f4ff 0%, #eefaf4 100%);
+  border-bottom: 1px solid #e0e7ff;
+}
+
+.owned-strip-title {
+  font-weight: 700;
+  color: #2c3e50;
+  white-space: nowrap;
+}
+
+.owned-strip-list {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 0;
+  width: 100%;
+  scrollbar-width: thin;
+}
+
+.owned-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: white;
+  border: 1px solid #dbe4ff;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(74, 144, 226, 0.12);
+  min-width: 130px;
+}
+
+.owned-chip-emoji {
+  font-size: 22px;
+}
+
+.owned-chip-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.owned-chip-name {
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.owned-chip-category {
+  font-size: 11px;
+  color: #6c7a89;
+}
+
 /* 탭 컨테이너 */
 .tabs-container {
   display: flex;
@@ -114,7 +175,7 @@
 .tab {
   flex: 1 1 auto;
   min-width: 0;
-  padding: 16px 16px;
+  padding: 5px;
   border: none;
   background: transparent;
   color: #2c3e50;
@@ -153,7 +214,7 @@
 }
 
 .tab-icon {
-  font-size: 20px;
+  font-size: 2rem;
   display: block;
 }
 
@@ -314,8 +375,16 @@
 
 .item-card.purchased {
   background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-  border-color: #28a745;
-  opacity: 0.8;
+  border-color: #27ae60;
+  opacity: 1;
+  cursor: default;
+}
+
+/* 보유 카드가 다른 상태 클래스와 겹쳐도 테두리 색상은 통일 */
+.item-card.purchased.limited,
+.item-card.purchased.on-sale {
+  border-color: #27ae60;
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.2);
 }
 
 .item-emoji {
@@ -355,6 +424,47 @@
   font-size: 14px;
 }
 
+.owned-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(40, 167, 69, 0.12);
+  border-radius: 20px;
+  color: #1e7e34;
+  font-weight: 700;
+}
+
+.owned-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #28a745;
+  color: white;
+  font-size: 11px;
+}
+
+.owned-copy {
+  font-size: 13px;
+}
+
+.badge-owned-left {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+  color: #f5fff7;
+  font-weight: 800;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
+  z-index: 1;
+}
+
 /* 인기 뱃지 */
 .badge-popular {
   position: absolute;
@@ -376,7 +486,7 @@
 .badge-discount {
   position: absolute;
   top: 8px;
-  right: 8px;
+  left: 8px;
   background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
   color: #ffecec;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
@@ -394,16 +504,17 @@
 .badge-limited-top {
   position: absolute;
   top: 8px;
-  right: 8px;
+  left: 8px;
   background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);
   color: #f3e9ff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
   font-weight: 850;
   font-size: 11px;
-  padding: 5px 10px;
+  padding: 3px 6px;
   border-radius: 6px;
   box-shadow: 0 4px 10px rgba(142, 68, 173, 0.3);
   border: 2px solid #6c3483;
+  animation: pulseDiscount 2s infinite;
   z-index: 1;
 }
 
@@ -509,6 +620,32 @@
   background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);
   color: #f3e9ff;
   box-shadow: 0 2px 6px rgba(142, 68, 173, 0.35);
+}
+
+/* 모달 금액 색상도 이벤트 타입에 맞게 반영 */
+.price-discount .modal-discounted-price {
+  color: #e74c3c;
+  text-shadow: 0 0 8px rgba(231, 76, 60, 0.4);
+}
+
+.price-discount .discount-badge {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: #ffecec;
+}
+
+.price-limited .modal-discounted-price {
+  color: #8e44ad;
+  text-shadow: 0 0 8px rgba(142, 68, 173, 0.25);
+}
+
+.price-limited .discount-badge {
+  background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);
+  color: #f3e9ff;
+}
+
+/* 비할인 한정판의 일반 가격 표시도 보라색으로 */
+.price-limited {
+  color: #8e44ad;
 }
 
 .buy-button {
@@ -684,7 +821,7 @@
   width: 100%;
   padding: 12px;
   border: none;
-  background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
   color: white;
   border-radius: 8px;
   cursor: pointer;
@@ -694,9 +831,9 @@
 }
 
 .buy-button-modal:hover:not(.disabled) {
-  background: linear-gradient(135deg, #1e8449 0%, #145a32 100%);
+  background: linear-gradient(135deg, #357abd 0%, #234a7e 100%);
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
 }
 
 .buy-button-modal.disabled {
