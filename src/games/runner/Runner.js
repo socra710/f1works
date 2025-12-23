@@ -74,7 +74,7 @@ const OBSTACLE_TYPES = [
 const CHARACTERS = [
   // { id: 'f1', name: 'F1', emoji: 'f1-emoji', image: f1EmojiImage },
   { id: 'dog', name: '🐶', emoji: '🐶' },
-  { id: 'cat', name: '🐱', emoji: '🐱' },
+  // { id: 'cat', name: '🐱', emoji: '🐱' },
   // { id: 'fox', name: '🦊', emoji: '🦊' },
   // { id: 'bear', name: '🐻', emoji: '🐻' },
   // { id: 'pig', name: '🐷', emoji: '🐷' },

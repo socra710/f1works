@@ -200,7 +200,7 @@ const CharacterShop = ({
       const json = await res.json();
       if (json.success) {
         // 구매 성공
-        const newBalance = json.newBalance || coins - item.price;
+        const newBalance = json.newBalance || coins - finalPrice;
         onCoinsUpdate(newBalance);
         setPurchasedItems([...purchasedItems, item.id]);
         showToast(json.message || '구매가 완료되었습니다!', 'success');
@@ -306,26 +306,37 @@ const CharacterShop = ({
                   ? item.discountedPrice
                   : item.price;
                 const canAfford = coins >= finalPrice;
+                const isLimited = item.eventType === 'LIMITED';
+                const periodMeta = getDiscountPeriodMeta(item);
 
                 return (
                   <div
                     key={item.id}
                     className={`${styles['item-card']} ${
                       isPurchased ? styles['purchased'] : ''
-                    } ${hasDiscount ? styles['on-sale'] : ''}`}
+                    } ${isLimited ? styles['limited'] : ''} ${
+                      hasDiscount && !isLimited ? styles['on-sale'] : ''
+                    }`}
                     onClick={() =>
                       !isPurchased && setSelectedItemForDetails(item)
                     }
                   >
-                    {/* 이벤트 배지 표시 */}
-                    {hasDiscount && (
-                      <div className={styles['badge-discount']}>
-                        {item.eventLabel || `${item.eventDiscountRate}% 할인`}
+                    {/* 이벤트 배지 표시: DISCOUNT vs LIMITED 색상 분리 */}
+                    {(hasDiscount || isLimited) && (
+                      <div
+                        className={
+                          isLimited
+                            ? styles['badge-limited-top']
+                            : styles['badge-discount']
+                        }
+                      >
+                        {item.eventLabel || (isLimited ? '한정' : '할인')}
                       </div>
                     )}
                     {item.popular && !hasDiscount && (
                       <div className={styles['badge-popular']}>🔥 인기</div>
                     )}
+                    
                     <div className={styles['item-emoji']}>{item.emoji}</div>
                     <div className={styles['item-name']}>
                       {item.displayName}
@@ -336,13 +347,40 @@ const CharacterShop = ({
                           ✓ 보유중
                         </span>
                       ) : hasDiscount ? (
-                        <div className={styles['price-with-discount']}>
-                          <span className={styles['original-price']}>
-                            💰 {item.price}
-                          </span>
+                        <div
+                          className={`${styles['price-with-discount']} ${
+                            isLimited
+                              ? styles['price-limited']
+                              : styles['price-discount']
+                          }`}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}>
+                            <span className={styles['original-price']}>
+                              💰 {item.price}
+                            </span>
+                            {item.eventDiscountRate > 0 && (
+                              <span className={styles['discount-badge']}>
+                                {item.eventDiscountRate}%
+                              </span>
+                            )}
+                          </div>
                           <span className={styles['discounted-price']}>
                             💰 {finalPrice}
                           </span>
+                          {periodMeta.text && (
+                            <div
+                              className={`${styles['discount-period']} ${
+                                periodMeta.isUrgent
+                                  ? styles['discount-period-soon']
+                                  : ''
+                              }`}
+                            >
+                              <span className={styles['discount-period-icon']}>
+                                {periodMeta.icon}
+                              </span>
+                              {periodMeta.text}
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <>
@@ -399,17 +437,39 @@ const CharacterShop = ({
                   selectedItemForDetails.price ? (
                   <>
                     <div className={styles['discount-label']}>
-                      {selectedItemForDetails.eventLabel ||
-                        `${selectedItemForDetails.eventDiscountRate}% 할인`}
+                      {selectedItemForDetails.eventLabel || '할인 중'}
                     </div>
                     <div className={styles['price-comparison']}>
-                      <span className={styles['modal-original-price']}>
-                        💰 {selectedItemForDetails.price}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+                        <span className={styles['modal-original-price']}>
+                          💰 {selectedItemForDetails.price}
+                        </span>
+                        {selectedItemForDetails.eventDiscountRate > 0 && (
+                          <span className={styles['discount-badge']}>
+                            {selectedItemForDetails.eventDiscountRate}%
+                          </span>
+                        )}
+                      </div>
                       <span className={styles['modal-discounted-price']}>
                         💰 {selectedItemForDetails.discountedPrice} 코인
                       </span>
                     </div>
+                    {(function () {
+                      const meta = getDiscountPeriodMeta(selectedItemForDetails);
+                      return meta.text ? (
+                        <div
+                          className={`${styles['discount-period']} ${
+                            meta.isUrgent ? styles['discount-period-soon'] : ''
+                          }`}
+                        >
+                          <span className={styles['discount-period-icon']}>
+                            {meta.icon}
+                          </span>
+                          {meta.text}
+                        </div>
+                      ) : null;
+                    })()} 
+                        
                   </>
                 ) : (
                   <>💰 {selectedItemForDetails.price} 코인</>
@@ -477,3 +537,205 @@ function getCategoryLabel(category) {
 }
 
 export default CharacterShop;
+
+/**
+ * 할인 기간 포맷팅 및 추출 헬퍼 (다양한 필드/형식 지원)
+ */
+function normalizeDateString(str) {
+  if (!str || typeof str !== 'string') return str;
+  // 구분자 통일: YYYY.MM.DD, YYYY/MM/DD → YYYY-MM-DD
+  const s = str.replace(/[./]/g, '-');
+  // 시간 정보가 없으면 자정으로 고정
+  return /\d{4}-\d{1,2}-\d{1,2}$/.test(s) ? `${s}T00:00:00` : s;
+}
+
+function formatAnyDate(input) {
+  if (!input && input !== 0) return '';
+  try {
+    let dateObj;
+    if (typeof input === 'number') {
+      // 초 단위 타임스탬프 보정
+      const ms = input < 1e12 ? input * 1000 : input;
+      dateObj = new Date(ms);
+    } else if (typeof input === 'string') {
+      const normalized = normalizeDateString(input);
+      dateObj = new Date(normalized);
+    } else if (input instanceof Date) {
+      dateObj = input;
+    } else {
+      return '';
+    }
+    if (Number.isNaN(dateObj.getTime())) return '';
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const d = String(dateObj.getDate()).padStart(2, '0');
+    return `${y}.${m}.${d}`;
+  } catch (_) {
+    return '';
+  }
+}
+
+function getDiscountPeriod(item) {
+  if (!item) return '';
+  // 다양한 키 지원 (서버 스키마 변화 대응)
+  const start =
+    item.eventStartDate ||
+    item.eventStart ||
+    item.eventStartAt ||
+    item.eventDateFrom ||
+    item.discountStartDate ||
+    item.discountStart ||
+    item.discountStartTs ||
+    item.saleStart ||
+    item.saleStartAt ||
+    item.periodStart ||
+    item.startDate ||
+    item.start;
+  const end =
+    item.eventEndDate ||
+    item.eventEnd ||
+    item.eventEndAt ||
+    item.eventDateTo ||
+    item.discountEndDate ||
+    item.discountEnd ||
+    item.discountEndTs ||
+    item.saleEnd ||
+    item.saleEndAt ||
+    item.periodEnd ||
+    item.endDate ||
+    item.until ||
+    item.end;
+
+  // 텍스트 필드가 있으면 그대로 사용 (예: "12/20 - 12/27")
+  const text = item.eventPeriod || item.salePeriod || item.periodText;
+  if (text && typeof text === 'string' && text.trim()) {
+    return text.trim();
+  }
+
+  const startStr = formatAnyDate(start);
+  const endStr = formatAnyDate(end);
+
+  if (startStr && endStr) return `기간 ${startStr} - ${endStr}`;
+  if (!startStr && endStr) return `~ ${endStr} 까지`;
+  if (startStr && !endStr) return `시작 ${startStr}`;
+  return '';
+}
+
+/**
+ * 백엔드 미구현 시 임시 기간을 제공 (오늘부터 7일)
+ */
+function getFallbackPeriod(days = 7) {
+  const now = new Date();
+  const end = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+  const startStr = formatAnyDate(now);
+  const endStr = formatAnyDate(end);
+  return ``;
+}
+
+/**
+ * 실제 기간이 없으면 임시 기간 반환 (할인 중인 아이템에 한함)
+ */
+function getEffectiveDiscountPeriod(item) {
+  if (!item) return '';
+  const actual = getDiscountPeriod(item);
+  if (actual) return actual;
+  const hasDiscount =
+    item.eventType &&
+    item.eventType !== 'NONE' &&
+    item.discountedPrice !== undefined &&
+    item.discountedPrice < item.price;
+  return hasDiscount ? getFallbackPeriod(7) : '';
+}
+
+// 내부용: Date 객체로 변환
+function parseAnyDate(input) {
+  try {
+    if (!input && input !== 0) return null;
+    if (typeof input === 'number') {
+      const ms = input < 1e12 ? input * 1000 : input;
+      const d = new Date(ms);
+      return Number.isNaN(d.getTime()) ? null : d;
+    }
+    if (typeof input === 'string') {
+      const normalized = normalizeDateString(input);
+      const d = new Date(normalized);
+      return Number.isNaN(d.getTime()) ? null : d;
+    }
+    if (input instanceof Date) {
+      return Number.isNaN(input.getTime()) ? null : input;
+    }
+    return null;
+  } catch (_) {
+    return null;
+  }
+}
+
+/**
+ * 아이콘과 긴급도 포함한 기간 메타 생성
+ */
+function getDiscountPeriodMeta(item) {
+  if (!item) return { text: '', icon: '📅', isUrgent: false };
+  // 원본 기간 텍스트 우선
+  const actualText = getDiscountPeriod(item);
+
+  // 시작/종료 원시값 수집
+  const startRaw =
+    item.eventStartDate ||
+    item.eventStart ||
+    item.eventStartAt ||
+    item.eventDateFrom ||
+    item.discountStartDate ||
+    item.discountStart ||
+    item.discountStartTs ||
+    item.saleStart ||
+    item.saleStartAt ||
+    item.periodStart ||
+    item.startDate ||
+    item.start;
+  const endRaw =
+    item.eventEndDate ||
+    item.eventEnd ||
+    item.eventEndAt ||
+    item.eventDateTo ||
+    item.discountEndDate ||
+    item.discountEnd ||
+    item.discountEndTs ||
+    item.saleEnd ||
+    item.saleEndAt ||
+    item.periodEnd ||
+    item.endDate ||
+    item.until ||
+    item.end;
+
+  let text = actualText;
+  let icon = '📅';
+  let isUrgent = false;
+
+  // 실제 텍스트 없고 할인 중이면 임시기간 생성
+  if (!text) {
+    const hasDiscount =
+      item.eventType &&
+      item.eventType !== 'NONE' &&
+      item.discountedPrice !== undefined &&
+      item.discountedPrice < item.price;
+    if (hasDiscount) {
+      text = getFallbackPeriod(7);
+    }
+  }
+
+  // 아이콘 결정: 종료일만 존재하면 ⏳, 양쪽 있으면 📅
+  const startStr = formatAnyDate(startRaw);
+  const endStr = formatAnyDate(endRaw);
+  if (!startStr && endStr) icon = '⏳';
+  else icon = '📅';
+
+  // 긴급도: 종료일까지 남은 일수 계산
+  const endDate = parseAnyDate(endRaw);
+  if (endDate) {
+    const diffMs = endDate.getTime() - Date.now();
+    const days = Math.ceil(diffMs / (24 * 60 * 60 * 1000));
+    isUrgent = days > 0 && days <= 2;
+  }
+
+  return { text, icon, isUrgent };
+}
