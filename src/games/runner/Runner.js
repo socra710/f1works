@@ -2312,12 +2312,6 @@ const Runner = () => {
 
         {gameState === 'shop' && (
           <div className={styles['shop-wrapper']}>
-            <button
-              className={styles['back-btn']}
-              onClick={() => setGameState('menu')}
-            >
-              ← 돌아가기
-            </button>
             <CharacterShop
               userId={userId}
               coins={coinCount}

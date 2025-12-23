@@ -73,7 +73,12 @@ const PurchaseHistory = ({ userId, onClose }) => {
 
         <div className={styles['modal-content']}>
           {loading ? (
-            <div className={styles['loading']}>로딩 중...</div>
+            <div className={styles['loading']}>
+              <div className={styles['spinner']} />
+              <div className={styles['loading-text']}>
+                구매 이력 불러오는 중...
+              </div>
+            </div>
           ) : purchases.length === 0 ? (
             <div className={styles['empty']}>
               <div className={styles['empty-icon']}>🛒</div>

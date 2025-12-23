@@ -34,10 +34,13 @@ const CharacterShop = ({
         const json = await res.json();
         console.log('API 응답:', json); // 디버그: 응답 데이터 확인
         if (json.success) {
-          setCategories(json.categories || []);
+          const cats = json.categories || [];
+          setCategories(cats);
           setItems(json.items || []);
-          if (json.categories && json.categories.length > 0) {
-            setSelectedCategory(json.categories[0]);
+          if (cats.length > 0) {
+            const firstEnabled =
+              cats.find((c) => c !== 'POWERUP' && c !== 'SKIN') || cats[0];
+            setSelectedCategory(firstEnabled);
           }
         }
       } catch (error) {
@@ -76,10 +79,18 @@ const CharacterShop = ({
     fetchPurchases();
   }, [userId]);
 
-  // 선택된 카테고리의 아이템 필터링
-  const categoryItems = items.filter(
-    (item) => item.category === selectedCategory
-  );
+  // 선택된 카테고리의 아이템 필터링 (대소문자/공백 안전)
+  const categoryItems = selectedCategory
+    ? items.filter((item) => {
+        const a = (item && item.category ? String(item.category) : '')
+          .toUpperCase()
+          .trim();
+        const b = (selectedCategory ? String(selectedCategory) : '')
+          .toUpperCase()
+          .trim();
+        return a === b;
+      })
+    : items;
 
   // 구매 처리
   const handlePurchaseItem = async (item) => {
@@ -145,9 +156,7 @@ const CharacterShop = ({
     }
   };
 
-  if (loading) {
-    return <div className={styles['shop-container']}>로딩 중...</div>;
-  }
+  // 모달 프레임을 유지한 채 내부에서 로딩 스피너를 렌더링
 
   const handleOverlayClick = (e) => {
     // 오버레이를 직접 클릭했을 때만 닫기 (모달 내부 클릭은 제외)
@@ -206,7 +215,10 @@ const CharacterShop = ({
         {/* 아이템 그리드 */}
         <div className={styles['modal-content']}>
           {loading ? (
-            <div className={styles['loading']}>로딩 중...</div>
+            <div className={styles['loading']}>
+              <div className={styles['spinner']} />
+              <div className={styles['loading-text']}>상점 불러오는 중...</div>
+            </div>
           ) : categoryItems.length === 0 ? (
             <div className={styles['empty']}>
               이 카테고리에 아이템이 없습니다
@@ -314,7 +326,8 @@ function getCategoryIcon(category) {
     SKIN: '🎨',
     POWERUP: '⚡',
   };
-  return icons[category] || '📦';
+  const key = (category ? String(category) : '').toUpperCase();
+  return icons[key] || '📦';
 }
 
 /**
@@ -328,7 +341,8 @@ function getCategoryLabel(category) {
     SKIN: '스킨',
     POWERUP: '파워업',
   };
-  return labels[category] || category;
+  const key = (category ? String(category) : '').toUpperCase();
+  return labels[key] || category;
 }
 
 export default CharacterShop;
