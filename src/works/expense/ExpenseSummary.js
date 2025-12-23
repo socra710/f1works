@@ -3,7 +3,10 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
 import './ExpenseSummary.css';
 import { useToast } from '../../common/Toast';
-import { waitForExtensionLogin, decodeUserId } from '../../common/extensionLogin';
+import {
+  waitForExtensionLogin,
+  decodeUserId,
+} from '../../common/extensionLogin';
 import {
   getExpenseAggregationByYear,
   getExpenseAggregationByUser,
@@ -143,21 +146,22 @@ export default function ExpenseSummary() {
     <>
       {Array.from({ length: rowCount }).map((_, rowIdx) => (
         <tr key={`skeleton-${columnCount}-${rowIdx}`} className="skeleton-row">
-          <td colSpan={columnCount}>
-            <div
-              className="skeleton-grid"
-              style={{
-                gridTemplateColumns: `repeat(${columnCount}, minmax(70px, 1fr))`,
-              }}
+          {Array.from({ length: columnCount }).map((__, cellIdx) => (
+            <td
+              key={`skeleton-cell-${columnCount}-${rowIdx}-${cellIdx}`}
+              style={{ padding: '12px 8px' }}
             >
-              {Array.from({ length: columnCount }).map((__, cellIdx) => (
-                <div
-                  key={`skeleton-cell-${columnCount}-${rowIdx}-${cellIdx}`}
-                  className="skeleton-cell"
-                />
-              ))}
-            </div>
-          </td>
+              <div
+                className="skeleton-cell"
+                style={{
+                  height: '20px',
+                  backgroundColor: '#e0e0e0',
+                  borderRadius: '4px',
+                  animation: 'skeletonShimmer 1.5s infinite',
+                }}
+              />
+            </td>
+          ))}
         </tr>
       ))}
     </>
@@ -239,7 +243,10 @@ export default function ExpenseSummary() {
         return;
       }
 
-      const sessionUser = await waitForExtensionLogin({ minWait: 500, maxWait: 2000 });
+      const sessionUser = await waitForExtensionLogin({
+        minWait: 500,
+        maxWait: 2000,
+      });
       if (!sessionUser) {
         showToast('로그인이 필요한 서비스입니다.', 'warning');
         navigate('/works');

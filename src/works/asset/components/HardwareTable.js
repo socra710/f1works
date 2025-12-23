@@ -45,7 +45,7 @@ const HardwareTable = ({ filteredList, onEdit, onDelete, loading, filter }) => {
   const isNewView = filter === 'new';
   if (loading) {
     const skeletonRows = Array.from({ length: 5 });
-    const skeletonCols = Array.from({ length: isNewView ? 9 : 14 });
+    const columnsCount = isNewView ? 9 : 14;
 
     return (
       <div className={styles.hardwareTableWrapper}>
@@ -54,16 +54,11 @@ const HardwareTable = ({ filteredList, onEdit, onDelete, loading, filter }) => {
           <tbody>
             {skeletonRows.map((_, idx) => (
               <tr key={`skeleton-${idx}`}>
-                <td colSpan={isNewView ? 9 : 14}>
-                  <div className={styles.skeletonRow}>
-                    {skeletonCols.map((__, colIdx) => (
-                      <span
-                        key={`skeleton-cell-${idx}-${colIdx}`}
-                        className={styles.skeletonCell}
-                      />
-                    ))}
-                  </div>
-                </td>
+                {Array.from({ length: columnsCount }).map((__, colIdx) => (
+                  <td key={`skeleton-cell-${idx}-${colIdx}`}>
+                    <span className={styles.skeletonCell} />
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>
@@ -86,7 +81,7 @@ const HardwareTable = ({ filteredList, onEdit, onDelete, loading, filter }) => {
           ) : (
             filteredList.map((hw, index) => (
               <tr key={hw.hwId}>
-                <td>{filteredList.length - index}</td>
+                <td style={{ textAlign: 'center' }}>{index + 1}</td>
                 <td style={{ textAlign: 'center' }}>
                   <CategoryBadge category={hw.category} />
                 </td>

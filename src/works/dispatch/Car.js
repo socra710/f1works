@@ -1,5 +1,5 @@
 import styles from './Car.module.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useToast } from '../../common/Toast';
@@ -31,7 +31,10 @@ export default function Car() {
       if (uaMobile) {
         setAuthUser('m');
       } else {
-        const extLogin = await waitForExtensionLogin({ minWait: 500, maxWait: 2000 });
+        const extLogin = await waitForExtensionLogin({
+          minWait: 500,
+          maxWait: 2000,
+        });
         if (!mounted) return;
         if (!extLogin) {
           showToast('로그인이 필요한 서비스입니다.', 'warning');
@@ -57,8 +60,14 @@ export default function Car() {
       return;
     }
 
-    var openDispatch = document.querySelector('#openDispatch');
-    openDispatch.addEventListener('click', function (event) {
+    const openDispatch = document.querySelector('#openDispatch');
+    const closeDispatch = document.querySelector('#closeDispatch');
+    const helpDispatch = document.querySelector('#btn-help');
+    const formDispatch = document.querySelector('#formDispatch');
+    const modifyDispatch = document.querySelector('#btnModify');
+    const deleteDispatch = document.querySelector('#btnDelete');
+
+    const handleOpen = () => {
       document.querySelector('#lightbox').style.display = 'block';
       document.querySelector('#formDispatch').reset();
       onSetDefault();
@@ -74,26 +83,21 @@ export default function Car() {
         .setAttribute('style', 'visibility:hidden');
 
       document.getElementById('myForm').style.display = 'block';
-    });
+    };
 
-    var closeDispatch = document.querySelector('#closeDispatch');
-    closeDispatch.addEventListener('click', function (event) {
+    const handleClose = () => {
       document.querySelector('#lightbox').style.display = 'none';
       document.getElementById('myForm').style.display = 'none';
-    });
+    };
 
-    var helpDispatch = document.querySelector('#btn-help');
-    if (helpDispatch) {
-      helpDispatch.addEventListener('click', function (event) {
-        const modalButton = document.querySelector('button.modal-help.hidden');
-        if (modalButton) {
-          modalButton.click();
-        }
-      });
-    }
+    const handleHelp = () => {
+      const modalButton = document.querySelector('button.modal-help.hidden');
+      if (modalButton) {
+        modalButton.click();
+      }
+    };
 
-    var formDispatch = document.querySelector('#formDispatch');
-    formDispatch.addEventListener('submit', async function (event) {
+    const handleSubmit = async (event) => {
       event.preventDefault();
 
       try {
@@ -163,10 +167,9 @@ export default function Car() {
       } catch (error) {
         console.log(error);
       }
-    });
+    };
 
-    var modifyDispatch = document.querySelector('#btnModify');
-    modifyDispatch.addEventListener('click', function (event) {
+    const handleModify = (event) => {
       event.preventDefault();
 
       try {
@@ -236,10 +239,9 @@ export default function Car() {
       } catch (error) {
         console.log(error);
       }
-    });
+    };
 
-    var deleteDispatch = document.querySelector('#btnDelete');
-    deleteDispatch.addEventListener('click', function (event) {
+    const handleDelete = (event) => {
       event.preventDefault();
 
       var isConfirmed = window.confirm('배차신청 내역을 삭제하시겠습니까?');
@@ -314,10 +316,26 @@ export default function Car() {
       } else {
         event.preventDefault();
       }
-    });
+    };
+
+    openDispatch?.addEventListener('click', handleOpen);
+    closeDispatch?.addEventListener('click', handleClose);
+    helpDispatch?.addEventListener('click', handleHelp);
+    formDispatch?.addEventListener('submit', handleSubmit);
+    modifyDispatch?.addEventListener('click', handleModify);
+    deleteDispatch?.addEventListener('click', handleDelete);
 
     onViewDispatch();
-  }, [authUser]);
+
+    return () => {
+      openDispatch?.removeEventListener('click', handleOpen);
+      closeDispatch?.removeEventListener('click', handleClose);
+      helpDispatch?.removeEventListener('click', handleHelp);
+      formDispatch?.removeEventListener('submit', handleSubmit);
+      modifyDispatch?.removeEventListener('click', handleModify);
+      deleteDispatch?.removeEventListener('click', handleDelete);
+    };
+  }, [authUser, API_BASE_URL]);
 
   // 출발일/복귀일 기반 상태 계산 함수
   const calculateCarStatus = (useDateFrom, useDateTo) => {
@@ -357,7 +375,7 @@ export default function Car() {
     return convertDate;
   };
 
-  const onSetDefault = () => {
+  const onSetDefault = useCallback(() => {
     document.querySelector('#appDate').value = getStringToDate();
     document.querySelector('#useDateFrom').min = getStringToDate();
     document.querySelector('#useDateTo').min = getStringToDate();
@@ -366,10 +384,10 @@ export default function Car() {
     document.querySelector('#div02').setAttribute('style', 'display:none');
 
     document.querySelector('#appNo').removeAttribute('disabled');
-  };
+  }, []);
 
-  const onViewDispatch = () => {
-    var myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
+  const onViewDispatch = useCallback(() => {
+    const myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
     const query =
       'factoryCode=000001&userId=' +
       myId +
@@ -394,113 +412,118 @@ export default function Car() {
         }
 
         const ele = document.querySelector('#tbDispatch');
-        while (ele.firstChild) {
-          ele.firstChild.remove();
-        }
 
-        // 첫번째 배차 데이터로 상태 업데이트
-        if (e.data.length > 0) {
-          const firstItem = e.data[0];
-          const statusInfo = calculateCarStatus(
-            firstItem.USE_DATE_FROM,
-            firstItem.USE_DATE_TO
+        // 로딩 완료 (스켈레톤 제거)
+        setLoading(false);
+
+        // 스켈레톤이 제거된 후 tbody 정리 (이제 스켈레톤 JSX 요소가 없음)
+        setTimeout(() => {
+          ele.innerHTML = '';
+
+          // 첫번째 배차 데이터로 상태 업데이트
+          if (e.data.length > 0) {
+            const firstItem = e.data[0];
+            const statusInfo = calculateCarStatus(
+              firstItem.USE_DATE_FROM,
+              firstItem.USE_DATE_TO
+            );
+            setCarStatus(statusInfo.status);
+            setCarStatusDesc(statusInfo.desc);
+          }
+
+          for (var i = 0; i < e.data.length; i++) {
+            const item = e.data[i];
+
+            let tr = document.createElement('tr');
+
+            let td = document.createElement('td');
+            td.innerHTML = i + 1;
+            tr.append(td);
+
+            // 신청번호
+            td = document.createElement('td');
+            td.innerHTML =
+              '<a href="javascript:void(0)" class="aTagDispatCh" style="cursor:pointer;color:#667eea;">' +
+              item.DISPATCH_NO +
+              '</a>';
+            tr.append(td);
+
+            // 신청일
+            td = document.createElement('td');
+            td.innerHTML = item.APP_DATE;
+            tr.append(td);
+
+            // 관리번호
+            td = document.createElement('td');
+            td.innerHTML = item.APP_NO;
+            tr.append(td);
+
+            // 사용일
+            td = document.createElement('td');
+            td.innerHTML = item.USE_DATE_FROM + ' (' + item.USE_TIME_FROM + ')';
+            tr.append(td);
+
+            // 사용일
+            td = document.createElement('td');
+            td.innerHTML = item.USE_DATE_TO + ' (' + item.USE_TIME_TO + ')';
+            tr.append(td);
+
+            // td = document.createElement('td');
+            // td.innerHTML = item.USE_TIME_FROM;
+            // tr.append(td);
+
+            // td = document.createElement('td');
+            // td.innerHTML = item.USE_TIME_TO;
+            // tr.append(td);
+
+            td = document.createElement('td');
+            td.setAttribute('style', 'text-align:left;');
+            td.innerHTML = item.LOCATION_NAME;
+            tr.append(td);
+
+            td = document.createElement('td');
+            td.innerHTML = item.DISTANCE;
+            tr.append(td);
+
+            td = document.createElement('td');
+            td.setAttribute('style', 'text-align:center;');
+            td.innerHTML = item.FLUX_FROM + '/' + item.FLUX_TO;
+            tr.append(td);
+
+            // td = document.createElement('td');
+            // td.innerHTML = item.FLUX_TO;
+            // tr.append(td);
+
+            td = document.createElement('td');
+            td.innerHTML = item.OILING_YN;
+            tr.append(td);
+
+            td = document.createElement('td');
+            td.innerHTML = item.RIDE_USER_NAME;
+            tr.append(td);
+
+            td = document.createElement('td');
+            td.setAttribute('style', 'text-align:left;');
+            td.innerHTML = item.PARKING_AREA;
+            tr.append(td);
+
+            td = document.createElement('td');
+            td.setAttribute('style', 'text-align:left;');
+            td.innerHTML = item.BIGO;
+            tr.append(td);
+
+            ele.append(tr);
+          }
+
+          document.querySelectorAll('.aTagDispatCh').forEach((target) =>
+            target.addEventListener('click', function (evt) {
+              evt.preventDefault();
+              evt.stopPropagation();
+              document.querySelector('#lightbox').style.display = 'block';
+              onModifyForm(this);
+            })
           );
-          setCarStatus(statusInfo.status);
-          setCarStatusDesc(statusInfo.desc);
-        }
-
-        for (var i = 0; i < e.data.length; i++) {
-          const item = e.data[i];
-
-          let tr = document.createElement('tr');
-
-          let td = document.createElement('td');
-          td.innerHTML = i + 1;
-          tr.append(td);
-
-          // 신청번호
-          td = document.createElement('td');
-          td.innerHTML =
-            '<a href="javascript:void(0)" class="aTagDispatCh" style="cursor:pointer;color:#667eea;">' +
-            item.DISPATCH_NO +
-            '</a>';
-          tr.append(td);
-
-          // 신청일
-          td = document.createElement('td');
-          td.innerHTML = item.APP_DATE;
-          tr.append(td);
-
-          // 관리번호
-          td = document.createElement('td');
-          td.innerHTML = item.APP_NO;
-          tr.append(td);
-
-          // 사용일
-          td = document.createElement('td');
-          td.innerHTML = item.USE_DATE_FROM + ' (' + item.USE_TIME_FROM + ')';
-          tr.append(td);
-
-          // 사용일
-          td = document.createElement('td');
-          td.innerHTML = item.USE_DATE_TO + ' (' + item.USE_TIME_TO + ')';
-          tr.append(td);
-
-          // td = document.createElement('td');
-          // td.innerHTML = item.USE_TIME_FROM;
-          // tr.append(td);
-
-          // td = document.createElement('td');
-          // td.innerHTML = item.USE_TIME_TO;
-          // tr.append(td);
-
-          td = document.createElement('td');
-          td.setAttribute('style', 'text-align:left;');
-          td.innerHTML = item.LOCATION_NAME;
-          tr.append(td);
-
-          td = document.createElement('td');
-          td.innerHTML = item.DISTANCE;
-          tr.append(td);
-
-          td = document.createElement('td');
-          td.setAttribute('style', 'text-align:center;');
-          td.innerHTML = item.FLUX_FROM + '/' + item.FLUX_TO;
-          tr.append(td);
-
-          // td = document.createElement('td');
-          // td.innerHTML = item.FLUX_TO;
-          // tr.append(td);
-
-          td = document.createElement('td');
-          td.innerHTML = item.OILING_YN;
-          tr.append(td);
-
-          td = document.createElement('td');
-          td.innerHTML = item.RIDE_USER_NAME;
-          tr.append(td);
-
-          td = document.createElement('td');
-          td.setAttribute('style', 'text-align:left;');
-          td.innerHTML = item.PARKING_AREA;
-          tr.append(td);
-
-          td = document.createElement('td');
-          td.setAttribute('style', 'text-align:left;');
-          td.innerHTML = item.BIGO;
-          tr.append(td);
-
-          ele.append(tr);
-        }
-
-        document.querySelectorAll('.aTagDispatCh').forEach((target) =>
-          target.addEventListener('click', function (evt) {
-            evt.preventDefault();
-            evt.stopPropagation();
-            document.querySelector('#lightbox').style.display = 'block';
-            onModifyForm(this);
-          })
-        );
+        }, 0);
       })
       .catch((error) => {
         console.log(error);
@@ -508,73 +531,76 @@ export default function Car() {
       .finally(() => {
         setLoading(false);
       });
-  };
+  }, [authUser, API_BASE_URL]);
 
-  const onModifyForm = (ele) => {
-    var myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
-    const query =
-      'factoryCode=000001&userId=' +
-      myId +
-      '&dispatchNo=' +
-      ele.innerHTML +
-      '&dateFrom=' +
-      '&dateTo=' +
-      '&dispatchGbn=01';
+  const onModifyForm = useCallback(
+    (ele) => {
+      const myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
+      const query =
+        'factoryCode=000001&userId=' +
+        myId +
+        '&dispatchNo=' +
+        ele.innerHTML +
+        '&dateFrom=' +
+        '&dateTo=' +
+        '&dispatchGbn=01';
 
-    fetch(`${API_BASE_URL}/jvWorksGetDispatch?` + query, {})
-      .then((e) => e.json())
-      .then((e) => {
-        if (e.data.length === 0) {
-          return;
-        }
+      fetch(`${API_BASE_URL}/jvWorksGetDispatch?` + query, {})
+        .then((e) => e.json())
+        .then((e) => {
+          if (e.data.length === 0) {
+            return;
+          }
 
-        if (e.success === 'false') {
-          alert(
-            '시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' +
-              e.message
+          if (e.success === 'false') {
+            alert(
+              '시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' +
+                e.message
+            );
+            return;
+          }
+
+          const item = e.data[0];
+
+          document.querySelector('#formDispatch').reset();
+
+          document.querySelector('#div01').setAttribute('style', '');
+          document.querySelector('#div02').setAttribute('style', '');
+
+          document
+            .querySelector('#btnSave')
+            .setAttribute('style', 'display:none');
+          document
+            .querySelector('#btnModify')
+            .setAttribute('style', 'float:right;margin-right:5px;');
+          document.querySelector('#btnDelete').setAttribute('style', '');
+
+          document.getElementById('myForm').style.display = 'block';
+
+          document.querySelector('#dispatchNo').value = item.DISPATCH_NO;
+          document.querySelector('#appNo').value = item.APP_NO;
+          document.querySelector('#appNo').setAttribute('disabled', 'true');
+          document.querySelector('#appDate').value = item.APP_DATE;
+          document.querySelector('#rideUserName').value = item.RIDE_USER_NAME;
+          document.querySelector('#useDateFrom').value = item.USE_DATE_FROM;
+          document.querySelector('#useDateTo').value = item.USE_DATE_TO;
+          document.querySelector('#useTimeFrom').value = item.USE_TIME_FROM;
+          document.querySelector('#useTimeTo').value = item.USE_TIME_TO;
+          document.querySelector('#locationName').value = item.LOCATION_NAME;
+          document.querySelector('#distance').value = item.DISTANCE;
+          document.querySelector('#fluxFrom').value = item.FLUX_FROM;
+          document.querySelector('#fluxTo').value = item.FLUX_TO;
+          document.querySelector('#oilingYn').value = item.OILING_YN;
+          document.querySelector('#parkingArea').value = item.PARKING_AREA;
+
+          document.querySelector('#bigo').value = item.BIGO.replaceAll(
+            '<br />',
+            '\r\n'
           );
-          return;
-        }
-
-        const item = e.data[0];
-
-        document.querySelector('#formDispatch').reset();
-
-        document.querySelector('#div01').setAttribute('style', '');
-        document.querySelector('#div02').setAttribute('style', '');
-
-        document
-          .querySelector('#btnSave')
-          .setAttribute('style', 'display:none');
-        document
-          .querySelector('#btnModify')
-          .setAttribute('style', 'float:right;margin-right:5px;');
-        document.querySelector('#btnDelete').setAttribute('style', '');
-
-        document.getElementById('myForm').style.display = 'block';
-
-        document.querySelector('#dispatchNo').value = item.DISPATCH_NO;
-        document.querySelector('#appNo').value = item.APP_NO;
-        document.querySelector('#appNo').setAttribute('disabled', 'true');
-        document.querySelector('#appDate').value = item.APP_DATE;
-        document.querySelector('#rideUserName').value = item.RIDE_USER_NAME;
-        document.querySelector('#useDateFrom').value = item.USE_DATE_FROM;
-        document.querySelector('#useDateTo').value = item.USE_DATE_TO;
-        document.querySelector('#useTimeFrom').value = item.USE_TIME_FROM;
-        document.querySelector('#useTimeTo').value = item.USE_TIME_TO;
-        document.querySelector('#locationName').value = item.LOCATION_NAME;
-        document.querySelector('#distance').value = item.DISTANCE;
-        document.querySelector('#fluxFrom').value = item.FLUX_FROM;
-        document.querySelector('#fluxTo').value = item.FLUX_TO;
-        document.querySelector('#oilingYn').value = item.OILING_YN;
-        document.querySelector('#parkingArea').value = item.PARKING_AREA;
-
-        document.querySelector('#bigo').value = item.BIGO.replaceAll(
-          '<br />',
-          '\r\n'
-        );
-      });
-  };
+        });
+    },
+    [authUser, API_BASE_URL]
+  );
 
   const [useDateFrom, setUseDateFrom] = useState('');
   const [useDateTo, setUseDateTo] = useState('');
@@ -595,7 +621,11 @@ export default function Car() {
   if (!authUser) {
     return (
       <div className={`${styles['car-shell']} ${styles['div-car']}`}>
-        <div className={styles.loadingBar} role="status" aria-label="인증 확인 중">
+        <div
+          className={styles.loadingBar}
+          role="status"
+          aria-label="인증 확인 중"
+        >
           <div className={styles.loadingBarIndicator} />
         </div>
       </div>
@@ -716,25 +746,19 @@ export default function Car() {
                     <th>정비이력 등 특이사항</th>
                   </tr>
                 </thead>
-                <tbody id="tbDispatch"></tbody>
+                <tbody id="tbDispatch">
+                  {loading &&
+                    skeletonRows.map((_, idx) => (
+                      <tr key={`car-skeleton-${idx}`}>
+                        {Array.from({ length: 13 }).map((__, colIdx) => (
+                          <td key={`car-skeleton-cell-${idx}-${colIdx}`}>
+                            <span className={styles.skeletonCell} />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                </tbody>
               </table>
-              {loading && (
-                <div className={styles.tableSkeleton} aria-hidden="true">
-                  {skeletonRows.map((_, idx) => (
-                    <div
-                      key={`car-skeleton-${idx}`}
-                      className={styles.skeletonRow}
-                    >
-                      {skeletonCols.map((__, colIdx) => (
-                        <span
-                          key={`car-skeleton-cell-${idx}-${colIdx}`}
-                          className={styles.skeletonCell}
-                        />
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </section>
         </main>

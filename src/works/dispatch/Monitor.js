@@ -29,7 +29,10 @@ export default function Monitor() {
       if (uaMobile) {
         setAuthUser('m');
       } else {
-        const extLogin = await waitForExtensionLogin({ minWait: 500, maxWait: 2000 });
+        const extLogin = await waitForExtensionLogin({
+          minWait: 500,
+          maxWait: 2000,
+        });
         if (!mounted) return;
         if (!extLogin) {
           showToast('로그인이 필요한 서비스입니다.', 'warning');
@@ -193,105 +196,113 @@ export default function Monitor() {
         }
 
         const ele = document.querySelector('#tbDispatch');
-        while (ele.firstChild) {
-          ele.firstChild.remove();
-        }
 
-        // 모바일에서는 이 요소들이 없으므로 체크 후 업데이트
-        const supNo261 = document.querySelector(`#supNoA-261`);
-        if (supNo261) {
-          supNo261.setAttribute('style', 'background-color:#808080');
-          supNo261.innerHTML = '미사용';
-        }
-        const supNo262 = document.querySelector(`#supNoA-262`);
-        if (supNo262) {
-          supNo262.setAttribute('style', 'background-color:#808080');
-          supNo262.innerHTML = '미사용';
-        }
-        const supNo263 = document.querySelector(`#supNoA-263`);
-        if (supNo263) {
-          supNo263.setAttribute('style', 'background-color:#808080');
-          supNo263.innerHTML = '미사용';
-        }
+        // 로딩 완료 (스켈레톤 제거)
+        setLoading(false);
 
-        for (let i = 0; i < e.data.length; i++) {
-          const item = e.data[i];
+        // 스켈레톤이 제거된 후 tbody 정리 (이제 스켈레톤 JSX 요소가 없음)
+        setTimeout(() => {
+          ele.innerHTML = '';
 
-          const tr = document.createElement('tr');
+          // 모바일에서는 이 요소들이 없으므로 체크 후 업데이트
+          const supNo261 = document.querySelector(`#supNoA-261`);
+          if (supNo261) {
+            supNo261.setAttribute('style', 'background-color:#808080');
+            supNo261.innerHTML = '미사용';
+          }
+          const supNo262 = document.querySelector(`#supNoA-262`);
+          if (supNo262) {
+            supNo262.setAttribute('style', 'background-color:#808080');
+            supNo262.innerHTML = '미사용';
+          }
+          const supNo263 = document.querySelector(`#supNoA-263`);
+          if (supNo263) {
+            supNo263.setAttribute('style', 'background-color:#808080');
+            supNo263.innerHTML = '미사용';
+          }
 
-          let td = document.createElement('td');
-          td.innerHTML = i + 1;
-          tr.append(td);
+          for (let i = 0; i < e.data.length; i++) {
+            const item = e.data[i];
 
-          td = document.createElement('td');
-          td.setAttribute('style', 'text-align:center;');
-          td.innerHTML =
-            '<a href="javascript:void(0)" class="aTagDispatCh" style="cursor:pointer;color:#667eea;">' +
-            item.DISPATCH_NO +
-            '</a>';
-          tr.append(td);
+            const tr = document.createElement('tr');
 
-          td = document.createElement('td');
-          td.setAttribute('style', 'text-align:center;');
-          td.innerHTML = item.APP_DATE;
-          tr.append(td);
+            let td = document.createElement('td');
+            td.innerHTML = i + 1;
+            tr.append(td);
 
-          td = document.createElement('td');
-          td.setAttribute('style', 'text-align:center;');
-          td.innerHTML = item.APP_NO;
-          tr.append(td);
+            td = document.createElement('td');
+            td.setAttribute('style', 'text-align:center;');
+            td.innerHTML =
+              '<a href="javascript:void(0)" class="aTagDispatCh" style="cursor:pointer;color:#667eea;">' +
+              item.DISPATCH_NO +
+              '</a>';
+            tr.append(td);
 
-          td = document.createElement('td');
-          td.setAttribute('style', 'text-align:center;');
-          td.innerHTML = item.USE_DATE_FROM + ' (' + item.USE_TIME_FROM + ')';
-          tr.append(td);
+            td = document.createElement('td');
+            td.setAttribute('style', 'text-align:center;');
+            td.innerHTML = item.APP_DATE;
+            tr.append(td);
 
-          td = document.createElement('td');
-          td.setAttribute('style', 'text-align:center;');
-          td.innerHTML = item.USE_DATE_TO + ' (' + item.USE_TIME_TO + ')';
-          tr.append(td);
+            td = document.createElement('td');
+            td.setAttribute('style', 'text-align:center;');
+            td.innerHTML = item.APP_NO;
+            tr.append(td);
 
-          td = document.createElement('td');
-          td.setAttribute('style', 'text-align:left;');
-          td.innerHTML = item.LOCATION_NAME;
-          tr.append(td);
+            td = document.createElement('td');
+            td.setAttribute('style', 'text-align:center;');
+            td.innerHTML = item.USE_DATE_FROM + ' (' + item.USE_TIME_FROM + ')';
+            tr.append(td);
 
-          td = document.createElement('td');
-          td.setAttribute('style', 'text-align:center;');
-          td.innerHTML = item.RIDE_USER_NAME;
-          tr.append(td);
+            td = document.createElement('td');
+            td.setAttribute('style', 'text-align:center;');
+            td.innerHTML = item.USE_DATE_TO + ' (' + item.USE_TIME_TO + ')';
+            tr.append(td);
 
-          td = document.createElement('td');
-          td.setAttribute('style', 'text-align:left;');
-          td.innerHTML = item.BIGO;
-          tr.append(td);
+            td = document.createElement('td');
+            td.setAttribute('style', 'text-align:left;');
+            td.innerHTML = item.LOCATION_NAME;
+            tr.append(td);
 
-          ele.append(tr);
+            td = document.createElement('td');
+            td.setAttribute('style', 'text-align:center;');
+            td.innerHTML = item.RIDE_USER_NAME;
+            tr.append(td);
 
-          if (
-            Number(item.USE_DATE_FROM_CHECK) <= Number(getStringToDateTime()) &&
-            Number(getStringToDateTime()) <= Number(item.USE_DATE_TO_CHECK)
-          ) {
-            const supNoElement = document.querySelector(`#supNo${item.APP_NO}`);
-            if (supNoElement) {
-              supNoElement.setAttribute('style', '');
-              supNoElement.innerHTML = '사용중';
+            td = document.createElement('td');
+            td.setAttribute('style', 'text-align:left;');
+            td.innerHTML = item.BIGO;
+            tr.append(td);
+
+            ele.append(tr);
+
+            if (
+              Number(item.USE_DATE_FROM_CHECK) <=
+                Number(getStringToDateTime()) &&
+              Number(getStringToDateTime()) <= Number(item.USE_DATE_TO_CHECK)
+            ) {
+              const supNoElement = document.querySelector(
+                `#supNo${item.APP_NO}`
+              );
+              if (supNoElement) {
+                supNoElement.setAttribute('style', '');
+                supNoElement.innerHTML = '사용중';
+              }
             }
           }
-        }
 
-        document.querySelectorAll('.aTagDispatCh').forEach((target) =>
-          target.addEventListener('click', function () {
-            document.querySelector('#lightbox').style.display = 'block';
-            onModifyForm(this);
-          })
-        );
+          document.querySelectorAll('.aTagDispatCh').forEach((target) =>
+            target.addEventListener('click', function () {
+              document.querySelector('#lightbox').style.display = 'block';
+              onModifyForm(this);
+            })
+          );
+        }, 0);
       })
       .catch((error) => {
         console.log(error);
       })
       .finally(() => {
-        setLoading(false);
+        // 스켈레톤 제거는 이미 setTimeout 내에서 처리됨
       });
   }, [authUser, API_BASE_URL, onModifyForm]);
 
@@ -582,7 +593,11 @@ export default function Monitor() {
   if (!authUser) {
     return (
       <div className={`${styles['car-shell']} ${styles['div-monitor']}`}>
-        <div className={styles.loadingBar} role="status" aria-label="인증 확인 중">
+        <div
+          className={styles.loadingBar}
+          role="status"
+          aria-label="인증 확인 중"
+        >
           <div className={styles.loadingBarIndicator} />
         </div>
       </div>
@@ -772,25 +787,19 @@ export default function Monitor() {
                     <th>특이사항</th>
                   </tr>
                 </thead>
-                <tbody id="tbDispatch"></tbody>
+                <tbody id="tbDispatch">
+                  {loading &&
+                    skeletonRows.map((_, idx) => (
+                      <tr key={`monitor-skeleton-${idx}`}>
+                        {Array.from({ length: 9 }).map((__, colIdx) => (
+                          <td key={`monitor-skeleton-cell-${idx}-${colIdx}`}>
+                            <span className={styles.skeletonCell} />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                </tbody>
               </table>
-              {loading && (
-                <div className={styles.tableSkeleton} aria-hidden="true">
-                  {skeletonRows.map((_, idx) => (
-                    <div
-                      key={`monitor-skeleton-${idx}`}
-                      className={styles.skeletonRow}
-                    >
-                      {skeletonCols.map((__, colIdx) => (
-                        <span
-                          key={`monitor-skeleton-cell-${idx}-${colIdx}`}
-                          className={styles.skeletonCell}
-                        />
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </section>
         </main>

@@ -88,9 +88,10 @@ const Hardware = () => {
   };
 
   const filteredList = hardwareList.filter((hw) => {
+    const cat = (hw.category || '').replace(/\s/g, '');
     if (filter === 'all') return true;
-    if (filter === 'new') return hw.category === '신규납품';
-    if (filter === 'repair') return hw.category === '고장회수';
+    if (filter === 'new') return cat === '신규납품';
+    if (filter === 'repair') return cat === '고장회수';
     return true;
   });
 

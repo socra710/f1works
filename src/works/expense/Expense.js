@@ -2,7 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import './Expense.css';
-import { waitForExtensionLogin, decodeUserId } from '../../common/extensionLogin';
+import {
+  waitForExtensionLogin,
+  decodeUserId,
+} from '../../common/extensionLogin';
 import { useToast, useDialog } from '../../common/Toast';
 import {
   checkAdminStatus,
@@ -91,21 +94,22 @@ export default function Expense() {
     <>
       {Array.from({ length: rowCount }).map((_, rowIdx) => (
         <tr key={`skeleton-${columnCount}-${rowIdx}`} className="skeleton-row">
-          <td colSpan={columnCount}>
-            <div
-              className="skeleton-grid"
-              style={{
-                gridTemplateColumns: `repeat(${columnCount}, minmax(60px, 1fr))`,
-              }}
+          {Array.from({ length: columnCount }).map((__, cellIdx) => (
+            <td
+              key={`skeleton-cell-${columnCount}-${rowIdx}-${cellIdx}`}
+              style={{ padding: '12px 8px' }}
             >
-              {Array.from({ length: columnCount }).map((__, cellIdx) => (
-                <div
-                  key={`skeleton-cell-${columnCount}-${rowIdx}-${cellIdx}`}
-                  className="skeleton-cell"
-                />
-              ))}
-            </div>
-          </td>
+              <div
+                className="skeleton-cell"
+                style={{
+                  height: '20px',
+                  backgroundColor: '#e0e0e0',
+                  borderRadius: '4px',
+                  animation: 'skeletonShimmer 1.5s infinite',
+                }}
+              />
+            </td>
+          ))}
         </tr>
       ))}
     </>
@@ -117,7 +121,10 @@ export default function Expense() {
     authCheckRef.current = true;
 
     (async () => {
-      const sessionUser = await waitForExtensionLogin({ minWait: 500, maxWait: 2000 });
+      const sessionUser = await waitForExtensionLogin({
+        minWait: 500,
+        maxWait: 2000,
+      });
       if (!sessionUser) {
         showToast('로그인이 필요한 서비스입니다.', 'warning');
         navigate('/works');
@@ -129,7 +136,10 @@ export default function Expense() {
           const decodedUserId = decodeUserId(sessionUser).trim();
           const isAdmin = await checkAdminStatus(decodedUserId);
           if (!isAdmin) {
-            showToast('해당 페이지를 이용할 수 없습니다, 관리자 권한이 없습니다.', 'warning');
+            showToast(
+              '해당 페이지를 이용할 수 없습니다, 관리자 권한이 없습니다.',
+              'warning'
+            );
             navigate('/works');
             return;
           }
@@ -1571,7 +1581,7 @@ export default function Expense() {
       prevRows.map((row) => ({ ...row, managerConfirmed: checked }))
     );
   };
-  
+
   // 인증 완료 전에는 화면을 비워 두고 상단 바만 표시
   if (!authChecked) {
     return <div className="auth-wait-screen" />;
