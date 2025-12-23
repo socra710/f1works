@@ -82,7 +82,7 @@ const CharacterShop = ({
 
   // 별도 인기 섹션 제거: 서버에서 popular 플래그로 전달받아 카드에 뱃지로 표시
 
-  // 선택된 카테고리의 아이템 필터링 및 정렬 (할인 → 한정 → 인기 순)
+  // 선택된 카테고리의 아이템 필터링 및 정렬 (한정 → 할인 → 인기 → 보유중 → 일반)
   const categoryItems = selectedCategory
     ? items
         .filter((item) => {
@@ -121,7 +121,14 @@ const CharacterShop = ({
           if (a.popular && !b.popular) return -1;
           if (!a.popular && b.popular) return 1;
 
-          // 4순위: 원래 정렬 순서 (sortOrder)
+          // 4순위: 보유중 아이템 (뒤로)
+          const aIsPurchased = purchasedItems.includes(a.id);
+          const bIsPurchased = purchasedItems.includes(b.id);
+
+          if (!aIsPurchased && bIsPurchased) return -1;
+          if (aIsPurchased && !bIsPurchased) return 1;
+
+          // 5순위: 원래 정렬 순서 (sortOrder)
           return (a.sortOrder || 0) - (b.sortOrder || 0);
         })
     : items.sort((a, b) => {
@@ -151,9 +158,21 @@ const CharacterShop = ({
         if (a.popular && !b.popular) return -1;
         if (!a.popular && b.popular) return 1;
 
-        // 4순위: 원래 정렬 순서 (sortOrder)
+        // 4순위: 보유중 아이템 (뒤로)
+        const aIsPurchased = purchasedItems.includes(a.id);
+        const bIsPurchased = purchasedItems.includes(b.id);
+
+        if (!aIsPurchased && bIsPurchased) return -1;
+        if (aIsPurchased && !bIsPurchased) return 1;
+
+        // 5순위: 원래 정렬 순서 (sortOrder)
         return (a.sortOrder || 0) - (b.sortOrder || 0);
       });
+
+  // 보유중인 아이템 상세 리스트 (상단 요약 표시용)
+  const purchasedItemDetails = items.filter((item) =>
+    purchasedItems.includes(item.id)
+  );
 
   // 구매 처리
   const handlePurchaseItem = async (item) => {
@@ -264,10 +283,32 @@ const CharacterShop = ({
           </div>
         </div>
 
+        {/* 보유 캐릭터 요약 */}
+        {/* {purchasedItemDetails.length > 0 && (
+          <div className={styles['owned-strip']}>
+            <div className={styles['owned-strip-title']}>내가 보유 중인 캐릭터</div>
+            <div className={styles['owned-strip-list']}>
+              {purchasedItemDetails.map((item) => (
+                <div key={item.id} className={styles['owned-chip']}>
+                  <span className={styles['owned-chip-emoji']}>{item.emoji}</span>
+                  <div className={styles['owned-chip-meta']}>
+                    <span className={styles['owned-chip-name']}>
+                      {item.displayName}
+                    </span>
+                    <span className={styles['owned-chip-category']}>
+                      {getCategoryLabel(item.category)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )} */}
+
         {/* 카테고리 탭 - 더 명확하게 구분 */}
         <div className={styles['tabs-container']}>
           {categories.map((category) => {
-            const isDisabled = false;
+            const isDisabled = category === 'SKIN';
             return (
               <button
                 key={category}
@@ -327,17 +368,21 @@ const CharacterShop = ({
                       !isPurchased && setSelectedItemForDetails(item)
                     }
                   >
-                    {/* 이벤트 배지 표시: DISCOUNT vs LIMITED 색상 분리 */}
-                    {(hasDiscount || isLimited) && (
-                      <div
-                        className={
-                          isLimited
-                            ? styles['badge-limited-top']
-                            : styles['badge-discount']
-                        }
-                      >
-                        {item.eventLabel || (isLimited ? '한정' : '할인')}
-                      </div>
+                    {/* 보유중이면 이벤트 뱃지 대신 좌측에 보유 뱃지 */}
+                    {isPurchased ? (
+                      <div className={styles['badge-owned-left']}>보유중</div>
+                    ) : (
+                      (hasDiscount || isLimited) && (
+                        <div
+                          className={
+                            isLimited
+                              ? styles['badge-limited-top']
+                              : styles['badge-discount']
+                          }
+                        >
+                          {item.eventLabel || (isLimited ? '한정' : '할인')}
+                        </div>
+                      )
                     )}
                     {item.popular && !hasDiscount && (
                       <div className={styles['badge-popular']}>🔥 인기</div>
@@ -349,9 +394,12 @@ const CharacterShop = ({
                     </div>
                     <div className={styles['item-price']}>
                       {isPurchased ? (
-                        <span className={styles['purchased-label']}>
-                          ✓ 보유중
-                        </span>
+                        <div className={styles['owned-status']}>
+                          <span className={styles['owned-check']}>✓</span>
+                          <span className={styles['owned-copy']}>
+                            이미 보유 중
+                          </span>
+                        </div>
                       ) : hasDiscount ? (
                         <div
                           className={`${styles['price-with-discount']} ${
