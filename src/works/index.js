@@ -308,7 +308,7 @@ export default function Works() {
       date: '2025.12.22',
       title: 'H/W 관리대장 기능 출시',
       description:
-        'H/W 관리대장 페이지가 새롭게 오픈 되었습니다. 납품 및 A/S 접수 내역을 기록하고 조회할 수 있습니다.',
+        '보유 중인 하드웨어 자산을 효율적으로 관리합니다. 납품, A/S, 폐기 등 모든 내역을 한곳에서 기록하고 조회할 수 있습니다.',
     },
     {
       date: '2025.12.16',
@@ -352,6 +352,14 @@ export default function Works() {
   ];
 
   const notices = [
+    {
+      date: '2025.12.23',
+      title: 'F1Works 커뮤니티 플로우 방 개설',
+      content:
+        'F1Soft 직원들을 위한 F1Works 커뮤니티 플로우 방이 개설되었습니다. 자유롭게 소통하고 정보를 공유하세요!',
+      link: 'https://flow.team/Invitation/SDD7_0y6gY',
+      isLink: true,
+    },
     {
       date: '2025.12.17',
       title: '경비 청구 안내 (12월 베타 운영)',
