@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './CharacterShop.module.css';
-import { useToast } from '../../../common/Toast';
+import { useToast, useDialog } from '../../../common/Toast';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/com/api';
 
@@ -23,6 +23,7 @@ const CharacterShop = ({
   const [purchasing, setPurchasing] = useState(false);
   const [selectedItemForDetails, setSelectedItemForDetails] = useState(null);
   const { showToast } = useToast();
+  const { showDialog } = useDialog();
 
   // 상점 아이템 및 카테고리 로드
   useEffect(() => {
@@ -182,48 +183,53 @@ const CharacterShop = ({
       return;
     }
 
-    setPurchasing(true);
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/jvWorksPurchaseItem`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          itemId: item.id,
-          currentCoins: coins,
-        }),
-      });
-
-      if (!res.ok) throw new Error('구매 요청 실패');
-
-      const json = await res.json();
-      if (json.success) {
-        // 구매 성공
-        const newBalance = json.newBalance || coins - finalPrice;
-        onCoinsUpdate(newBalance);
-        setPurchasedItems([...purchasedItems, item.id]);
-        showToast(json.message || '구매가 완료되었습니다!', 'success');
-        setSelectedItemForDetails(null);
-
-        // 구매한 아이템 정보를 부모 컴포넌트에 전달
-        if (onPurchase) {
-          onPurchase({
-            itemCode: item.itemCode,
-            emoji: item.emoji,
-            displayName: item.displayName,
-            category: item.category,
+    showDialog({
+      title: '구매 확인',
+      message: `'${item.displayName}'을 ${finalPrice}코인으로 구매하시겠습니까?`,
+      okText: '구매',
+      cancelText: '취소',
+      type: 'confirm',
+      onOk: async () => {
+        setPurchasing(true);
+        try {
+          const res = await fetch(`${API_BASE_URL}/jvWorksPurchaseItem`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId,
+              itemId: item.id,
+              currentCoins: coins,
+            }),
           });
+
+          if (!res.ok) throw new Error('구매 요청 실패');
+
+          const json = await res.json();
+          if (json.success) {
+            const newBalance = json.newBalance || coins - finalPrice;
+            onCoinsUpdate(newBalance);
+            setPurchasedItems([...purchasedItems, item.id]);
+            showToast(json.message || '구매가 완료되었습니다!', 'success');
+            setSelectedItemForDetails(null);
+            if (onPurchase) {
+              onPurchase({
+                itemCode: item.itemCode,
+                emoji: item.emoji,
+                displayName: item.displayName,
+                category: item.category,
+              });
+            }
+          } else {
+            showToast(json.message || '구매에 실패했습니다', 'error');
+          }
+        } catch (error) {
+          console.error('구매 처리 실패:', error);
+          showToast('구매 처리 중 오류가 발생했습니다', 'error');
+        } finally {
+          setPurchasing(false);
         }
-      } else {
-        showToast(json.message || '구매에 실패했습니다', 'error');
-      }
-    } catch (error) {
-      console.error('구매 처리 실패:', error);
-      showToast('구매 처리 중 오류가 발생했습니다', 'error');
-    } finally {
-      setPurchasing(false);
-    }
+      },
+    });
   };
 
   // 모달 프레임을 유지한 채 내부에서 로딩 스피너를 렌더링
@@ -429,51 +435,71 @@ const CharacterShop = ({
               <p className={styles['description']}>
                 {selectedItemForDetails.description}
               </p>
+              {(function () {
+                const isLimited = selectedItemForDetails.eventType === 'LIMITED';
+                const hasDiscount =
+                  selectedItemForDetails.eventType &&
+                  selectedItemForDetails.eventType !== 'NONE' &&
+                  selectedItemForDetails.discountedPrice !== undefined &&
+                  selectedItemForDetails.discountedPrice < selectedItemForDetails.price;
+                if (!(hasDiscount || isLimited)) return null;
+                return (
+                  <div
+                    className={
+                      isLimited
+                        ? styles['badge-limited-top']
+                        : styles['badge-discount']
+                    }
+                  >
+                    {selectedItemForDetails.eventLabel || (isLimited ? '한정' : '할인')}
+                  </div>
+                );
+              })()}
               <div className={styles['price-info']}>
-                {selectedItemForDetails.eventType &&
-                selectedItemForDetails.eventType !== 'NONE' &&
-                selectedItemForDetails.discountedPrice !== undefined &&
-                selectedItemForDetails.discountedPrice <
-                  selectedItemForDetails.price ? (
-                  <>
-                    <div className={styles['discount-label']}>
-                      {selectedItemForDetails.eventLabel || '할인 중'}
-                    </div>
-                    <div className={styles['price-comparison']}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
-                        <span className={styles['modal-original-price']}>
-                          💰 {selectedItemForDetails.price}
-                        </span>
-                        {selectedItemForDetails.eventDiscountRate > 0 && (
-                          <span className={styles['discount-badge']}>
-                            {selectedItemForDetails.eventDiscountRate}%
-                          </span>
+                {(function () {
+                  const isLimited = selectedItemForDetails.eventType === 'LIMITED';
+                  const hasDiscount =
+                    selectedItemForDetails.eventType &&
+                    selectedItemForDetails.eventType !== 'NONE' &&
+                    selectedItemForDetails.discountedPrice !== undefined &&
+                    selectedItemForDetails.discountedPrice < selectedItemForDetails.price;
+                  if (hasDiscount) {
+                    const meta = getDiscountPeriodMeta(selectedItemForDetails);
+                    return (
+                      <div
+                        className={`${styles['price-with-discount']} ${
+                          isLimited ? styles['price-limited'] : styles['price-discount']
+                        }`}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+                          <span className={styles['modal-original-price']}>💰 {selectedItemForDetails.price}</span>
+                          {selectedItemForDetails.eventDiscountRate > 0 && (
+                            <span className={styles['discount-badge']}>
+                              {selectedItemForDetails.eventDiscountRate}%
+                            </span>
+                          )}
+                        </div>
+                        <span className={styles['modal-discounted-price']}>💰 {selectedItemForDetails.discountedPrice} 코인</span>
+                        {meta.text && (
+                          <div
+                            className={`${styles['discount-period']} ${
+                              meta.isUrgent ? styles['discount-period-soon'] : ''
+                            }`}
+                          >
+                            <span className={styles['discount-period-icon']}>{meta.icon}</span>
+                            {meta.text}
+                          </div>
                         )}
                       </div>
-                      <span className={styles['modal-discounted-price']}>
-                        💰 {selectedItemForDetails.discountedPrice} 코인
-                      </span>
+                    );
+                  }
+                  // 비할인: 한정판이면 가격 색상도 한정 스타일 반영
+                  return (
+                    <div className={isLimited ? styles['price-limited'] : ''}>
+                      💰 {selectedItemForDetails.price} 코인
                     </div>
-                    {(function () {
-                      const meta = getDiscountPeriodMeta(selectedItemForDetails);
-                      return meta.text ? (
-                        <div
-                          className={`${styles['discount-period']} ${
-                            meta.isUrgent ? styles['discount-period-soon'] : ''
-                          }`}
-                        >
-                          <span className={styles['discount-period-icon']}>
-                            {meta.icon}
-                          </span>
-                          {meta.text}
-                        </div>
-                      ) : null;
-                    })()} 
-                        
-                  </>
-                ) : (
-                  <>💰 {selectedItemForDetails.price} 코인</>
-                )}
+                  );
+                })()}
               </div>
               <button
                 className={`${styles['buy-button-modal']} ${
@@ -635,17 +661,17 @@ function getFallbackPeriod(days = 7) {
 /**
  * 실제 기간이 없으면 임시 기간 반환 (할인 중인 아이템에 한함)
  */
-function getEffectiveDiscountPeriod(item) {
-  if (!item) return '';
-  const actual = getDiscountPeriod(item);
-  if (actual) return actual;
-  const hasDiscount =
-    item.eventType &&
-    item.eventType !== 'NONE' &&
-    item.discountedPrice !== undefined &&
-    item.discountedPrice < item.price;
-  return hasDiscount ? getFallbackPeriod(7) : '';
-}
+// function getEffectiveDiscountPeriod(item) {
+//   if (!item) return '';
+//   const actual = getDiscountPeriod(item);
+//   if (actual) return actual;
+//   const hasDiscount =
+//     item.eventType &&
+//     item.eventType !== 'NONE' &&
+//     item.discountedPrice !== undefined &&
+//     item.discountedPrice < item.price;
+//   return hasDiscount ? getFallbackPeriod(7) : '';
+// }
 
 // 내부용: Date 객체로 변환
 function parseAnyDate(input) {

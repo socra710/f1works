@@ -376,7 +376,7 @@
 .badge-discount {
   position: absolute;
   top: 8px;
-  right: 8px;
+  left: 8px;
   background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
   color: #ffecec;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
@@ -394,7 +394,7 @@
 .badge-limited-top {
   position: absolute;
   top: 8px;
-  right: 8px;
+  left: 8px;
   background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);
   color: #f3e9ff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
@@ -509,6 +509,32 @@
   background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);
   color: #f3e9ff;
   box-shadow: 0 2px 6px rgba(142, 68, 173, 0.35);
+}
+
+/* 모달 금액 색상도 이벤트 타입에 맞게 반영 */
+.price-discount .modal-discounted-price {
+  color: #e74c3c;
+  text-shadow: 0 0 8px rgba(231, 76, 60, 0.4);
+}
+
+.price-discount .discount-badge {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: #ffecec;
+}
+
+.price-limited .modal-discounted-price {
+  color: #8e44ad;
+  text-shadow: 0 0 8px rgba(142, 68, 173, 0.25);
+}
+
+.price-limited .discount-badge {
+  background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);
+  color: #f3e9ff;
+}
+
+/* 비할인 한정판의 일반 가격 표시도 보라색으로 */
+.price-limited {
+  color: #8e44ad;
 }
 
 .buy-button {
