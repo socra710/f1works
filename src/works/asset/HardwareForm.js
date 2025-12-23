@@ -107,19 +107,7 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
       return;
     }
 
-    const receiptNoToSave = formData.receiptNo.trim();
-    if (receiptNoToSave) {
-      const isDuplicate = hardwareList.some(
-        (item) =>
-          item.receiptNo?.trim() === receiptNoToSave &&
-          String(item.hwId) !== String(formData.hwId || '')
-      );
-
-      if (isDuplicate) {
-        showToast('이미 사용 중인 접수번호입니다.', 'error');
-        return;
-      }
-    }
+    const receiptNoToSave = '';
 
     const payload = {
       factoryCode: '000001',
@@ -189,7 +177,8 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
                 name="receiptNo"
                 value={formData.receiptNo}
                 onChange={handleChange}
-                placeholder="예: 25-001"
+                placeholder="예: 25-001(자동채번)"
+                readOnly
               />
             </div>
           </div>
@@ -234,6 +223,29 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
             </div>
           </div>
 
+          <div className={styles.formRow}>
+            <div className={styles.field}>
+              <label>납품일</label>
+              <input
+                type="date"
+                name="deliveryDate"
+                value={formData.deliveryDate}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label>납품처</label>
+              <input
+                type="text"
+                name="deliveryLocation"
+                value={formData.deliveryLocation}
+                onChange={handleChange}
+                placeholder="납품 장소"
+              />
+            </div>
+          </div>
+
           {formData.category !== '신규납품' && (
             <div className={styles.formRow}>
               <div className={styles.field}>
@@ -258,29 +270,6 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
               </div>
             </div>
           )}
-
-          <div className={styles.formRow}>
-            <div className={styles.field}>
-              <label>납품일</label>
-              <input
-                type="date"
-                name="deliveryDate"
-                value={formData.deliveryDate}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className={styles.field}>
-              <label>납품처</label>
-              <input
-                type="text"
-                name="deliveryLocation"
-                value={formData.deliveryLocation}
-                onChange={handleChange}
-                placeholder="납품 장소"
-              />
-            </div>
-          </div>
 
           {formData.category !== '신규납품' && (
             <div className={styles.formRow}>
