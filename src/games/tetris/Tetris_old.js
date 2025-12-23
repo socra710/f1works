@@ -332,14 +332,21 @@ const Tetris = () => {
     if (savedName) {
       setPlayerName(savedName);
     }
-
-    setTimeout(() => {
-      // sessionStorage에서 userId 받아오기
-      const sessionUser = window.sessionStorage.getItem('extensionLogin');
-      if (sessionUser) {
-        setUserId(atob(sessionUser));
+    // 공통 유틸을 통해 userId 로드
+    (async () => {
+      try {
+        const mod = await import('../../common/extensionLogin');
+        const encoded = await mod.waitForExtensionLogin({
+          minWait: 0,
+          maxWait: 2000,
+        });
+        if (encoded) {
+          setUserId(mod.decodeUserId(encoded));
+        }
+      } catch (e) {
+        // ignore
       }
-    }, 500);
+    })();
   }, []);
 
   // 게임 종료 시 닉네임 모달 표시
@@ -1157,7 +1164,6 @@ const Tetris = () => {
 
   return (
     <>
-    
       <Helmet>
         <title>테트리스 게임</title>
         <meta property="og:title" content="테트리스 게임" />
