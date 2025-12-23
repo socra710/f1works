@@ -875,8 +875,8 @@ const Runner = () => {
       };
       setObstacles((prev) => [...prev, newObstacle]);
 
-      // 장애물 위 코인 스폰 (랜덤): 20% 확률로 1~3개 생성
-      const shouldSpawnCoins = Math.random() < 0.2;
+      // 장애물 위 코인 스폰 (랜덤): 25% 확률로 1~3개 생성
+      const shouldSpawnCoins = Math.random() < 0.25;
       if (shouldSpawnCoins) {
         const coinsToSpawn = [];
         const baseHeight = newObstacle.height; // 지면 기준 높이
@@ -944,7 +944,7 @@ const Runner = () => {
       }
 
       // 파워업 아이템 스폰: 장애물 우측에 1개만 생성
-      const shouldSpawnPowerUp = Math.random() < 0.01; // 1% 확률
+      const shouldSpawnPowerUp = Math.random() < 0.05; // 5% 확률
       if (shouldSpawnPowerUp) {
         const baseHeight = newObstacle.height;
         const powerUpTypes = ['magnet', 'shield', 'slowmo', 'triplejump'];
@@ -1506,13 +1506,13 @@ const Runner = () => {
           // 파워업 효과 활성화
           switch (powerUp.type) {
             case 'magnet':
-              magnetActiveDurationRef.current = 7000; // 7초
+              magnetActiveDurationRef.current = 20000; // 20초
               break;
             case 'shield':
               setShieldActive(true);
               break;
             case 'slowmo':
-              slowMoActiveDurationRef.current = 5000; // 5초
+              slowMoActiveDurationRef.current = 15000; // 15초
               // 발동 시점의 속도로 고정
               slowFreezeSpeedRef.current = gameSpeedRef.current;
               break;
