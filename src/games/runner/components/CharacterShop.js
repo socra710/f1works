@@ -79,6 +79,8 @@ const CharacterShop = ({
     fetchPurchases();
   }, [userId]);
 
+  // 별도 인기 섹션 제거: 서버에서 popular 플래그로 전달받아 카드에 뱃지로 표시
+
   // 선택된 카테고리의 아이템 필터링 (대소문자/공백 안전)
   const categoryItems = selectedCategory
     ? items.filter((item) => {
@@ -212,8 +214,8 @@ const CharacterShop = ({
           })}
         </div>
 
-        {/* 아이템 그리드 */}
         <div className={styles['modal-content']}>
+          {/* 아이템 그리드 */}
           {loading ? (
             <div className={styles['loading']}>
               <div className={styles['spinner']} />
@@ -239,6 +241,9 @@ const CharacterShop = ({
                       !isPurchased && setSelectedItemForDetails(item)
                     }
                   >
+                    {item.popular && (
+                      <div className={styles['badge-popular']}>🔥 인기</div>
+                    )}
                     <div className={styles['item-emoji']}>{item.emoji}</div>
                     <div className={styles['item-name']}>
                       {item.displayName}
