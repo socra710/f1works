@@ -60,6 +60,18 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+.stat-pill.clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.stat-pill.clickable:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
 .pill-score {
   background: rgba(255, 215, 0, 0.25);
   border-color: rgba(255, 215, 0, 0.45);
@@ -191,6 +203,29 @@
 }
 
 .start-btn:active {
+  transform: translateY(0);
+}
+
+.shop-btn {
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  font-size: 1.1rem;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+.shop-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.shop-btn:active {
   transform: translateY(0);
 }
 
@@ -1437,6 +1472,46 @@
     font-size: 1.1rem;
     padding: 12px 30px;
   }
+
+  .shop-btn {
+    font-size: 0.95rem;
+    padding: 10px 20px;
+    margin-left: 5px;
+  }
+}
+
+/* 상점 페이지 */
+.shop-wrapper {
+  min-height: 100vh;
+  padding: 20px;
+  position: relative;
+}
+
+.back-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  color: inherit;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateX(-3px);
+}
+
+.back-btn:active {
+  transform: translateX(0);
 }
 
 @keyframes spin360 {
