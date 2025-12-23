@@ -9,6 +9,23 @@ import {
 } from './expense/expenseAPI';
 import { waitForExtensionLogin, decodeUserId } from '../common/extensionLogin';
 
+// 날짜 기반 배지 표시 체크 함수 (한 달 이내인지 확인)
+const isWithinOneMonth = (dateString) => {
+  if (!dateString) return false;
+  try {
+    const targetDate = new Date(dateString);
+    const now = new Date();
+    const oneMonthAgo = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      now.getDate()
+    );
+    return targetDate >= oneMonthAgo && targetDate <= now;
+  } catch (err) {
+    return false;
+  }
+};
+
 export default function Works() {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(() => {
@@ -152,7 +169,7 @@ export default function Works() {
         icon: '🚗',
         path: '/works/dispatch/car',
         category: '업무',
-        isUpdated: true,
+        inUpdate: '2025-12-16', // 업데이트 날짜
       },
       {
         title: '모니터 신청',
@@ -160,7 +177,7 @@ export default function Works() {
         icon: '🖥️',
         path: '/works/dispatch/monitor',
         category: '업무',
-        isUpdated: true,
+        inUpdate: '2025-12-16', // 업데이트 날짜
       },
       {
         title: '일정 관리',
@@ -175,7 +192,7 @@ export default function Works() {
         icon: '💰',
         path: '/works/expense',
         category: '업무',
-        isNew: true,
+        inNew: '2025-12-15', // 신규 출시 날짜
       },
       {
         title: 'H/W 관리대장',
@@ -183,7 +200,7 @@ export default function Works() {
         icon: '🖥️',
         path: '/works/asset/hw',
         category: '업무',
-        isNew: true,
+        inNew: '2025-12-22', // 신규 출시 날짜
       },
       {
         title: '경비 청구 관리',
@@ -192,7 +209,7 @@ export default function Works() {
         path: '/works/expense-management',
         category: '관리',
         requiresAdmin: true,
-        isNew: true,
+        inNew: '2025-12-15', // 신규 출시 날짜
       },
       {
         title: '경비 청구 집계',
@@ -201,7 +218,7 @@ export default function Works() {
         path: '/works/expense-summary',
         category: '관리',
         requiresAdmin: true,
-        isNew: true,
+        inNew: '2025-12-15', // 신규 출시 날짜
       },
       {
         title: '오늘의 단어',
@@ -216,7 +233,7 @@ export default function Works() {
         icon: '🎮',
         path: '/games/tetris',
         category: '게임',
-        isNew: true,
+        inNew: '2025-12-13', // 신규 출시 날짜
       },
       {
         title: '러너',
@@ -224,7 +241,7 @@ export default function Works() {
         icon: '🎮',
         path: '/games/runner',
         category: '게임',
-        isNew: true,
+        inNew: '2025-12-22', // 신규 출시 날짜
       },
       {
         title: '오늘의 메뉴',
@@ -239,7 +256,7 @@ export default function Works() {
         icon: '📰',
         path: '/feed',
         category: '뉴스',
-        isUpdated: true,
+        inUpdate: '2025-12-16', // 업데이트 날짜
       },
     ],
     []
@@ -469,7 +486,9 @@ export default function Works() {
             if (!catData) return null;
 
             const isActive = catData.category === activeCategory.category;
-            const newCount = catData.items.filter((item) => item.isNew).length;
+            const newCount = catData.items.filter((item) =>
+              isWithinOneMonth(item.inNew)
+            ).length;
             return (
               <button
                 key={catData.category}
@@ -551,12 +570,12 @@ export default function Works() {
                     className="feature-card"
                     onClick={() => handleNavigate(feature.path)}
                   >
-                    {feature.isNew && (
+                    {isWithinOneMonth(feature.inNew) && (
                       <span className="feature-badge-new" aria-label="신규">
                         NEW
                       </span>
                     )}
-                    {feature.isUpdated && (
+                    {isWithinOneMonth(feature.inUpdate) && (
                       <span
                         className="feature-badge-updated"
                         aria-label="업데이트"
