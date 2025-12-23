@@ -18,6 +18,10 @@ import {
 } from '../utils/gameLogic';
 import { playWarningSound } from '../utils/audioUtils';
 import { addGrayLineWarning } from '../utils/effectsUtils';
+import {
+  waitForExtensionLogin,
+  decodeUserId,
+} from '../../../common/extensionLogin';
 
 export const useTetrisGame = (canvasRef) => {
   const [gameStarted, setGameStarted] = useState(false);
@@ -46,14 +50,27 @@ export const useTetrisGame = (canvasRef) => {
     bloodParticles: [],
   });
 
-  // userId 로드
+  // userId 로드 (공통 유틸 사용)
   useEffect(() => {
-    setTimeout(() => {
-      const sessionUser = window.sessionStorage.getItem('extensionLogin');
-      if (sessionUser) {
-        setUserId(atob(sessionUser));
+    let cancelled = false;
+    const init = async () => {
+      try {
+        const encoded = await waitForExtensionLogin({
+          minWait: 0,
+          maxWait: 2000,
+        });
+        if (cancelled) return;
+        if (encoded) {
+          setUserId(decodeUserId(encoded));
+        }
+      } catch (e) {
+        // ignore
       }
-    }, 500);
+    };
+    init();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // 블록 드롭

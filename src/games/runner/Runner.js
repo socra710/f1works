@@ -26,6 +26,10 @@ import { useScoreManagement } from './hooks/useScoreManagement';
 // 유틸리티
 import { playJumpSound } from './utils/audioUtils';
 import { getSeasonEffects, randomDifferentIndex } from './utils/seasonUtils';
+import {
+  waitForExtensionLogin,
+  decodeUserId,
+} from '../../common/extensionLogin';
 
 // 캐릭터 이미지
 // import f1EmojiImage from './image/f1soft.png';
@@ -257,38 +261,56 @@ const Runner = () => {
   } = useScoreManagement();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const sessionUser = window.sessionStorage.getItem('extensionLogin');
-      if (sessionUser) {
-        const decoded = atob(sessionUser);
-        setUserId(decoded);
-        localStorage.setItem('runnerUserId', decoded);
-        return;
-      }
+    let cancelled = false;
+    const initUserId = async () => {
+      try {
+        const encoded = await waitForExtensionLogin({
+          minWait: 0,
+          maxWait: 2000,
+        });
+        if (cancelled) return;
+        if (encoded) {
+          const decoded = decodeUserId(encoded);
+          setUserId(decoded);
+          localStorage.setItem('runnerUserId', decoded);
+          return;
+        }
 
-      let id = localStorage.getItem('runnerUserId');
-      if (!id) {
-        id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        localStorage.setItem('runnerUserId', id);
-      }
-      setUserId(id);
+        let id = localStorage.getItem('runnerUserId');
+        if (!id) {
+          id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          localStorage.setItem('runnerUserId', id);
+        }
+        setUserId(id);
 
-      // 초기 닉네임 설정: 없으면 Runner + 랜덤 숫자
-      let name = localStorage.getItem('runnerPlayerName');
-      if (!name) {
-        name = `Runner${Math.floor(Math.random() * 10000)}`;
-        localStorage.setItem('runnerPlayerName', name);
-        setPlayerName(name);
+        let name = localStorage.getItem('runnerPlayerName');
+        if (!name) {
+          name = `Runner${Math.floor(Math.random() * 10000)}`;
+          localStorage.setItem('runnerPlayerName', name);
+          setPlayerName(name);
+        }
+      } catch (e) {
+        // 실패 시 로컬로만 초기화
+        if (cancelled) return;
+        let id = localStorage.getItem('runnerUserId');
+        if (!id) {
+          id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          localStorage.setItem('runnerUserId', id);
+        }
+        setUserId(id);
+        let name = localStorage.getItem('runnerPlayerName');
+        if (!name) {
+          name = `Runner${Math.floor(Math.random() * 10000)}`;
+          localStorage.setItem('runnerPlayerName', name);
+          setPlayerName(name);
+        }
       }
-
-      // 중복 추가 방지
-      if (!CHARACTERS.some((char) => char.id === 'monkey')) {
-        CHARACTERS.push({ id: 'monkey', name: '🐵', emoji: '🐵' });
-      }
-    }, 0);
-
-    return () => clearTimeout(timer);
-  }, [userId]);
+    };
+    initUserId();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, setPlayerName]);
 
   const syncCoinBank = useCallback(
     async (uid, totalCoins, highScoreValue, nameForServer = '') => {
