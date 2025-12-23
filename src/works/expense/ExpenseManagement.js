@@ -4,7 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import './ExpenseManagement.css';
 import { useToast } from '../../common/Toast';
 import { getCorporateCards, saveCorporateCard } from './expenseAPI';
-import { waitForExtensionLogin, decodeUserId } from '../../common/extensionLogin';
+import {
+  waitForExtensionLogin,
+  decodeUserId,
+} from '../../common/extensionLogin';
 
 export default function ExpenseManagement() {
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
@@ -45,21 +48,22 @@ export default function ExpenseManagement() {
     <>
       {Array.from({ length: rowCount }).map((_, rowIdx) => (
         <tr key={`skeleton-${columnCount}-${rowIdx}`} className="skeleton-row">
-          <td colSpan={columnCount}>
-            <div
-              className="skeleton-grid"
-              style={{
-                gridTemplateColumns: `repeat(${columnCount}, minmax(80px, 1fr))`,
-              }}
+          {Array.from({ length: columnCount }).map((__, cellIdx) => (
+            <td
+              key={`skeleton-cell-${columnCount}-${rowIdx}-${cellIdx}`}
+              style={{ padding: '12px 8px' }}
             >
-              {Array.from({ length: columnCount }).map((__, cellIdx) => (
-                <div
-                  key={`skeleton-cell-${columnCount}-${rowIdx}-${cellIdx}`}
-                  className="skeleton-cell"
-                />
-              ))}
-            </div>
-          </td>
+              <div
+                className="skeleton-cell"
+                style={{
+                  height: '20px',
+                  backgroundColor: '#e0e0e0',
+                  borderRadius: '4px',
+                  animation: 'skeletonShimmer 1.5s infinite',
+                }}
+              />
+            </td>
+          ))}
         </tr>
       ))}
     </>
@@ -98,7 +102,10 @@ export default function ExpenseManagement() {
     authCheckRef.current = true;
 
     (async () => {
-      const sessionUser = await waitForExtensionLogin({ minWait: 500, maxWait: 2000 });
+      const sessionUser = await waitForExtensionLogin({
+        minWait: 500,
+        maxWait: 2000,
+      });
       if (!sessionUser) {
         showToast('로그인이 필요한 서비스입니다.', 'warning');
         navigate('/works');
@@ -472,7 +479,11 @@ export default function ExpenseManagement() {
       </Helmet>
       <div className="expense-management-container">
         {isLoading && (
-          <div className="loading-bar" role="status" aria-label="데이터 로딩 중">
+          <div
+            className="loading-bar"
+            role="status"
+            aria-label="데이터 로딩 중"
+          >
             <div className="loading-bar__indicator" />
           </div>
         )}

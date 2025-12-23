@@ -164,6 +164,11 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
         </div>
 
         <form onSubmit={handleSubmit} className={styles.hardwareForm}>
+          {/** 신규납품 여부 */}
+          {(() => {
+            return null;
+          })()}
+
           <div className={styles.formRow}>
             <div className={styles.field}>
               <label>구분 *</label>
@@ -229,28 +234,30 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
             </div>
           </div>
 
-          <div className={styles.formRow}>
-            <div className={styles.field}>
-              <label>회수일</label>
-              <input
-                type="date"
-                name="collectionDate"
-                value={formData.collectionDate}
-                onChange={handleChange}
-              />
-            </div>
+          {formData.category !== '신규납품' && (
+            <div className={styles.formRow}>
+              <div className={styles.field}>
+                <label>회수일</label>
+                <input
+                  type="date"
+                  name="collectionDate"
+                  value={formData.collectionDate}
+                  onChange={handleChange}
+                />
+              </div>
 
-            <div className={styles.field}>
-              <label>회수처</label>
-              <input
-                type="text"
-                name="collectionLocation"
-                value={formData.collectionLocation}
-                onChange={handleChange}
-                placeholder="회수 장소"
-              />
+              <div className={styles.field}>
+                <label>회수처</label>
+                <input
+                  type="text"
+                  name="collectionLocation"
+                  value={formData.collectionLocation}
+                  onChange={handleChange}
+                  placeholder="회수 장소"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <div className={styles.formRow}>
             <div className={styles.field}>
@@ -275,33 +282,37 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
             </div>
           </div>
 
-          <div className={styles.formRow}>
-            <div className={styles.field}>
-              <label>A/S 상태 *</label>
-              <select
-                name="asStatus"
-                value={formData.asStatus}
-                onChange={handleChange}
-              >
-                <option value="전">대기</option>
-                <option value="진행중">진행중</option>
-                <option value="완">완료</option>
-              </select>
+          {formData.category !== '신규납품' && (
+            <div className={styles.formRow}>
+              <div className={styles.field}>
+                <label>A/S 상태 *</label>
+                <select
+                  name="asStatus"
+                  value={formData.asStatus}
+                  onChange={handleChange}
+                >
+                  <option value="전">대기</option>
+                  <option value="진행중">진행중</option>
+                  <option value="완">완료</option>
+                </select>
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className={styles.formRow}>
-            <div className={`${styles.field} ${styles['field--full']}`}>
-              <label>H/W 증상</label>
-              <textarea
-                name="hwSymptom"
-                value={formData.hwSymptom}
-                onChange={handleChange}
-                placeholder="증상 설명"
-                rows="3"
-              />
+          {formData.category !== '신규납품' && (
+            <div className={styles.formRow}>
+              <div className={`${styles.field} ${styles['field--full']}`}>
+                <label>H/W 증상</label>
+                <textarea
+                  name="hwSymptom"
+                  value={formData.hwSymptom}
+                  onChange={handleChange}
+                  placeholder="증상 설명"
+                  rows="3"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <div className={styles.formRow}>
             <div className={styles.field}>
