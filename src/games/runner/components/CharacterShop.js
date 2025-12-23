@@ -32,7 +32,7 @@ const CharacterShop = ({
         if (!res.ok) throw new Error('상점 데이터 로드 실패');
 
         const json = await res.json();
-        console.log('API 응답:', json); // 디버그: 응답 데이터 확인
+        // console.log('API 응답:', json); // 디버그: 응답 데이터 확인
         if (json.success) {
           const cats = json.categories || [];
           setCategories(cats);
@@ -81,18 +81,78 @@ const CharacterShop = ({
 
   // 별도 인기 섹션 제거: 서버에서 popular 플래그로 전달받아 카드에 뱃지로 표시
 
-  // 선택된 카테고리의 아이템 필터링 (대소문자/공백 안전)
+  // 선택된 카테고리의 아이템 필터링 및 정렬 (할인 → 한정 → 인기 순)
   const categoryItems = selectedCategory
-    ? items.filter((item) => {
-        const a = (item && item.category ? String(item.category) : '')
-          .toUpperCase()
-          .trim();
-        const b = (selectedCategory ? String(selectedCategory) : '')
-          .toUpperCase()
-          .trim();
-        return a === b;
-      })
-    : items;
+    ? items
+        .filter((item) => {
+          const a = (item && item.category ? String(item.category) : '')
+            .toUpperCase()
+            .trim();
+          const b = (selectedCategory ? String(selectedCategory) : '')
+            .toUpperCase()
+            .trim();
+          return a === b;
+        })
+        .sort((a, b) => {
+          // 1순위: 한정판 아이템 (LIMITED)
+          const aIsLimited = a.eventType === 'LIMITED';
+          const bIsLimited = b.eventType === 'LIMITED';
+
+          if (aIsLimited && !bIsLimited) return -1;
+          if (!aIsLimited && bIsLimited) return 1;
+
+          // 2순위: 할인 중인 아이템 (DISCOUNT)
+          const aHasDiscount =
+            a.eventType &&
+            a.eventType !== 'NONE' &&
+            a.eventDiscountRate > 0 &&
+            a.discountedPrice < a.price;
+          const bHasDiscount =
+            b.eventType &&
+            b.eventType !== 'NONE' &&
+            b.eventDiscountRate > 0 &&
+            b.discountedPrice < b.price;
+
+          if (aHasDiscount && !bHasDiscount) return -1;
+          if (!aHasDiscount && bHasDiscount) return 1;
+
+          // 3순위: 인기 아이템
+          if (a.popular && !b.popular) return -1;
+          if (!a.popular && b.popular) return 1;
+
+          // 4순위: 원래 정렬 순서 (sortOrder)
+          return (a.sortOrder || 0) - (b.sortOrder || 0);
+        })
+    : items.sort((a, b) => {
+        // 1순위: 한정판 아이템 (LIMITED)
+        const aIsLimited = a.eventType === 'LIMITED';
+        const bIsLimited = b.eventType === 'LIMITED';
+
+        if (aIsLimited && !bIsLimited) return -1;
+        if (!aIsLimited && bIsLimited) return 1;
+
+        // 2순위: 할인 중인 아이템 (DISCOUNT)
+        const aHasDiscount =
+          a.eventType &&
+          a.eventType !== 'NONE' &&
+          a.eventDiscountRate > 0 &&
+          a.discountedPrice < a.price;
+        const bHasDiscount =
+          b.eventType &&
+          b.eventType !== 'NONE' &&
+          b.eventDiscountRate > 0 &&
+          b.discountedPrice < b.price;
+
+        if (aHasDiscount && !bHasDiscount) return -1;
+        if (!aHasDiscount && bHasDiscount) return 1;
+
+        // 3순위: 인기 아이템
+        if (a.popular && !b.popular) return -1;
+        if (!a.popular && b.popular) return 1;
+
+        // 4순위: 원래 정렬 순서 (sortOrder)
+        return (a.sortOrder || 0) - (b.sortOrder || 0);
+      });
 
   // 구매 처리
   const handlePurchaseItem = async (item) => {
@@ -101,9 +161,17 @@ const CharacterShop = ({
       return;
     }
 
-    if (coins < item.price) {
+    // 할인가가 있으면 할인가를, 없으면 원가를 사용
+    const finalPrice =
+      item.discountedPrice !== undefined &&
+      item.eventType &&
+      item.eventType !== 'NONE'
+        ? item.discountedPrice
+        : item.price;
+
+    if (coins < finalPrice) {
       showToast(
-        `코인이 부족합니다. 필요: ${item.price}, 보유: ${coins}`,
+        `코인이 부족합니다. 필요: ${finalPrice}, 보유: ${coins}`,
         'warning'
       );
       return;
@@ -229,19 +297,33 @@ const CharacterShop = ({
             <div className={styles['items-grid']}>
               {categoryItems.map((item) => {
                 const isPurchased = purchasedItems.includes(item.id);
-                const canAfford = coins >= item.price;
+                const hasDiscount =
+                  item.eventType &&
+                  item.eventType !== 'NONE' &&
+                  item.discountedPrice !== undefined &&
+                  item.discountedPrice < item.price;
+                const finalPrice = hasDiscount
+                  ? item.discountedPrice
+                  : item.price;
+                const canAfford = coins >= finalPrice;
 
                 return (
                   <div
                     key={item.id}
                     className={`${styles['item-card']} ${
                       isPurchased ? styles['purchased'] : ''
-                    }`}
+                    } ${hasDiscount ? styles['on-sale'] : ''}`}
                     onClick={() =>
                       !isPurchased && setSelectedItemForDetails(item)
                     }
                   >
-                    {item.popular && (
+                    {/* 이벤트 배지 표시 */}
+                    {hasDiscount && (
+                      <div className={styles['badge-discount']}>
+                        {item.eventLabel || `${item.eventDiscountRate}% 할인`}
+                      </div>
+                    )}
+                    {item.popular && !hasDiscount && (
                       <div className={styles['badge-popular']}>🔥 인기</div>
                     )}
                     <div className={styles['item-emoji']}>{item.emoji}</div>
@@ -253,6 +335,15 @@ const CharacterShop = ({
                         <span className={styles['purchased-label']}>
                           ✓ 보유중
                         </span>
+                      ) : hasDiscount ? (
+                        <div className={styles['price-with-discount']}>
+                          <span className={styles['original-price']}>
+                            💰 {item.price}
+                          </span>
+                          <span className={styles['discounted-price']}>
+                            💰 {finalPrice}
+                          </span>
+                        </div>
                       ) : (
                         <>
                           <span className={styles['coin-icon']}>💰</span>
@@ -301,14 +392,49 @@ const CharacterShop = ({
                 {selectedItemForDetails.description}
               </p>
               <div className={styles['price-info']}>
-                💰 {selectedItemForDetails.price} 코인
+                {selectedItemForDetails.eventType &&
+                selectedItemForDetails.eventType !== 'NONE' &&
+                selectedItemForDetails.discountedPrice !== undefined &&
+                selectedItemForDetails.discountedPrice <
+                  selectedItemForDetails.price ? (
+                  <>
+                    <div className={styles['discount-label']}>
+                      {selectedItemForDetails.eventLabel ||
+                        `${selectedItemForDetails.eventDiscountRate}% 할인`}
+                    </div>
+                    <div className={styles['price-comparison']}>
+                      <span className={styles['modal-original-price']}>
+                        💰 {selectedItemForDetails.price}
+                      </span>
+                      <span className={styles['modal-discounted-price']}>
+                        💰 {selectedItemForDetails.discountedPrice} 코인
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <>💰 {selectedItemForDetails.price} 코인</>
+                )}
               </div>
               <button
                 className={`${styles['buy-button-modal']} ${
-                  coins < selectedItemForDetails.price ? styles['disabled'] : ''
+                  coins <
+                  (selectedItemForDetails.discountedPrice !== undefined &&
+                  selectedItemForDetails.eventType &&
+                  selectedItemForDetails.eventType !== 'NONE'
+                    ? selectedItemForDetails.discountedPrice
+                    : selectedItemForDetails.price)
+                    ? styles['disabled']
+                    : ''
                 }`}
                 onClick={() => handlePurchaseItem(selectedItemForDetails)}
-                disabled={coins < selectedItemForDetails.price || purchasing}
+                disabled={
+                  coins <
+                    (selectedItemForDetails.discountedPrice !== undefined &&
+                    selectedItemForDetails.eventType &&
+                    selectedItemForDetails.eventType !== 'NONE'
+                      ? selectedItemForDetails.discountedPrice
+                      : selectedItemForDetails.price) || purchasing
+                }
               >
                 {purchasing ? '처리 중...' : '구매하기'}
               </button>
