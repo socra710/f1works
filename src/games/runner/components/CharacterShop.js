@@ -164,7 +164,19 @@ const CharacterShop = ({
       >
         <div className={styles['modal-header']}>
           <h1>🏪 상점</h1>
-          <div className={styles['coin-badge']}>💰 {coins}</div>
+          <div className={styles['header-actions']}>
+            <div className={styles['coin-badge']}>💰 {coins}</div>
+            {onClose && (
+              <button
+                type="button"
+                className={styles['close-modal-btn']}
+                onClick={onClose}
+                aria-label="닫기"
+              >
+                ×
+              </button>
+            )}
+          </div>
         </div>
 
         {/* 카테고리 탭 - 더 명확하게 구분 */}
