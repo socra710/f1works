@@ -28,7 +28,7 @@ const TableHeader = ({ isNewView }) => (
       <th>구분</th>
       <th>접수번호</th>
       <th>H/W 명</th>
-      <th>대수</th>
+      <th>수량</th>
       <th>담당자</th>
       <th>납품일</th>
       <th>납품처</th>

@@ -199,7 +199,7 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
 
           <div className={styles.formRow}>
             <div className={styles.field}>
-              <label>대수 *</label>
+              <label>수량 *</label>
               <input
                 type="number"
                 name="quantity"
