@@ -3055,6 +3055,15 @@ export default function Expense() {
                 </button>
                 <button
                   type="button"
+                  onClick={handleNoSubmit}
+                  className="btn-secondary"
+                  style={{ backgroundColor: '#6c757d', color: 'white' }}
+                  disabled={false}
+                >
+                  제출없음
+                </button>
+                <button
+                  type="button"
                   onClick={handleSubmit}
                   className="btn-primary"
                   disabled={false}
