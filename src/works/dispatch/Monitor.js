@@ -117,9 +117,10 @@ export default function Monitor() {
           }
 
           if (e.success === 'false') {
-            alert(
-              '시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' +
-                e.message
+            showToast(
+              '시스템 내부 문제가 발생했습니다. 상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요. 상세내용 >> ' +
+                e.message,
+              'error'
             );
             return;
           }
@@ -188,9 +189,10 @@ export default function Monitor() {
         }
 
         if (e.success === 'false') {
-          alert(
-            '시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' +
-              e.message
+          showToast(
+            '시스템 내부 문제가 발생했습니다. 상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요. 상세내용 >> ' +
+              e.message,
+            'error'
           );
           return;
         }
@@ -398,23 +400,18 @@ export default function Monitor() {
           .then((e) => e.json())
           .then((e) => {
             if (e.success === 'false') {
-              alert(
-                '시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' +
-                  e.message
+              showToast(
+                '시스템 내부 문제가 발생했습니다. 상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요. 상세내용 >> ' +
+                  e.message,
+                'error'
               );
               return;
             }
 
-            const x = document.getElementById('snackbar');
-            x.className = 'show';
-            x.innerHTML = '모니터가 신청 되었습니다.';
+            showToast('모니터가 신청 되었습니다.', 'success');
 
             document.querySelector('#lightbox').style.display = 'none';
             document.getElementById('myForm').style.display = 'none';
-
-            setTimeout(function () {
-              x.className = x.className.replace('show', '');
-            }, 3000);
 
             onViewDispatch();
           });
@@ -469,23 +466,18 @@ export default function Monitor() {
           .then((e) => e.json())
           .then((e) => {
             if (e.success === 'false') {
-              alert(
-                '시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' +
-                  e.message
+              showToast(
+                '시스템 내부 문제가 발생했습니다. 상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요. 상세내용 >> ' +
+                  e.message,
+                'error'
               );
               return;
             }
 
-            const x = document.getElementById('snackbar');
-            x.className = 'show';
-            x.innerHTML = '수정 되었습니다.';
+            showToast('수정 되었습니다.', 'success');
 
             document.querySelector('#lightbox').style.display = 'none';
             document.getElementById('myForm').style.display = 'none';
-
-            setTimeout(function () {
-              x.className = x.className.replace('show', '');
-            }, 3000);
 
             onViewDispatch();
           });
@@ -544,23 +536,18 @@ export default function Monitor() {
             .then((e) => e.json())
             .then((e) => {
               if (e.success === 'false') {
-                alert(
-                  '시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' +
-                    e.message
+                showToast(
+                  '시스템 내부 문제가 발생했습니다. 상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요. 상세내용 >> ' +
+                    e.message,
+                  'error'
                 );
                 return;
               }
 
-              const x = document.getElementById('snackbar');
-              x.className = 'show';
-              x.innerHTML = '삭제 되었습니다.';
+              showToast('삭제 되었습니다.', 'success');
 
               document.querySelector('#lightbox').style.display = 'none';
               document.getElementById('myForm').style.display = 'none';
-
-              setTimeout(function () {
-                x.className = x.className.replace('show', '');
-              }, 3000);
 
               onViewDispatch();
             });
