@@ -6,6 +6,7 @@ import HardwareForm from './HardwareForm';
 import HardwareInfo from './components/HardwareInfo';
 import HardwareFilter from './components/HardwareFilter';
 import HardwareTable from './components/HardwareTable';
+import { printTransactionSheets } from './components/TransactionPrint';
 import { useHardwareAPI } from './hooks/useHardwareAPI';
 import { useToast, useDialog } from '../../common/Toast';
 import {
@@ -22,6 +23,7 @@ const Hardware = () => {
   const [showForm, setShowForm] = useState(false);
   const [selectedHardware, setSelectedHardware] = useState(null);
   const [filter, setFilter] = useState('all'); // all, new, repair
+  const [selectedIds, setSelectedIds] = useState(new Set());
   const [authChecked, setAuthChecked] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
@@ -86,6 +88,21 @@ const Hardware = () => {
     if (refresh) {
       fetchHardwareList();
     }
+  };
+
+  const onToggleSelect = (id, checked) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  };
+
+  const handlePrintSelected = () => {
+    if (!selectedIds.size) return;
+    const rows = hardwareList.filter((r) => selectedIds.has(r.hwId));
+    printTransactionSheets(rows);
   };
 
   const filteredList = hardwareList.filter((hw) => {
@@ -158,6 +175,8 @@ const Hardware = () => {
           filter={filter}
           setFilter={setFilter}
           hardwareList={hardwareList}
+          onPrintSelected={handlePrintSelected}
+          selectedCount={selectedIds.size}
         />
 
         <HardwareTable
@@ -166,6 +185,8 @@ const Hardware = () => {
           onDelete={handleDelete}
           loading={loading}
           filter={filter}
+          selectedIds={selectedIds}
+          onToggleSelect={onToggleSelect}
         />
       </div>
 
