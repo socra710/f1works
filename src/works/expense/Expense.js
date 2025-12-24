@@ -941,6 +941,8 @@ export default function Expense() {
     // 기본값: 해당 월 1일
     const [year, monthStr] = month.split('-');
     const defaultDate = `${year}-${monthStr}-01`;
+    const selectedMonth = `${year}-${monthStr}`;
+    const today = new Date();
 
     // 직전 경비청구일 +1일(있으면), 없으면 기본값
     const latestExpenseDate = rows
@@ -963,7 +965,25 @@ export default function Expense() {
       ? (() => {
           const d = new Date(latestExpenseDate);
           const isFriday = d.getDay() === 5; // 0: Sun, 5: Fri
-          d.setDate(d.getDate() + (isFriday ? 3 : 1));
+          const sameMonthWithToday =
+            selectedMonth ===
+            `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
+              2,
+              '0'
+            )}`;
+          const todayIsSaturday = today.getDay() === 6;
+          const todayIsSunday = today.getDay() === 0;
+
+          if (isFriday) {
+            // 금요일 이후 주말 당일 추가는 당일로, 그 외는 월요일로 건너뛰기
+            if ((todayIsSaturday || todayIsSunday) && sameMonthWithToday) {
+              return formatDate(today);
+            }
+            d.setDate(d.getDate() + 3);
+            return formatDate(d);
+          }
+
+          d.setDate(d.getDate() + 1);
           return formatDate(d);
         })()
       : defaultDate;
