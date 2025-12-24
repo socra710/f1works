@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Helmet } from 'react-helmet-async'; // 추가
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 export default function Feed() {
   const [newsTop, setNewsTop] = useState([]);
   const [newsNew, setNewsNew] = useState([]);
@@ -13,7 +15,7 @@ export default function Feed() {
     const fetchNews = async (items) => {
       try {
         const response = await axios.get(
-          `https://f1lab.co.kr/com/api/jvWorksGetNewsDesc?factoryCode=000001&userId=`
+          `${API_BASE_URL}/jvWorksGetNewsDesc?factoryCode=000001&userId=`
         );
 
         setNewsNew(response.data.data);
@@ -33,7 +35,7 @@ export default function Feed() {
     const fetchNewsTop = async () => {
       try {
         const response = await axios.get(
-          `https://f1lab.co.kr/com/api/jvWorksGetNewsTop?factoryCode=000001&userId=`
+          `${API_BASE_URL}/jvWorksGetNewsTop?factoryCode=000001&userId=`
         );
 
         fetchNews(response.data.data);
@@ -83,7 +85,11 @@ export default function Feed() {
 
           {loading ? (
             <section className={styles.loadingContainer}>
-              <div className={styles.loadingBar} role="status" aria-label="로딩 중">
+              <div
+                className={styles.loadingBar}
+                role="status"
+                aria-label="로딩 중"
+              >
                 <div className={styles.loadingBarIndicator} />
               </div>
             </section>
