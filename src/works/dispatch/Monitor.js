@@ -18,6 +18,7 @@ export default function Monitor() {
   const [isOpen, setIsOpen] = useState(false);
   const [useDateFrom, setUseDateFrom] = useState('');
   const [useDateTo, setUseDateTo] = useState('');
+  const [allDayYn, setAllDayYn] = useState('');
 
   useEffect(() => {
     let mounted = true;
@@ -95,6 +96,19 @@ export default function Monitor() {
     document.querySelector('#div02').setAttribute('style', 'display:none');
 
     document.querySelector('#appNo').removeAttribute('disabled');
+
+    // 종일 초기화 및 시간 필드 초기화
+    const allDayCheckbox = document.querySelector('#allDayYn');
+    if (allDayCheckbox) {
+      allDayCheckbox.checked = false;
+      setAllDayYn('N');
+    }
+    const from = document.querySelector('#useTimeFrom');
+    const to = document.querySelector('#useTimeTo');
+    if (from && to) {
+      from.value = '';
+      to.value = '';
+    }
   }, []);
 
   const onModifyForm = useCallback(
@@ -145,6 +159,16 @@ export default function Monitor() {
           document.querySelector('#btnDelete').setAttribute('style', '');
 
           document.getElementById('myForm').style.display = 'block';
+
+          // 수정 모드: 2열로 되돌리고 종일 체크박스 숨김
+          const rowUse = document.querySelector('#rowUse');
+          if (rowUse) {
+            rowUse.style.gridTemplateColumns = 'repeat(2, minmax(220px, 1fr))';
+          }
+          const divAllDay = document.querySelector('#divAllDay');
+          if (divAllDay) {
+            divAllDay.style.display = 'none';
+          }
 
           document.querySelector('#dispatchNo').value = item.DISPATCH_NO;
           document.querySelector('#appNo').value = item.APP_NO;
@@ -314,6 +338,19 @@ export default function Monitor() {
     setUseDateTo(newDateFrom);
   };
 
+  const handleAllDayChange = (event) => {
+    const isChecked = event.target.checked;
+    setAllDayYn(isChecked ? 'Y' : 'N');
+    if (isChecked) {
+      const from = document.querySelector('#useTimeFrom');
+      const to = document.querySelector('#useTimeTo');
+      if (from && to) {
+        from.value = '09:00';
+        to.value = '18:00';
+      }
+    }
+  };
+
   useEffect(() => {
     if (!authUser) {
       return;
@@ -342,6 +379,17 @@ export default function Monitor() {
         .setAttribute('style', 'visibility:hidden');
 
       document.getElementById('myForm').style.display = 'block';
+
+      // 신규 모드: 3열 구성 + 종일 체크박스 표시
+      const rowUse = document.querySelector('#rowUse');
+      if (rowUse) {
+        rowUse.style.gridTemplateColumns =
+          'minmax(260px, 1fr) max-content minmax(260px, 1fr)';
+      }
+      const divAllDay = document.querySelector('#divAllDay');
+      if (divAllDay) {
+        divAllDay.style.display = '';
+      }
     };
 
     const handleClose = () => {
@@ -796,8 +844,9 @@ export default function Monitor() {
 
         <div className={styles['form-popup']} id="myForm">
           <form id="formDispatch" className={styles['form-container']}>
-            <h3>모니터 신청</h3>
-            <hr style={{ margin: '0 0 1rem 0' }} />
+            <div className={styles['form-header']}>
+              <h3>모니터 신청</h3>
+            </div>
 
             <div className={styles['form-row']}>
               <div className={`${styles['field']} ${styles['field--full']}`}>
@@ -851,7 +900,10 @@ export default function Monitor() {
               </div>
             </div>
 
-            <div className={styles['form-row']}>
+            <div
+              id="rowUse"
+              className={`${styles['form-row']} ${styles['form-row--three']}`}
+            >
               <div className={styles['field']}>
                 <label htmlFor="useDate">
                   <b>사용일</b>
@@ -875,6 +927,21 @@ export default function Monitor() {
                     required
                   />
                 </div>
+              </div>
+
+              <div
+                id="divAllDay"
+                className={`${styles['field']} ${styles['field--checkbox']}`}
+              >
+                <label htmlFor="allDayYn">
+                  <input
+                    type="checkbox"
+                    id="allDayYn"
+                    name="allDayYn"
+                    onChange={handleAllDayChange}
+                  />
+                  <b>종일</b>
+                </label>
               </div>
 
               <div className={styles['field']}>

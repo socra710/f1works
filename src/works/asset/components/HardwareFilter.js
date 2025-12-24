@@ -38,7 +38,9 @@ const HardwareFilter = ({
       </button>
       <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem' }}>
         <button
-          className={styles.filterButton}
+          className={`${styles.filterButton} ${
+            selectedCount ? styles.filterActive : ''
+          }`}
           onClick={onPrintSelected}
           disabled={!selectedCount}
           title={selectedCount ? `${selectedCount}건 출력` : '선택 항목 없음'}
