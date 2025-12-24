@@ -4,15 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async'; // 추가
 import { waitForExtensionLogin, isMobileUA } from '../common/extensionLogin';
 import { useToast } from '../common/Toast';
-
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import koLocale from '@fullcalendar/core/locales/ko';
-
 import ModalHelp from './components/ModalHelp';
+
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 export default function Calendar() {
   const navigate = useNavigate();
@@ -77,7 +77,7 @@ export default function Calendar() {
   const onViewCalendar = () => {
     var myId = authUser === 'm' ? 'MOBILE' : atob(authUser);
     const query = 'factoryCode=000001&userId=' + myId;
-    fetch('https://f1lab.co.kr/com/api/jvWorksGetCalendar?' + query, {})
+    fetch(`${API_BASE_URL}/jvWorksGetCalendar?${query}`, {})
       .then((e) => e.json())
       .then((e) => {
         if (e.data.length === 0) {

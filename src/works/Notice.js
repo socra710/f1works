@@ -3,6 +3,8 @@ import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async'; // 추가
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 export default function Notice() {
   // useParams를 통해 파라미터를 받아옵니다.
   const { id, gbn, usrId } = useParams();
@@ -26,7 +28,7 @@ export default function Notice() {
       '&gbn=' +
       atob(gbn);
 
-    fetch('https://f1lab.co.kr/com/api/jvWorksGetNotice?' + query, {})
+    fetch(`${API_BASE_URL}/jvWorksGetNotice?${query}`, {})
       .then((response) => response.json())
       .then((data) => {
         if (data.success === 'false') {
