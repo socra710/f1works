@@ -18,14 +18,22 @@ const formatMoney = (v) => {
 const TableHeader = ({ isNewView }) => (
   <thead>
     <tr className={styles.groupHeaderRow}>
-      <th colSpan={isNewView ? 12 : 12} className={styles.groupHeaderMain}>
+      <th colSpan={isNewView ? 11 : 11} className={styles.groupHeaderMain}>
         기본 정보
       </th>
       {!isNewView && (
-        <th colSpan="5" className={styles.groupHeaderAccent}>
-          A/S 접수
-        </th>
+        <>
+          <th colSpan="2" className={styles.groupHeaderAccent}>
+            회수 정보
+          </th>
+          <th colSpan="3" className={styles.groupHeaderAccent}>
+            A/S 및 제작사
+          </th>
+        </>
       )}
+      <th rowSpan="2" className={styles.groupHeaderAction}>
+        출력
+      </th>
       <th rowSpan="2" className={styles.groupHeaderAction}>
         관리
       </th>
@@ -47,7 +55,6 @@ const TableHeader = ({ isNewView }) => (
       {!isNewView && <th>A/S 상태</th>}
       {!isNewView && <th>H/W 증상</th>}
       {!isNewView && <th>제작사/담당자/연락처</th>}
-      <th>출력</th>
     </tr>
   </thead>
 );
@@ -62,6 +69,38 @@ const HardwareTable = ({
   onToggleSelect,
 }) => {
   const isNewView = filter === 'new';
+
+  const selectedIdArray =
+    selectedIds instanceof Set ? Array.from(selectedIds) : selectedIds || [];
+
+  const findHwById = (id) => filteredList.find((item) => item.hwId === id);
+
+  const getSelectedBaseCustomer = () => {
+    if (!selectedIdArray.length) return null;
+    const first = findHwById(selectedIdArray[0]);
+    if (!first) return null;
+    return (
+      first.customerCode ||
+      first.deliveryLocation ||
+      first.collectionLocation ||
+      ''
+    );
+  };
+
+  const handleSelect = (hw, checked) => {
+    if (checked) {
+      const baseCustomer = getSelectedBaseCustomer();
+      const targetCustomer =
+        hw.customerCode || hw.deliveryLocation || hw.collectionLocation || '';
+
+      if (baseCustomer && baseCustomer !== targetCustomer) {
+        alert('동일한 거래처만 선택할 수 있습니다.');
+        return;
+      }
+    }
+
+    if (onToggleSelect) onToggleSelect(hw.hwId, checked);
+  };
   if (loading) {
     const skeletonRows = Array.from({ length: 5 });
     const columnsCount = isNewView ? 13 : 18;
@@ -154,10 +193,7 @@ const HardwareTable = ({
                         ? selectedIds.has(hw.hwId)
                         : selectedIds?.includes?.(hw.hwId)
                     }
-                    onChange={(e) =>
-                      onToggleSelect &&
-                      onToggleSelect(hw.hwId, e.target.checked)
-                    }
+                    onChange={(e) => handleSelect(hw, e.target.checked)}
                   />
                 </td>
                 <td style={{ textAlign: 'center' }}>

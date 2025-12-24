@@ -87,19 +87,24 @@ const CustomerSearchModal = ({ onClose, onSelect }) => {
               <thead>
                 <tr>
                   <th style={{ width: '60px' }}>No</th>
+                  <th style={{ width: '120px' }}>거래처코드</th>
+                  <th style={{ width: '140px' }}>사업자번호</th>
                   <th>거래처명</th>
+                  <th style={{ width: '140px' }}>전화</th>
+                  <th style={{ width: '140px' }}>팩스</th>
+                  <th>주소</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={2} className={styles.noData}>
+                    <td colSpan={7} className={styles.noData}>
                       조회 중...
                     </td>
                   </tr>
                 ) : results.length === 0 ? (
                   <tr>
-                    <td colSpan={2} className={styles.noData}>
+                    <td colSpan={7} className={styles.noData}>
                       결과가 없습니다.
                     </td>
                   </tr>
@@ -107,15 +112,35 @@ const CustomerSearchModal = ({ onClose, onSelect }) => {
                   results.map((row, idx) => (
                     <tr key={`${row.CUSTOMER_NAME}-${idx}`}>
                       <td style={{ textAlign: 'center' }}>{idx + 1}</td>
+                      <td style={{ textAlign: 'center' }}>
+                        {row.CUSTOMER_CODE}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>{row.BUSINESS_NO}</td>
                       <td>
                         <button
                           type="button"
                           className={styles.btnEdit}
-                          onClick={() => onSelect(row.CUSTOMER_NAME)}
+                          onClick={() =>
+                            onSelect({
+                              code: row.CUSTOMER_CODE,
+                              name: row.CUSTOMER_NAME,
+                              tel: row.TELEPHONE_NO,
+                              fax: row.FACSIMILE_NO,
+                              address: row.ADDRESS,
+                              bizNo: row.BUSINESS_NO,
+                            })
+                          }
                         >
                           {row.CUSTOMER_NAME}
                         </button>
                       </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {row.TELEPHONE_NO}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {row.FACSIMILE_NO}
+                      </td>
+                      <td>{row.ADDRESS}</td>
                     </tr>
                   ))
                 )}

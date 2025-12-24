@@ -107,6 +107,14 @@ export const printTransactionSheets = (rows) => {
     </style>`;
 
   const renderSheet = (colorTheme, subtitle) => {
+    const primary = rows?.[0] || {};
+    const customerName =
+      primary.deliveryLocation || primary.collectionLocation || '';
+    const customerBizNo = primary.customerBizNo || primary.customerCode || '';
+    const customerAddr = primary.customerAddress || '';
+    const customerTel = primary.customerTel || '';
+    const customerFax = primary.customerFax || '';
+
     let html = `<div class="page-container ${colorTheme}">`;
     html += `<div class="transaction-header">거래명세서</div>`;
     html += `<div class="subtitle">${subtitle}</div>`;
@@ -120,26 +128,24 @@ export const printTransactionSheets = (rows) => {
         <div class="party-title">공급받는자</div>
         <div class="party-row">
           <div class="party-label">등록번호</div>
-          <div class="party-value">135-86-06250</div>
+          <div class="party-value">${customerBizNo}</div>
         </div>
         <div class="party-row">
           <div class="party-label">상호<br/>(성명)</div>
-          <div class="party-value">${
-            rows[0]?.deliveryLocation || '에프원소프트㈜'
-          }</div>
+          <div class="party-value">${customerName || ''}</div>
         </div>
         <div class="party-row">
           <div class="party-label">사업장<br/>주소</div>
-          <div class="party-value">경기도 화성시 동탄순환대로 823,611호</div>
+          <div class="party-value">${customerAddr || ''}</div>
         </div>
         <div class="party-row party-row-split">
           <div>
-            <div class="party-label">업태</div>
-            <div class="party-value">성명</div>
+            <div class="party-label">전화</div>
+            <div class="party-value">${customerTel || ''}</div>
           </div>
           <div>
-            <div class="party-label">종목</div>
-            <div class="party-value">오승호</div>
+            <div class="party-label">팩스</div>
+            <div class="party-value">${customerFax || ''}</div>
           </div>
         </div>
       </div>
@@ -151,24 +157,24 @@ export const printTransactionSheets = (rows) => {
         <div class="party-title">공급자</div>
         <div class="party-row">
           <div class="party-label">등록번호</div>
-          <div class="party-value">468-86-01233</div>
+          <div class="party-value">135-86-06250</div>
         </div>
         <div class="party-row">
           <div class="party-label">상호<br/>(성명)</div>
-          <div class="party-value">주식회사 솔오아소아이</div>
+          <div class="party-value">에프원소프트(주)</div>
         </div>
         <div class="party-row">
           <div class="party-label">사업장<br/>주소</div>
-          <div class="party-value">경기도 평택시 안골길 34, 4동 1,2층</div>
+          <div class="party-value">경기도 화성시 동탄순환대로 823,611호</div>
         </div>
         <div class="party-row party-row-split">
           <div>
-            <div class="party-label">업태</div>
-            <div class="party-value">성명</div>
+            <div class="party-label">전화</div>
+            <div class="party-value">031-5183-5341</div>
           </div>
           <div>
-            <div class="party-label">종목</div>
-            <div class="party-value">송기석</div>
+            <div class="party-label">팩스</div>
+            <div class="party-value">031-5183-5340</div>
           </div>
         </div>
       </div>
@@ -181,7 +187,7 @@ export const printTransactionSheets = (rows) => {
     html += `
       <thead>
         <tr>
-          <th style="width:35px">월일</th>
+          <th style="width:35px">년/월/일</th>
           <th style="width:45px">품목</th>
           <th style="width:160px">품명</th>
           <th style="width:75px">규격</th>
@@ -199,12 +205,15 @@ export const printTransactionSheets = (rows) => {
       const qty = Number(hw.quantity || 0);
       const supplyRaw = hw.supplyAmount ?? qty * unit;
       const taxRaw = hw.taxAmount ?? Math.round((supplyRaw || 0) * 0.1);
-      const dateStr = hw.deliveryDate || '';
-      const monthDay = dateStr ? dateStr.substring(5).replace('-', '/') : '';
+      const dateStr =
+        hw.category === '고장회수'
+          ? hw.collectionDate || hw.deliveryDate || ''
+          : hw.deliveryDate || hw.collectionDate || '';
+      const dateLabel = dateStr ? dateStr.replace(/-/g, '/') : '';
 
       html += `
         <tr>
-          <td>${monthDay}</td>
+          <td>${dateLabel}</td>
           <td>${hw.category || ''}</td>
           <td class="left" style="padding-left:6px">${hw.hwName || ''}</td>
           <td>${hw.manufacturer || ''}</td>

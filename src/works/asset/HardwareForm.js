@@ -24,6 +24,11 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
     collectionLocation: '',
     deliveryDate: '',
     deliveryLocation: '',
+    customerCode: '',
+    customerAddress: '',
+    customerTel: '',
+    customerFax: '',
+    customerBizNo: '',
     asStatus: '전',
     hwSymptom: '',
     manufacturer: '',
@@ -82,6 +87,11 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
         collectionLocation: hardware.collectionLocation || '',
         deliveryDate: hardware.deliveryDate || '',
         deliveryLocation: hardware.deliveryLocation || '',
+        customerCode: hardware.customerCode || '',
+        customerAddress: hardware.customerAddress || '',
+        customerTel: hardware.customerTel || '',
+        customerFax: hardware.customerFax || '',
+        customerBizNo: hardware.customerBizNo || '',
         asStatus: hardware.asStatus || '전',
         hwSymptom: hardware.hwSymptom || '',
         manufacturer: hardware.manufacturer || '',
@@ -232,6 +242,11 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
       receiptNo: receiptNoToSave,
       manager: managerToSave,
       userId: loginUserId || managerToSave,
+      customerCode: formData.customerCode || '',
+      customerAddress: formData.customerAddress || '',
+      customerTel: formData.customerTel || '',
+      customerFax: formData.customerFax || '',
+      customerBizNo: formData.customerBizNo || '',
       // 회수일/납품일은 미입력 시 빈 문자열로 전송 (DB에서 날짜 변환 오류 방지)
       collectionDate: formData.collectionDate || '',
       deliveryDate: formData.deliveryDate || '',
@@ -552,10 +567,15 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
           {customerModalTarget && (
             <CustomerSearchModal
               onClose={() => setCustomerModalTarget(null)}
-              onSelect={(name) => {
+              onSelect={(customer) => {
                 setFormData((prev) => ({
                   ...prev,
-                  [customerModalTarget]: name,
+                  [customerModalTarget]: customer?.name || '',
+                  customerCode: customer?.code || '',
+                  customerAddress: customer?.address || '',
+                  customerTel: customer?.tel || '',
+                  customerFax: customer?.fax || '',
+                  customerBizNo: customer?.bizNo || '',
                 }));
                 setCustomerModalTarget(null);
               }}
