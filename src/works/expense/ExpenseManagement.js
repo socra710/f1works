@@ -19,7 +19,9 @@ export default function ExpenseManagement() {
   const [authChecked, setAuthChecked] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState('');
   const [expenseList, setExpenseList] = useState([]);
-  const [filterStatus, setFilterStatus] = useState('ALL'); // ALL, SUBMITTED, APPROVED, REJECTED
+  const [filterStatus, setFilterStatus] = useState('ALL'); // ALL, SUBMITTED, COMPLETED, REJECTED, PENDING_MANAGER
+  const [sortKey, setSortKey] = useState('submitDate'); // submitDate | totalPay
+  const [sortOrder, setSortOrder] = useState('DESC'); // DESC | ASC
   const authCheckRef = useRef(false);
   const userIdEncodedRef = useRef(null);
 
@@ -231,13 +233,61 @@ export default function ExpenseManagement() {
   // 상태별 필터링
   const filteredList = expenseList.filter((item) => {
     if (filterStatus === 'ALL') return true;
+    if (filterStatus === 'PENDING_MANAGER') {
+      return item.status === 'SUBMITTED' && !item.managerChecked;
+    }
     return item.status === filterStatus;
   });
 
-  // 관리팀 미확인 건수
-  const pendingManagerCount = filteredList.filter(
-    (item) => item.status === 'SUBMITTED' && !item.managerChecked
-  ).length;
+  const sortedList = [...filteredList].sort((a, b) => {
+    const direction = sortOrder === 'DESC' ? -1 : 1;
+    if (sortKey === 'totalPay') {
+      const av = a.totalPay || 0;
+      const bv = b.totalPay || 0;
+      if (av === bv) return 0;
+      return av > bv ? direction : -direction;
+    }
+    const ad = a.submitDate ? new Date(a.submitDate).getTime() : 0;
+    const bd = b.submitDate ? new Date(b.submitDate).getTime() : 0;
+    if (ad === bd) return 0;
+    return ad > bd ? direction : -direction;
+  });
+
+  // 상태별 카운트 (현재 월 데이터 전체 기준)
+  const statusCounts = {
+    all: expenseList.length,
+    submitted: expenseList.filter((item) => item.status === 'SUBMITTED').length,
+    approved: expenseList.filter((item) => item.status === 'COMPLETED').length,
+    rejected: expenseList.filter((item) => item.status === 'REJECTED').length,
+    pending: expenseList.filter(
+      (item) => item.status === 'SUBMITTED' && !item.managerChecked
+    ).length,
+  };
+
+  const handleStatusPillClick = (value) => {
+    setFilterStatus(value);
+    try {
+      sessionStorage.setItem('expenseMgmtStatus', value);
+    } catch (err) {
+      console.warn('상태 필터 저장 실패:', err);
+    }
+  };
+
+  const statusPills = [
+    { label: '전체', value: 'ALL', count: statusCounts.all },
+    { label: '제출', value: 'SUBMITTED', count: statusCounts.submitted },
+    { label: '승인', value: 'COMPLETED', count: statusCounts.approved },
+    { label: '반려', value: 'REJECTED', count: statusCounts.rejected },
+    { label: '미확인', value: 'PENDING_MANAGER', count: statusCounts.pending },
+  ];
+
+  const statusPillClassMap = {
+    ALL: 'all',
+    SUBMITTED: 'submitted',
+    COMPLETED: 'approved',
+    REJECTED: 'rejected',
+    PENDING_MANAGER: 'pending',
+  };
 
   // 상세 보기
   const handleViewDetail = (expenseId) => {
@@ -555,34 +605,74 @@ export default function ExpenseManagement() {
             />
           </div>
 
-          <div className="status-filter">
-            <label>상태:</label>
-            <select
-              value={filterStatus}
-              onChange={(e) => {
-                const newStatus = e.target.value;
-                setFilterStatus(newStatus);
-                try {
-                  sessionStorage.setItem('expenseMgmtStatus', newStatus);
-                } catch (err) {
-                  console.warn('상태 필터 저장 실패:', err);
-                }
-              }}
-            >
-              <option value="ALL">전체</option>
-              <option value="SUBMITTED">제출</option>
-              <option value="NOT_SUBMITTED">제출없음</option>
-              <option value="COMPLETED">승인</option>
-              <option value="REJECTED">반려</option>
-            </select>
+          <div className="status-badges" aria-label="상태별 건수 요약">
+            {statusPills.map((pill) => {
+              const isActive = filterStatus === pill.value;
+              const toneClass =
+                statusPillClassMap[pill.value] || pill.value.toLowerCase();
+
+              return (
+                <button
+                  type="button"
+                  key={pill.value}
+                  className={`status-pill ${toneClass} ${
+                    isActive ? 'active' : ''
+                  }`}
+                  onClick={() => handleStatusPillClick(pill.value)}
+                >
+                  <span className="pill-icon">
+                    {pill.value === 'SUBMITTED' && '📤'}
+                    {pill.value === 'COMPLETED' && '✅'}
+                    {pill.value === 'REJECTED' && '⛔'}
+                    {pill.value === 'PENDING_MANAGER' && '⌛'}
+                    {pill.value === 'ALL' && '📋'}
+                  </span>
+                  {pill.label} {pill.count}
+                </button>
+              );
+            })}
           </div>
 
           <div className="summary-info">
-            <span>총 {filteredList.length}건</span>
-          </div>
-          <div className="manager-summary" aria-label="관리팀 미확인 건수">
-            <span className="pill-label">관리팀 미확인</span>
-            <span className="pill-count">{pendingManagerCount}건</span>
+            <span>총 {sortedList.length}건</span>
+            <div className="sort-controls" aria-label="정렬">
+              <button
+                type="button"
+                className={`sort-btn ${
+                  sortKey === 'submitDate' ? 'active' : ''
+                }`}
+                onClick={() => {
+                  setSortKey('submitDate');
+                  setSortOrder((prev) =>
+                    sortKey === 'submitDate' && prev === 'DESC' ? 'ASC' : 'DESC'
+                  );
+                }}
+              >
+                제출일{' '}
+                {sortKey === 'submitDate'
+                  ? sortOrder === 'DESC'
+                    ? '▼'
+                    : '▲'
+                  : ''}
+              </button>
+              <button
+                type="button"
+                className={`sort-btn ${sortKey === 'totalPay' ? 'active' : ''}`}
+                onClick={() => {
+                  setSortKey('totalPay');
+                  setSortOrder((prev) =>
+                    sortKey === 'totalPay' && prev === 'DESC' ? 'ASC' : 'DESC'
+                  );
+                }}
+              >
+                지급액{' '}
+                {sortKey === 'totalPay'
+                  ? sortOrder === 'DESC'
+                    ? '▼'
+                    : '▲'
+                  : ''}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -603,7 +693,7 @@ export default function ExpenseManagement() {
               </thead>
               <tbody>{renderSkeletonRows(8)}</tbody>
             </table>
-          ) : filteredList.length === 0 ? (
+          ) : sortedList.length === 0 ? (
             <div className="empty-state">
               <p>조회된 경비 청구 내역이 없습니다.</p>
             </div>
@@ -622,21 +712,45 @@ export default function ExpenseManagement() {
                 </tr>
               </thead>
               <tbody>
-                {filteredList.map((item, index) => (
+                {sortedList.map((item, index) => (
                   <tr key={index} className={getRowClassName(item)}>
-                    <td>{formatDateTime(item.submitDate)}</td>
+                    <td className="date-cell">
+                      <div className="date-primary">
+                        {formatDateTime(item.submitDate)}
+                      </div>
+                      <div className="date-sub">
+                        {item.approveDate
+                          ? formatDateTime(item.approveDate)
+                          : '미확인'}
+                      </div>
+                    </td>
                     <td>{item.userName}</td>
                     <td>{item.userId}</td>
                     <td className="amount">{formatAmount(item.totalPay)}원</td>
                     <td>{getStatusBadge(item.status)}</td>
                     <td>
                       {item.managerChecked ? (
-                        <span className="check-icon">✓</span>
+                        <span className="check-icon" title="관리팀 확인 완료">
+                          ✓
+                        </span>
                       ) : (
-                        <span className="uncheck-icon">-</span>
+                        <span className="uncheck-icon" title="미확인">
+                          -
+                        </span>
                       )}
                     </td>
-                    <td className="memo-cell">{item.memo || '-'}</td>
+                    <td className="memo-cell">
+                      {item.memo ? (
+                        <span className="memo-chip" title={item.memo}>
+                          💬{' '}
+                          {item.memo.length > 20
+                            ? `${item.memo.slice(0, 20)}…`
+                            : item.memo}
+                        </span>
+                      ) : (
+                        '-'
+                      )}
+                    </td>
                     <td>
                       <button
                         className="btn-view"

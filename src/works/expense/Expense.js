@@ -1478,7 +1478,7 @@ export default function Expense() {
         // 임시 저장 데이터 삭제
         localStorage.removeItem(`expense_temp_${month}_${userId}`);
         showToast('경비 청구서가 제출되었습니다.', 'success');
-        setTimeout(() => navigate('/works'), 1500);
+        navigate('/works');
       } else {
         showToast(result.message || '', 'error');
       }
@@ -1545,7 +1545,7 @@ export default function Expense() {
         // 임시 저장 데이터 삭제
         localStorage.removeItem(`expense_temp_${month}_${userId}`);
         showToast('제출없음으로 처리되었습니다. (자동 승인)', 'success');
-        setTimeout(() => navigate('/works'), 1500);
+        navigate(-1);
       } else {
         showToast(result.message || '', 'error');
       }
@@ -1610,7 +1610,7 @@ export default function Expense() {
           }되었습니다.`,
           'success'
         );
-        setTimeout(() => navigate('/works/expense-management'), 1500);
+        navigate(-1);
       } else {
         showToast(result.message || '', 'error');
       }

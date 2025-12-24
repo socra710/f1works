@@ -161,18 +161,22 @@
 
 .filter-section {
   display: flex;
-  gap: 2rem;
+  gap: 1rem;
   align-items: center;
   margin-bottom: 2rem;
-  padding: 1.5rem;
+  padding: 1rem 1.25rem;
   background: linear-gradient(
     135deg,
-    rgba(102, 126, 234, 0.1) 0%,
-    rgba(118, 75, 162, 0.1) 100%
+    rgba(102, 126, 234, 0.08) 0%,
+    rgba(118, 75, 162, 0.08) 100%
   );
   border-radius: 12px;
   flex-wrap: wrap;
-  border: 1px solid rgba(102, 126, 234, 0.2);
+  border: 1px solid rgba(102, 126, 234, 0.18);
+  position: sticky;
+  top: 8px;
+  z-index: 5;
+  backdrop-filter: blur(6px);
 }
 
 .month-selector,
@@ -210,12 +214,15 @@
 .summary-info {
   margin-left: auto;
   font-weight: 600;
-  color: #667eea;
-  font-size: 1.05rem;
-  padding: 0.5rem 1rem;
+  color: #111827;
+  font-size: 1rem;
+  padding: 0.5rem 0.75rem;
   background: white;
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .manager-summary {
@@ -243,6 +250,105 @@
   text-align: center;
   font-size: 0.9rem;
   font-weight: 800;
+}
+
+.status-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #1f2937;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.status-pill .pill-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-pill.submitted {
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.status-pill.approved {
+  background: #e8f7ef;
+  color: #14804a;
+}
+
+.status-pill.rejected {
+  background: #fde8e8;
+  color: #c81e1e;
+}
+
+.status-pill.pending {
+  background: #fff4d6;
+  color: #b45309;
+}
+
+.status-pill.all {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.status-pill.active {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+  border-color: #a5b4fc;
+}
+
+.sort-controls {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.sort-btn {
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  color: #000;
+}
+
+.sort-btn.active {
+  border-color: #a5b4fc;
+  background: #eef2ff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.sort-btn:hover {
+  transform: translateY(-1px);
+}
+
+.date-cell {
+  text-align: left;
+}
+
+.date-primary {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.date-sub {
+  font-size: 0.85rem;
+  color: #6b7280;
 }
 
 .expense-list-table {
@@ -360,6 +466,19 @@
   white-space: nowrap;
   text-align: left;
   padding-left: 1rem;
+}
+
+.memo-chip {
+  display: inline-block;
+  background: #eef2ff;
+  color: #4338ca;
+  padding: 0.25rem 0.55rem;
+  border-radius: 8px;
+  font-weight: 700;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .status-badge {
