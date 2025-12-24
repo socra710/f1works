@@ -58,6 +58,7 @@ export default function Expense() {
     { name: 'LPG', price: 999, efficiency: 12.8 },
   ]);
   const [maintenanceRate, setMaintenanceRate] = useState(1.2);
+  const [hasFuelSettings, setHasFuelSettings] = useState(true);
   const monthInputRef = useRef(null);
   const [rows, setRows] = useState([
     {
@@ -269,6 +270,7 @@ export default function Expense() {
 
       if (!response.ok) {
         console.error('유류비 설정 조회 실패:', response.status);
+        setHasFuelSettings(false);
         return;
       }
 
@@ -276,6 +278,11 @@ export default function Expense() {
 
       if (result) {
         const data = result;
+
+        // 유류비 설정 여부 체크
+        const hasSettings =
+          data && (data.gasoline > 0 || data.diesel > 0 || data.lpg > 0);
+        setHasFuelSettings(hasSettings);
 
         // 유류 타입 업데이트
         const updatedFuelTypes = [
@@ -324,9 +331,12 @@ export default function Expense() {
             calculatedUserEff.toString()
           );
         }
+      } else {
+        setHasFuelSettings(false);
       }
     } catch (error) {
       console.error('유류비 설정 조회 오류:', error);
+      setHasFuelSettings(false);
     }
   };
 
@@ -1779,6 +1789,24 @@ export default function Expense() {
             </div>
           )}
         </div>
+
+        {/* 유류비 미설정 경고 배너 */}
+        {!hasFuelSettings &&
+          month &&
+          rows.some((row) => row.type === 'fuel') && (
+            <div className="fuel-warning-banner">
+              <div className="warning-content">
+                <span className="warning-icon">⚠️</span>
+                <div className="warning-text">
+                  <strong>{month} 유류비 단가가 설정되지 않았습니다</strong>
+                  <p>
+                    유류비 항목 입력 시 단가 0원으로 계산됩니다. 관리자에게
+                    문의하세요.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
         {/* 기본 정보 */}
         <section className="expense-section">
