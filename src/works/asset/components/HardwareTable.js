@@ -8,17 +8,32 @@ const formatDate = (value) => {
   return value;
 };
 
+const formatMoney = (v) => {
+  if (v === null || v === undefined || v === '') return '-';
+  const n = Number(String(v).replace(/,/g, ''));
+  if (isNaN(n)) return '-';
+  return n.toLocaleString('ko-KR');
+};
+
 const TableHeader = ({ isNewView }) => (
   <thead>
     <tr className={styles.groupHeaderRow}>
-      <th colSpan={isNewView ? 8 : 10} className={styles.groupHeaderMain}>
+      <th colSpan={isNewView ? 11 : 11} className={styles.groupHeaderMain}>
         기본 정보
       </th>
       {!isNewView && (
-        <th colSpan="3" className={styles.groupHeaderAccent}>
-          A/S 접수
-        </th>
+        <>
+          <th colSpan="2" className={styles.groupHeaderAccent}>
+            회수 정보
+          </th>
+          <th colSpan="3" className={styles.groupHeaderAccent}>
+            A/S 및 제작사
+          </th>
+        </>
       )}
+      <th rowSpan="2" className={styles.groupHeaderAction}>
+        출력
+      </th>
       <th rowSpan="2" className={styles.groupHeaderAction}>
         관리
       </th>
@@ -29,6 +44,9 @@ const TableHeader = ({ isNewView }) => (
       <th>접수번호</th>
       <th>H/W 명</th>
       <th>수량</th>
+      <th>단가</th>
+      <th>공급가액</th>
+      <th>세액</th>
       <th>담당자</th>
       <th>납품일</th>
       <th>납품처</th>
@@ -41,11 +59,51 @@ const TableHeader = ({ isNewView }) => (
   </thead>
 );
 
-const HardwareTable = ({ filteredList, onEdit, onDelete, loading, filter }) => {
+const HardwareTable = ({
+  filteredList,
+  onEdit,
+  onDelete,
+  loading,
+  filter,
+  selectedIds = new Set(),
+  onToggleSelect,
+}) => {
   const isNewView = filter === 'new';
+
+  const selectedIdArray =
+    selectedIds instanceof Set ? Array.from(selectedIds) : selectedIds || [];
+
+  const findHwById = (id) => filteredList.find((item) => item.hwId === id);
+
+  const getSelectedBaseCustomer = () => {
+    if (!selectedIdArray.length) return null;
+    const first = findHwById(selectedIdArray[0]);
+    if (!first) return null;
+    return (
+      first.customerCode ||
+      first.deliveryLocation ||
+      first.collectionLocation ||
+      ''
+    );
+  };
+
+  const handleSelect = (hw, checked) => {
+    if (checked) {
+      const baseCustomer = getSelectedBaseCustomer();
+      const targetCustomer =
+        hw.customerCode || hw.deliveryLocation || hw.collectionLocation || '';
+
+      if (baseCustomer && baseCustomer !== targetCustomer) {
+        alert('동일한 거래처만 선택할 수 있습니다.');
+        return;
+      }
+    }
+
+    if (onToggleSelect) onToggleSelect(hw.hwId, checked);
+  };
   if (loading) {
     const skeletonRows = Array.from({ length: 5 });
-    const columnsCount = isNewView ? 9 : 14;
+    const columnsCount = isNewView ? 13 : 18;
 
     return (
       <div className={styles.hardwareTableWrapper}>
@@ -74,7 +132,7 @@ const HardwareTable = ({ filteredList, onEdit, onDelete, loading, filter }) => {
         <tbody>
           {filteredList.length === 0 ? (
             <tr>
-              <td colSpan={isNewView ? 9 : 14} className={styles.noData}>
+              <td colSpan={isNewView ? 13 : 18} className={styles.noData}>
                 등록된 데이터가 없습니다.
               </td>
             </tr>
@@ -88,6 +146,15 @@ const HardwareTable = ({ filteredList, onEdit, onDelete, loading, filter }) => {
                 <td style={{ textAlign: 'center' }}>{hw.receiptNo || '-'}</td>
                 <td className={styles.hwName}>{hw.hwName}</td>
                 <td style={{ textAlign: 'center' }}>{hw.quantity}</td>
+                <td style={{ textAlign: 'right' }}>
+                  {formatMoney(hw.unitPrice)}
+                </td>
+                <td style={{ textAlign: 'right' }}>
+                  {formatMoney(hw.supplyAmount)}
+                </td>
+                <td style={{ textAlign: 'right' }}>
+                  {formatMoney(hw.taxAmount)}
+                </td>
                 <td style={{ textAlign: 'center' }}>{hw.manager}</td>
                 <td style={{ textAlign: 'center' }}>
                   {formatDate(hw.deliveryDate)}
@@ -118,6 +185,17 @@ const HardwareTable = ({ filteredList, onEdit, onDelete, loading, filter }) => {
                     )}
                   </td>
                 )}
+                <td style={{ textAlign: 'center' }}>
+                  <input
+                    type="checkbox"
+                    checked={
+                      selectedIds instanceof Set
+                        ? selectedIds.has(hw.hwId)
+                        : selectedIds?.includes?.(hw.hwId)
+                    }
+                    onChange={(e) => handleSelect(hw, e.target.checked)}
+                  />
+                </td>
                 <td style={{ textAlign: 'center' }}>
                   <button className={styles.btnEdit} onClick={() => onEdit(hw)}>
                     수정
