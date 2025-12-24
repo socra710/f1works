@@ -1,6 +1,8 @@
 import './Tetris.css';
 import React, { useRef, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../common/Toast';
 
 // Components
 import TetrisBoard from './components/TetrisBoard';
@@ -16,6 +18,23 @@ import { useScoreManagement } from './hooks/useScoreManagement';
 import { addBloodOverlay, addScreenShake } from './utils/effectsUtils';
 
 const Tetris = () => {
+  const navigate = useNavigate();
+  const { showToast } = useToast();
+  const mobileCheckDone = useRef(false);
+
+  useEffect(() => {
+    if (mobileCheckDone.current) return;
+    mobileCheckDone.current = true;
+
+    const isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
+    if (isMobile) {
+      showToast('모바일에서는 플레이 할 수 없습니다.', 'error');
+      navigate('/works');
+    }
+  }, [navigate, showToast]);
   const canvasRef = useRef(null);
   const nextPieceCanvasRef = useRef(null);
   const themes = [

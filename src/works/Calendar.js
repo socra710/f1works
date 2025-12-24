@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async'; // 추가
 import { waitForExtensionLogin, isMobileUA } from '../common/extensionLogin';
+import { useToast } from '../common/Toast';
 
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -15,6 +16,7 @@ import ModalHelp from './components/ModalHelp';
 
 export default function Calendar() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [isMobile, setIsMobile] = useState(false);
   const [authUser, setAuthUser] = useState(false);
@@ -39,18 +41,17 @@ export default function Calendar() {
       if (!mounted) return;
       setIsMobile(uaMobile);
 
-      if (uaMobile) {
-        setAuthUser('m');
-      } else {
-        const extLogin = await waitForExtensionLogin({ minWait: 500, maxWait: 2000 });
-        if (!mounted) return;
-        if (!extLogin) {
-          alert('로그인이 필요한 서비스입니다.');
-          navigate('/works');
-          return;
-        }
-        setAuthUser(extLogin);
+      const extLogin = await waitForExtensionLogin({
+        minWait: 500,
+        maxWait: 2000,
+      });
+      if (!mounted) return;
+      if (!extLogin) {
+        showToast('로그인이 필요한 서비스입니다.', 'error');
+        navigate('/works');
+        return;
       }
+      setAuthUser(extLogin);
 
       const script = document.createElement('script');
       script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js';
@@ -84,9 +85,9 @@ export default function Calendar() {
         }
 
         if (e.success === 'false') {
-          alert(
-            '시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' +
-              e.message
+          showToast(
+            '시스템 내부 문제가 발생했습니다. 관리자에게 문의하세요.',
+            'error'
           );
           return;
         }
@@ -112,7 +113,7 @@ export default function Calendar() {
   // };
 
   const onCreateSch = () => {
-    alert('서비스 준비중..');
+    showToast('서비스 준비중입니다.', 'info');
   };
 
   const resizeListener = () => {

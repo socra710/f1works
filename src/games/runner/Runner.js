@@ -6,6 +6,8 @@ import React, {
   useMemo,
 } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../common/Toast';
 import styles from './Runner.module.css';
 
 // 컴포넌트
@@ -90,6 +92,24 @@ const CHARACTERS = [
 ];
 
 const Runner = () => {
+  const navigate = useNavigate();
+  const { showToast } = useToast();
+  const mobileCheckDone = useRef(false);
+
+  useEffect(() => {
+    if (mobileCheckDone.current) return;
+    mobileCheckDone.current = true;
+
+    const isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
+    if (isMobile) {
+      showToast('모바일에서는 플레이 할 수 없습니다.', 'error');
+      navigate('/works');
+    }
+  }, [navigate, showToast]);
+
   const [gameState, setGameState] = useState('menu'); // menu, playing, gameOver, shop
   const [availableCharacters, setAvailableCharacters] = useState(CHARACTERS); // 사용 가능한 캐릭터 목록
   const [selectedCharacter, setSelectedCharacter] = useState(CHARACTERS[0]);
