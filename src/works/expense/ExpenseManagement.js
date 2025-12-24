@@ -22,6 +22,7 @@ export default function ExpenseManagement() {
   const [filterStatus, setFilterStatus] = useState('ALL'); // ALL, SUBMITTED, COMPLETED, REJECTED, PENDING_MANAGER
   const [sortKey, setSortKey] = useState('submitDate'); // submitDate | totalPay
   const [sortOrder, setSortOrder] = useState('DESC'); // DESC | ASC
+  const [hasFuelSettings, setHasFuelSettings] = useState(true);
   const authCheckRef = useRef(false);
   const userIdEncodedRef = useRef(null);
 
@@ -148,6 +149,9 @@ export default function ExpenseManagement() {
       // 목록 조회
       await fetchExpenseList(factoryCode, initialMonth, userIdEncoded);
 
+      // 유류비 설정 확인
+      await checkFuelSettings(initialMonth);
+
       setIsLoading(false);
     } catch (error) {
       console.error('초기화 오류:', error);
@@ -218,6 +222,8 @@ export default function ExpenseManagement() {
     } catch (err) {
       console.warn('월 선택 저장 실패:', err);
     }
+    // 유류비 설정 확인
+    checkFuelSettings(newMonth);
   };
 
   // 검색 버튼 핸들러
@@ -337,6 +343,35 @@ export default function ExpenseManagement() {
     setShowFuelModal(true);
   };
 
+  // 유류비 설정 확인 (존재 여부만)
+  const checkFuelSettings = async (month) => {
+    try {
+      const factoryCode =
+        window.sessionStorage.getItem('factoryCode') || '000001';
+      const formData = new FormData();
+      formData.append('factoryCode', factoryCode);
+      formData.append('month', month);
+
+      const response = await fetch(`${API_BASE_URL}/jvWorksGetFuelSettings`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // gasoline, diesel, lpg 중 하나라도 0보다 크면 설정됨으로 간주
+        const hasSettings =
+          data && (data.gasoline > 0 || data.diesel > 0 || data.lpg > 0);
+        setHasFuelSettings(hasSettings);
+      } else {
+        setHasFuelSettings(false);
+      }
+    } catch (error) {
+      console.error('유류비 설정 확인 오류:', error);
+      setHasFuelSettings(false);
+    }
+  };
+
   // 유류비 설정 불러오기
   const loadFuelSettings = async (month) => {
     try {
@@ -393,6 +428,8 @@ export default function ExpenseManagement() {
         if (data.success) {
           showToast('유류비 설정이 저장되었습니다.', 'success');
           setShowFuelModal(false);
+          // 설정 저장 후 상태 업데이트
+          checkFuelSettings(fuelSettings.month);
         } else {
           showToast(
             '저장 실패: ' + (data.message || '알 수 없는 오류'),
@@ -576,6 +613,14 @@ export default function ExpenseManagement() {
             </button>
             <button className="btn-fuel-settings" onClick={handleOpenFuelModal}>
               유류비 설정
+              {!hasFuelSettings && (
+                <span
+                  className="fuel-warning-badge"
+                  title="유류비 단가가 설정되지 않았습니다"
+                >
+                  ⚠️
+                </span>
+              )}
             </button>
             <button
               className="btn-fuel-settings"
@@ -591,6 +636,26 @@ export default function ExpenseManagement() {
             </button>
           </div>
         </header>
+
+        {!hasFuelSettings && selectedMonth && (
+          <div className="fuel-warning-banner">
+            <div className="warning-content">
+              <span className="warning-icon">⚠️</span>
+              <div className="warning-text">
+                <strong>
+                  {selectedMonth} 유류비 단가가 설정되지 않았습니다
+                </strong>
+                <p>관리자님, 경비 승인 전 유류비 단가를 먼저 설정해주세요.</p>
+              </div>
+              <button
+                className="btn-warning-action"
+                onClick={handleOpenFuelModal}
+              >
+                지금 설정하기
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="filter-section">
           <div className="month-selector">
