@@ -234,9 +234,22 @@ export default function ExpenseManagement() {
     return item.status === filterStatus;
   });
 
+  // 관리팀 미확인 건수
+  const pendingManagerCount = filteredList.filter(
+    (item) => item.status === 'SUBMITTED' && !item.managerChecked
+  ).length;
+
   // 상세 보기
   const handleViewDetail = (expenseId) => {
     navigate(`/works/expense/${expenseId}?mode=manager`);
+  };
+
+  // 행 상태 클래스
+  const getRowClassName = (item) => {
+    if (item.status === 'SUBMITTED' && !item.managerChecked) {
+      return 'row-manager-pending';
+    }
+    return '';
   };
 
   // 상태 배지 색상
@@ -567,6 +580,10 @@ export default function ExpenseManagement() {
           <div className="summary-info">
             <span>총 {filteredList.length}건</span>
           </div>
+          <div className="manager-summary" aria-label="관리팀 미확인 건수">
+            <span className="pill-label">관리팀 미확인</span>
+            <span className="pill-count">{pendingManagerCount}건</span>
+          </div>
         </div>
 
         <div className="expense-list-table">
@@ -606,7 +623,7 @@ export default function ExpenseManagement() {
               </thead>
               <tbody>
                 {filteredList.map((item, index) => (
-                  <tr key={index}>
+                  <tr key={index} className={getRowClassName(item)}>
                     <td>{formatDateTime(item.submitDate)}</td>
                     <td>{item.userName}</td>
                     <td>{item.userId}</td>
