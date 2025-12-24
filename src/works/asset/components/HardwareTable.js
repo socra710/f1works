@@ -1,6 +1,7 @@
 import React from 'react';
 import styles from '../Hardware.module.css';
 import { StatusBadge, CategoryBadge } from './HardwareBadges';
+import { useToast } from '../../../common/Toast';
 
 const formatDate = (value) => {
   if (!value) return '-';
@@ -69,6 +70,7 @@ const HardwareTable = ({
   onToggleSelect,
 }) => {
   const isNewView = filter === 'new';
+  const { showToast } = useToast();
 
   const selectedIdArray =
     selectedIds instanceof Set ? Array.from(selectedIds) : selectedIds || [];
@@ -94,7 +96,7 @@ const HardwareTable = ({
         hw.customerCode || hw.deliveryLocation || hw.collectionLocation || '';
 
       if (baseCustomer && baseCustomer !== targetCustomer) {
-        alert('동일한 거래처만 선택할 수 있습니다.');
+        showToast('동일한 거래처만 선택할 수 있습니다.', 'warning');
         return;
       }
     }
