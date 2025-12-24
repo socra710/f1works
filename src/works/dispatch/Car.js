@@ -83,6 +83,17 @@ export default function Car() {
         .setAttribute('style', 'visibility:hidden');
 
       document.getElementById('myForm').style.display = 'block';
+      // 신규 모드에서 3열(사용일 | 종일 | 사용시간)로 정렬
+      const rowUse = document.querySelector('#rowUse');
+      if (rowUse) {
+        rowUse.style.gridTemplateColumns =
+          'minmax(260px, 1fr) max-content minmax(260px, 1fr)';
+      }
+      // 신규 모드에서만 종일 체크박스 표시
+      const divAllDay = document.querySelector('#divAllDay');
+      if (divAllDay) {
+        divAllDay.style.display = '';
+      }
     };
 
     const handleClose = () => {
@@ -369,6 +380,25 @@ export default function Car() {
     document.querySelector('#div02').setAttribute('style', 'display:none');
 
     document.querySelector('#appNo').removeAttribute('disabled');
+
+    // allDayYn 초기화
+    const allDayCheckbox = document.querySelector('#allDayYn');
+    if (allDayCheckbox) {
+      allDayCheckbox.checked = false;
+      setAllDayYn('N');
+    }
+
+    // 시간 필드 초기 상태 복원 (활성/필수 유지)
+    const from = document.querySelector('#useTimeFrom');
+    const to = document.querySelector('#useTimeTo');
+    if (from && to) {
+      from.disabled = false;
+      to.disabled = false;
+      from.required = true;
+      to.required = true;
+      from.value = '';
+      to.value = '';
+    }
   }, []);
 
   const onViewDispatch = useCallback(() => {
@@ -563,6 +593,17 @@ export default function Car() {
           document.querySelector('#btnDelete').setAttribute('style', '');
 
           document.getElementById('myForm').style.display = 'block';
+          // 수정 모드에서는 2열(사용일 | 사용시간)로 정렬
+          const rowUse = document.querySelector('#rowUse');
+          if (rowUse) {
+            rowUse.style.gridTemplateColumns = 'repeat(2, minmax(220px, 1fr))';
+          }
+
+          // 수정 모드에서는 종일 체크박스 숨김
+          const divAllDay = document.querySelector('#divAllDay');
+          if (divAllDay) {
+            divAllDay.style.display = 'none';
+          }
 
           document.querySelector('#dispatchNo').value = item.DISPATCH_NO;
           document.querySelector('#appNo').value = item.APP_NO;
@@ -599,6 +640,23 @@ export default function Car() {
     // Additional logic to update useDateTo based on useDateFrom if needed
     const newDateTo = newDateFrom;
     setUseDateTo(newDateTo);
+  };
+
+  const [allDayYn, setAllDayYn] = useState('');
+
+  const handleAllDayChange = (event) => {
+    const isChecked = event.target.checked;
+    setAllDayYn(isChecked ? 'Y' : 'N');
+
+    // 종일 체크 시 기본 시간 세팅 09:00 ~ 18:00
+    if (isChecked) {
+      const from = document.querySelector('#useTimeFrom');
+      const to = document.querySelector('#useTimeTo');
+      if (from && to) {
+        from.value = '09:00';
+        to.value = '18:00';
+      }
+    }
   };
 
   const skeletonRows = Array.from({ length: 5 });
@@ -754,8 +812,9 @@ export default function Car() {
         </main>
         <div className={styles['form-popup']} id="myForm">
           <form id="formDispatch" className={styles['form-container']}>
-            <h3>배차 신청</h3>
-            <hr style={{ margin: '0 0 1rem 0' }} />
+            <div className={styles['form-header']}>
+              <h3>배차 신청</h3>
+            </div>
 
             <div className={styles['form-row']}>
               <div className={`${styles['field']} ${styles['field--full']}`}>
@@ -807,7 +866,10 @@ export default function Car() {
               </div>
             </div>
 
-            <div className={styles['form-row']}>
+            <div
+              id="rowUse"
+              className={`${styles['form-row']} ${styles['form-row--three']}`}
+            >
               <div className={styles['field']}>
                 <label htmlFor="useDate">
                   <b>사용일</b>
@@ -831,6 +893,21 @@ export default function Car() {
                     required
                   />
                 </div>
+              </div>
+
+              <div
+                id="divAllDay"
+                className={`${styles['field']} ${styles['field--checkbox']}`}
+              >
+                <label htmlFor="allDayYn">
+                  <input
+                    type="checkbox"
+                    id="allDayYn"
+                    name="allDayYn"
+                    onChange={handleAllDayChange}
+                  />
+                  <b>종일</b>
+                </label>
               </div>
 
               <div className={styles['field']}>

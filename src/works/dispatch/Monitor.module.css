@@ -462,15 +462,33 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   width: min(710px, 96vw);
   max-height: 90vh;
-  overflow-y: visible;
+  overflow-y: auto;
   overflow-x: hidden;
   border: 1px solid #e6e9f0;
-  padding: 1.25rem 1.25rem 1rem;
+  padding: 0 1.25rem 1rem;
   box-sizing: border-box;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+.form-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #fff;
+  padding: 0.75rem 0;
+  margin: -1.25rem -1.25rem 2.25rem -1.25rem;
+  border-bottom: 1px solid #e5e7ef;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.form-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
 }
 
 .form-container h3 {
@@ -528,6 +546,12 @@
   margin-bottom: 1rem;
 }
 
+/* 3열 구성: 사용일 | 종일 | 사용시간 */
+.form-row--three {
+  grid-template-columns: minmax(260px, 1fr) max-content minmax(260px, 1fr);
+  align-items: end;
+}
+
 .form-actions {
   display: flex;
   justify-content: space-between;
@@ -563,10 +587,39 @@
   width: 100%;
 }
 
+/* 가운데 체크박스 전용 셀 */
+.field--checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-row--three .field--checkbox {
+  align-self: end;
+  justify-self: center;
+}
+
+.field--checkbox label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.field--checkbox input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+}
+
 .inline-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
+}
+
+/* 3열 행에서 좌/우 입력 그룹이 너무 좁아지지 않도록 */
+.form-row--three .inline-row {
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
 }
 
 @media screen and (max-width: 767px) {

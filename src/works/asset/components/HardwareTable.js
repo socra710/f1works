@@ -185,7 +185,18 @@ const HardwareTable = ({
                     )}
                   </td>
                 )}
-                <td style={{ textAlign: 'center' }}>
+                <td
+                  style={{
+                    textAlign: 'center',
+                    backgroundColor: (
+                      selectedIds instanceof Set
+                        ? selectedIds.has(hw.hwId)
+                        : selectedIds?.includes?.(hw.hwId)
+                    )
+                      ? 'rgba(90, 117, 230, 0.15)'
+                      : 'transparent',
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={

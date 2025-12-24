@@ -19,7 +19,10 @@ export default function ExpenseManagement() {
   const [authChecked, setAuthChecked] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState('');
   const [expenseList, setExpenseList] = useState([]);
-  const [filterStatus, setFilterStatus] = useState('ALL'); // ALL, SUBMITTED, APPROVED, REJECTED
+  const [filterStatus, setFilterStatus] = useState('ALL'); // ALL, SUBMITTED, COMPLETED, REJECTED, PENDING_MANAGER
+  const [sortKey, setSortKey] = useState('submitDate'); // submitDate | totalPay
+  const [sortOrder, setSortOrder] = useState('DESC'); // DESC | ASC
+  const [hasFuelSettings, setHasFuelSettings] = useState(true);
   const authCheckRef = useRef(false);
   const userIdEncodedRef = useRef(null);
 
@@ -146,6 +149,9 @@ export default function ExpenseManagement() {
       // 목록 조회
       await fetchExpenseList(factoryCode, initialMonth, userIdEncoded);
 
+      // 유류비 설정 확인
+      await checkFuelSettings(initialMonth);
+
       setIsLoading(false);
     } catch (error) {
       console.error('초기화 오류:', error);
@@ -216,6 +222,8 @@ export default function ExpenseManagement() {
     } catch (err) {
       console.warn('월 선택 저장 실패:', err);
     }
+    // 유류비 설정 확인
+    checkFuelSettings(newMonth);
   };
 
   // 검색 버튼 핸들러
@@ -231,12 +239,73 @@ export default function ExpenseManagement() {
   // 상태별 필터링
   const filteredList = expenseList.filter((item) => {
     if (filterStatus === 'ALL') return true;
+    if (filterStatus === 'PENDING_MANAGER') {
+      return item.status === 'SUBMITTED' && !item.managerChecked;
+    }
     return item.status === filterStatus;
   });
+
+  const sortedList = [...filteredList].sort((a, b) => {
+    const direction = sortOrder === 'DESC' ? -1 : 1;
+    if (sortKey === 'totalPay') {
+      const av = a.totalPay || 0;
+      const bv = b.totalPay || 0;
+      if (av === bv) return 0;
+      return av > bv ? direction : -direction;
+    }
+    const ad = a.submitDate ? new Date(a.submitDate).getTime() : 0;
+    const bd = b.submitDate ? new Date(b.submitDate).getTime() : 0;
+    if (ad === bd) return 0;
+    return ad > bd ? direction : -direction;
+  });
+
+  // 상태별 카운트 (현재 월 데이터 전체 기준)
+  const statusCounts = {
+    all: expenseList.length,
+    submitted: expenseList.filter((item) => item.status === 'SUBMITTED').length,
+    approved: expenseList.filter((item) => item.status === 'COMPLETED').length,
+    rejected: expenseList.filter((item) => item.status === 'REJECTED').length,
+    pending: expenseList.filter(
+      (item) => item.status === 'SUBMITTED' && !item.managerChecked
+    ).length,
+  };
+
+  const handleStatusPillClick = (value) => {
+    setFilterStatus(value);
+    try {
+      sessionStorage.setItem('expenseMgmtStatus', value);
+    } catch (err) {
+      console.warn('상태 필터 저장 실패:', err);
+    }
+  };
+
+  const statusPills = [
+    { label: '전체', value: 'ALL', count: statusCounts.all },
+    { label: '제출', value: 'SUBMITTED', count: statusCounts.submitted },
+    { label: '승인', value: 'COMPLETED', count: statusCounts.approved },
+    { label: '반려', value: 'REJECTED', count: statusCounts.rejected },
+    { label: '미확인', value: 'PENDING_MANAGER', count: statusCounts.pending },
+  ];
+
+  const statusPillClassMap = {
+    ALL: 'all',
+    SUBMITTED: 'submitted',
+    COMPLETED: 'approved',
+    REJECTED: 'rejected',
+    PENDING_MANAGER: 'pending',
+  };
 
   // 상세 보기
   const handleViewDetail = (expenseId) => {
     navigate(`/works/expense/${expenseId}?mode=manager`);
+  };
+
+  // 행 상태 클래스
+  const getRowClassName = (item) => {
+    if (item.status === 'SUBMITTED' && !item.managerChecked) {
+      return 'row-manager-pending';
+    }
+    return '';
   };
 
   // 상태 배지 색상
@@ -272,6 +341,35 @@ export default function ExpenseManagement() {
     // 해당 월의 설정 불러오기
     loadFuelSettings(selectedMonth);
     setShowFuelModal(true);
+  };
+
+  // 유류비 설정 확인 (존재 여부만)
+  const checkFuelSettings = async (month) => {
+    try {
+      const factoryCode =
+        window.sessionStorage.getItem('factoryCode') || '000001';
+      const formData = new FormData();
+      formData.append('factoryCode', factoryCode);
+      formData.append('month', month);
+
+      const response = await fetch(`${API_BASE_URL}/jvWorksGetFuelSettings`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // gasoline, diesel, lpg 중 하나라도 0보다 크면 설정됨으로 간주
+        const hasSettings =
+          data && (data.gasoline > 0 || data.diesel > 0 || data.lpg > 0);
+        setHasFuelSettings(hasSettings);
+      } else {
+        setHasFuelSettings(false);
+      }
+    } catch (error) {
+      console.error('유류비 설정 확인 오류:', error);
+      setHasFuelSettings(false);
+    }
   };
 
   // 유류비 설정 불러오기
@@ -330,6 +428,8 @@ export default function ExpenseManagement() {
         if (data.success) {
           showToast('유류비 설정이 저장되었습니다.', 'success');
           setShowFuelModal(false);
+          // 설정 저장 후 상태 업데이트
+          checkFuelSettings(fuelSettings.month);
         } else {
           showToast(
             '저장 실패: ' + (data.message || '알 수 없는 오류'),
@@ -513,6 +613,14 @@ export default function ExpenseManagement() {
             </button>
             <button className="btn-fuel-settings" onClick={handleOpenFuelModal}>
               유류비 설정
+              {!hasFuelSettings && (
+                <span
+                  className="fuel-warning-badge"
+                  title="유류비 단가가 설정되지 않았습니다"
+                >
+                  ⚠️
+                </span>
+              )}
             </button>
             <button
               className="btn-fuel-settings"
@@ -529,6 +637,26 @@ export default function ExpenseManagement() {
           </div>
         </header>
 
+        {!hasFuelSettings && selectedMonth && (
+          <div className="fuel-warning-banner">
+            <div className="warning-content">
+              <span className="warning-icon">⚠️</span>
+              <div className="warning-text">
+                <strong>
+                  {selectedMonth} 유류비 단가가 설정되지 않았습니다
+                </strong>
+                <p>관리자님, 경비 승인 전 유류비 단가를 먼저 설정해주세요.</p>
+              </div>
+              <button
+                className="btn-warning-action"
+                onClick={handleOpenFuelModal}
+              >
+                지금 설정하기
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="filter-section">
           <div className="month-selector">
             <label>조회 월:</label>
@@ -542,30 +670,74 @@ export default function ExpenseManagement() {
             />
           </div>
 
-          <div className="status-filter">
-            <label>상태:</label>
-            <select
-              value={filterStatus}
-              onChange={(e) => {
-                const newStatus = e.target.value;
-                setFilterStatus(newStatus);
-                try {
-                  sessionStorage.setItem('expenseMgmtStatus', newStatus);
-                } catch (err) {
-                  console.warn('상태 필터 저장 실패:', err);
-                }
-              }}
-            >
-              <option value="ALL">전체</option>
-              <option value="SUBMITTED">제출</option>
-              <option value="NOT_SUBMITTED">제출없음</option>
-              <option value="COMPLETED">승인</option>
-              <option value="REJECTED">반려</option>
-            </select>
+          <div className="status-badges" aria-label="상태별 건수 요약">
+            {statusPills.map((pill) => {
+              const isActive = filterStatus === pill.value;
+              const toneClass =
+                statusPillClassMap[pill.value] || pill.value.toLowerCase();
+
+              return (
+                <button
+                  type="button"
+                  key={pill.value}
+                  className={`status-pill ${toneClass} ${
+                    isActive ? 'active' : ''
+                  }`}
+                  onClick={() => handleStatusPillClick(pill.value)}
+                >
+                  <span className="pill-icon">
+                    {pill.value === 'SUBMITTED' && '📤'}
+                    {pill.value === 'COMPLETED' && '✅'}
+                    {pill.value === 'REJECTED' && '⛔'}
+                    {pill.value === 'PENDING_MANAGER' && '⌛'}
+                    {pill.value === 'ALL' && '📋'}
+                  </span>
+                  {pill.label} {pill.count}
+                </button>
+              );
+            })}
           </div>
 
           <div className="summary-info">
-            <span>총 {filteredList.length}건</span>
+            <span>총 {sortedList.length}건</span>
+            <div className="sort-controls" aria-label="정렬">
+              <button
+                type="button"
+                className={`sort-btn ${
+                  sortKey === 'submitDate' ? 'active' : ''
+                }`}
+                onClick={() => {
+                  setSortKey('submitDate');
+                  setSortOrder((prev) =>
+                    sortKey === 'submitDate' && prev === 'DESC' ? 'ASC' : 'DESC'
+                  );
+                }}
+              >
+                제출일{' '}
+                {sortKey === 'submitDate'
+                  ? sortOrder === 'DESC'
+                    ? '▼'
+                    : '▲'
+                  : ''}
+              </button>
+              <button
+                type="button"
+                className={`sort-btn ${sortKey === 'totalPay' ? 'active' : ''}`}
+                onClick={() => {
+                  setSortKey('totalPay');
+                  setSortOrder((prev) =>
+                    sortKey === 'totalPay' && prev === 'DESC' ? 'ASC' : 'DESC'
+                  );
+                }}
+              >
+                지급액{' '}
+                {sortKey === 'totalPay'
+                  ? sortOrder === 'DESC'
+                    ? '▼'
+                    : '▲'
+                  : ''}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -586,7 +758,7 @@ export default function ExpenseManagement() {
               </thead>
               <tbody>{renderSkeletonRows(8)}</tbody>
             </table>
-          ) : filteredList.length === 0 ? (
+          ) : sortedList.length === 0 ? (
             <div className="empty-state">
               <p>조회된 경비 청구 내역이 없습니다.</p>
             </div>
@@ -605,21 +777,45 @@ export default function ExpenseManagement() {
                 </tr>
               </thead>
               <tbody>
-                {filteredList.map((item, index) => (
-                  <tr key={index}>
-                    <td>{formatDateTime(item.submitDate)}</td>
+                {sortedList.map((item, index) => (
+                  <tr key={index} className={getRowClassName(item)}>
+                    <td className="date-cell">
+                      <div className="date-primary">
+                        {formatDateTime(item.submitDate)}
+                      </div>
+                      <div className="date-sub">
+                        {item.approveDate
+                          ? formatDateTime(item.approveDate)
+                          : '미확인'}
+                      </div>
+                    </td>
                     <td>{item.userName}</td>
                     <td>{item.userId}</td>
                     <td className="amount">{formatAmount(item.totalPay)}원</td>
                     <td>{getStatusBadge(item.status)}</td>
                     <td>
                       {item.managerChecked ? (
-                        <span className="check-icon">✓</span>
+                        <span className="check-icon" title="관리팀 확인 완료">
+                          ✓
+                        </span>
                       ) : (
-                        <span className="uncheck-icon">-</span>
+                        <span className="uncheck-icon" title="미확인">
+                          -
+                        </span>
                       )}
                     </td>
-                    <td className="memo-cell">{item.memo || '-'}</td>
+                    <td className="memo-cell">
+                      {item.memo ? (
+                        <span className="memo-chip" title={item.memo}>
+                          💬{' '}
+                          {item.memo.length > 20
+                            ? `${item.memo.slice(0, 20)}…`
+                            : item.memo}
+                        </span>
+                      ) : (
+                        '-'
+                      )}
+                    </td>
                     <td>
                       <button
                         className="btn-view"
