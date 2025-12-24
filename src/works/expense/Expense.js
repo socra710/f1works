@@ -64,7 +64,7 @@ export default function Expense() {
       rowId: null, // 서버에서 받은 행 ID
       gbn: 'EXPENSE',
       type: 'expense', // 'expense' or 'fuel'
-      category: '',
+      category: 'LUNCH',
       date: '',
       description: '',
       amount: '',
@@ -233,7 +233,7 @@ export default function Expense() {
                 rowId: null,
                 gbn: 'EXPENSE',
                 type: 'expense',
-                category: '',
+                category: 'LUNCH',
                 date: '',
                 description: '',
                 amount: '',
@@ -544,7 +544,7 @@ export default function Expense() {
         {
           rowId: null,
           type: 'expense',
-          category: '',
+          category: 'LUNCH',
           date: defaultDate,
           description: '',
           amount: '',
@@ -753,7 +753,7 @@ export default function Expense() {
             rowId: null,
             gbn: 'EXPENSE',
             type: 'expense',
-            category: '',
+            category: 'LUNCH',
             date: defaultDate,
             description: '',
             amount: '',
@@ -938,9 +938,35 @@ export default function Expense() {
 
   // 경비 항목 추가
   const addExpenseRow = () => {
-    // 해당 월의 1일로 기본값 설정
+    // 기본값: 해당 월 1일
     const [year, monthStr] = month.split('-');
     const defaultDate = `${year}-${monthStr}-01`;
+
+    // 직전 경비청구일 +1일(있으면), 없으면 기본값
+    const latestExpenseDate = rows
+      .filter((r) => r.type === 'expense' && r.date)
+      .reduce((latest, r) => {
+        const cur = new Date(r.date);
+        if (Number.isNaN(cur.getTime())) return latest;
+        if (!latest) return cur;
+        return cur > latest ? cur : latest;
+      }, null);
+
+    const formatDate = (d) => {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    };
+
+    const nextDate = latestExpenseDate
+      ? (() => {
+          const d = new Date(latestExpenseDate);
+          const isFriday = d.getDay() === 5; // 0: Sun, 5: Fri
+          d.setDate(d.getDate() + (isFriday ? 3 : 1));
+          return formatDate(d);
+        })()
+      : defaultDate;
 
     setRows([
       ...rows,
@@ -948,8 +974,8 @@ export default function Expense() {
         rowId: null,
         gbn: 'EXPENSE',
         type: 'expense',
-        category: '',
-        date: defaultDate,
+        category: 'LUNCH',
+        date: nextDate,
         description: '',
         amount: '',
         people: 1,
