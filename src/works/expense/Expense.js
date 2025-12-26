@@ -1738,43 +1738,43 @@ export default function Expense() {
             const statusStyles = {
               DRAFT: {
                 label: '임시 저장',
-                bg: '#475569',
+                bg: '#6b7280', // Lighter shade
                 color: '#f8fafc',
-                border: '#e2e8f0',
+                border: '#a1a1a1', // Lighter border
               },
               SUBMITTED: {
                 label: '제출 완료',
-                bg: '#f3e8ff',
+                bg: '#e0cfe8', // Lighter shade
                 color: '#7c3aed',
                 border: '#e9d5ff',
               },
               APPROVED: {
                 label: '승인됨',
-                bg: '#ecfdf3',
+                bg: '#d1fae5', // Lighter shade
                 color: '#16a34a',
                 border: '#bbf7d0',
               },
               REJECTED: {
                 label: '반려됨',
-                bg: '#fef2f2',
+                bg: '#fee2e2', // Lighter shade
                 color: '#dc2626',
                 border: '#fecdd3',
               },
               COMPLETED: {
                 label: '완료 처리',
-                bg: '#ecfdf3',
+                bg: '#d1fae5', // Lighter shade
                 color: '#15803d',
                 border: '#bbf7d0',
               },
               NOT_SUBMITTED: {
                 label: '제출 없음',
-                bg: '#475569',
+                bg: '#6b7280', // Lighter shade
                 color: '#f8fafc',
                 border: '#e2e8f0',
               },
               MODIFY: {
                 label: '수정 중',
-                bg: '#fef3c7',
+                bg: '#fefcbf', // Lighter shade
                 color: '#d97706',
                 border: '#fde68a',
               },
