@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import styles from './AdminPage.module.css';
 import '../index.css';
@@ -7,8 +8,13 @@ import {
   decodeUserId,
 } from '../../common/extensionLogin';
 import { useToast } from '../../common/Toast';
-import { checkAdminStatus } from '../expense/expenseAPI';
-import { fetchAdminList, addAdmin, removeAdmin, searchUsers } from './adminAPI';
+import {
+  fetchAdminList,
+  addAdmin,
+  removeAdmin,
+  searchUsers,
+  checkAdminRole,
+} from './adminAPI';
 import { menuOptions } from './constants';
 import MenuAdminForm from './components/MenuAdminForm';
 import GlobalAdminForm from './components/GlobalAdminForm';
@@ -84,9 +90,11 @@ export default function AdminPage() {
           return;
         }
         const decoded = (decodeUserId(sessionUser) || '').trim();
-        const isSuper = await checkAdminStatus(decoded);
-        if (!isSuper) {
-          showToast('슈퍼관리자만 접근할 수 있습니다.', 'warning');
+        const role = await checkAdminRole({ userId: decoded });
+        const isSuper = !!role?.isSuperAdmin;
+        const isGlobalAdmin = !!role?.isGlobalAdmin;
+        if (!isSuper && !isGlobalAdmin) {
+          showToast('접근 권한이 없습니다.', 'warning');
           navigate('/works');
           return;
         }
@@ -248,6 +256,13 @@ export default function AdminPage() {
 
   return (
     <div className={styles.adminContainer}>
+      <Helmet>
+        <title>관리자 설정</title>
+        <meta
+          name="description"
+          content="회사 전체 및 메뉴별 관리자 권한을 검색, 등록, 해지합니다."
+        />
+      </Helmet>
       <div className={styles.adminContent}>
         {loading && (
           <div
