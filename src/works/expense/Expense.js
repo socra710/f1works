@@ -1721,7 +1721,6 @@ export default function Expense() {
             )}
           </div>
         </header>
-
         {/* 상태 정보 섹션 */}
         {isManagerMode && (
           <div className="status-info-section">
@@ -1733,27 +1732,109 @@ export default function Expense() {
             <p>월별 경비를 입력하고 제출하세요</p>
           </div>
         )}
-
-        {/* 상태 및 알림 정보 */}
+        {/* /* 상태 및 알림 정보 */}
         <div className="status-alerts">
-          <div
-            style={{
-              display: 'flex',
-              gap: '1rem',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-            }}
-          >
-            <span style={{ fontWeight: 600 }}>
-              상태: {status}
-              {managerChecked ? ' (관리팀 확인됨)' : ''}
-            </span>
-            {managerChecked && (
-              <span style={{ color: '#c0392b', fontWeight: 600 }}>
-                관리팀 확인 후에는 수정할 수 없습니다.
-              </span>
-            )}
-          </div>
+          {(() => {
+            const statusStyles = {
+              DRAFT: {
+                label: '임시 저장',
+                bg: '#6b7280', // Lighter shade
+                color: '#f8fafc',
+                border: '#a1a1a1', // Lighter border
+              },
+              SUBMITTED: {
+                label: '제출 완료',
+                bg: '#e0cfe8', // Lighter shade
+                color: '#7c3aed',
+                border: '#e9d5ff',
+              },
+              APPROVED: {
+                label: '승인됨',
+                bg: '#d1fae5', // Lighter shade
+                color: '#16a34a',
+                border: '#bbf7d0',
+              },
+              REJECTED: {
+                label: '반려됨',
+                bg: '#fee2e2', // Lighter shade
+                color: '#dc2626',
+                border: '#fecdd3',
+              },
+              COMPLETED: {
+                label: '완료 처리',
+                bg: '#d1fae5', // Lighter shade
+                color: '#15803d',
+                border: '#bbf7d0',
+              },
+              NOT_SUBMITTED: {
+                label: '제출 없음',
+                bg: '#6b7280', // Lighter shade
+                color: '#f8fafc',
+                border: '#e2e8f0',
+              },
+              MODIFY: {
+                label: '수정 중',
+                bg: '#fefcbf', // Lighter shade
+                color: '#d97706',
+                border: '#fde68a',
+              },
+            };
+
+            const meta = statusStyles[status] || {
+              label: status || '상태없음',
+              bg: '#f8fafc',
+              color: '#475569',
+              border: '#e2e8f0',
+            };
+
+            return (
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '0.75rem',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    padding: '0.35rem 0.75rem',
+                    borderRadius: '999px',
+                    fontWeight: 700,
+                    background: meta.bg,
+                    color: meta.color,
+                    border: `1px solid ${meta.border}`,
+                  }}
+                >
+                  <span style={{ fontSize: '0.9rem' }}>●</span>
+                  <span>
+                    상태: {meta.label}
+                    {managerChecked ? ' (관리팀 확인됨)' : ''}
+                  </span>
+                </span>
+
+                {managerChecked && (
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      padding: '0.35rem 0.7rem',
+                      borderRadius: '999px',
+                      background: '#fff1f2',
+                      color: '#b91c1c',
+                      border: '1px solid #fecdd3',
+                      fontWeight: 700,
+                    }}
+                  >
+                    관리팀 확인 후에는 수정할 수 없습니다.
+                  </span>
+                )}
+              </div>
+            );
+          })()}
           {status !== 'DRAFT' &&
             status !== 'REJECTED' &&
             status !== 'COMPLETED' &&
@@ -1785,7 +1866,6 @@ export default function Expense() {
             </div>
           )}
         </div>
-
         {/* 유류비 미설정 경고 배너 */}
         {!hasFuelSettings &&
           month &&
@@ -1803,7 +1883,6 @@ export default function Expense() {
               </div>
             </div>
           )}
-
         {/* 기본 정보 */}
         <section className="expense-section">
           <div
@@ -1995,7 +2074,6 @@ export default function Expense() {
             </div>
           </div>
         )}
-
         {/* 경비 상세 내역 */}
         <section className="expense-section">
           <h2 className="section-title">경비 상세 내역</h2>
@@ -2466,7 +2544,6 @@ export default function Expense() {
               </div>
             )}
         </section>
-
         {/* 법인카드 상세 내역 */}
         {(status === 'COMPLETED'
           ? rows.some((row) => row.gbn === 'CORPORATE')
@@ -3021,7 +3098,6 @@ export default function Expense() {
             )}
           </>
         )}
-
         {/* 합계 */}
         <section className="expense-section">
           <div className="total-section">
@@ -3031,7 +3107,6 @@ export default function Expense() {
             </span>
           </div>
         </section>
-
         {/* 제출 버튼 */}
         <section className="expense-section">
           {/* 일반 사용자: 임시저장/제출/제출없음 버튼 */}
@@ -3150,7 +3225,6 @@ export default function Expense() {
             </div>
           )}
         </section>
-
         {/* 유류비 정보 */}
         <section className="expense-section">
           <h2 className="section-title">💰 유류비 설정 정보</h2>
@@ -3246,23 +3320,22 @@ export default function Expense() {
             </ul>
           </div>
         </section>
-
         {/* 안내사항 */}
         <section className="expense-section info-box">
           <h3>📌 안내사항</h3>
           <ul>
             <li>
-              작성/수정 가능 상태: 일반 사용자는 DRAFT/REJECTED에서만 가능,
-              SUBMITTED는 관리자만 항목 확인 후 수정 가능, COMPLETED·관리팀
-              확인됨은 전부 불가.
+              작성/수정 가능 상태: 일반 사용자는 임시저장/반려에서만 가능,
+              제출에서는 관리자만 항목 확인 후 수정 가능, 완료·관리팀 확인됨은
+              전부 불가.
             </li>
             <li>
               월 일치 규칙: 모든 행의 날짜(YYYY-MM-DD)는 선택한
               청구월(YYYY-MM)과 같아야 제출 가능합니다.
             </li>
             <li>
-              점심/저녁 상한: `LUNCH`·`DINNER`는 인당 8,000원 제한(인원 ×
-              8,000원, 초과 입력 시 자동 절삭).
+              점심/저녁 상한: `점심`·`저녁`는 인당 8,000원 제한(인원 × 8,000원,
+              초과 입력 시 자동 절삭).
             </li>
             <li>
               유류비 계산: 기준연비(차량연비 × 0.85), 유류 단가(월별 설정),

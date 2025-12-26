@@ -599,11 +599,10 @@ export default function Car() {
             rowUse.style.gridTemplateColumns = 'repeat(2, minmax(220px, 1fr))';
           }
 
-          // 수정 모드에서도 작은 화면에서는 종일 체크박스 표시
+          // 수정 모드에서는 종일 체크박스 숨김
           const divAllDay = document.querySelector('#divAllDay');
           if (divAllDay) {
-            const isNarrow = window.innerWidth <= 767;
-            divAllDay.style.display = isNarrow ? '' : 'none';
+            divAllDay.style.display = 'none';
           }
 
           document.querySelector('#dispatchNo').value = item.DISPATCH_NO;
