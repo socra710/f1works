@@ -653,7 +653,12 @@ export default function Expense() {
         // 401 / 403 : 권한 없음
         if (response.status === 403 || response.status === 401) {
           showToast('해당 사용자는 접근할 수 없는 페이지입니다.', 'warning');
-          navigate('/works');
+          navigate('/notfound');
+          return;
+        }
+        // 404 : 페이지 없음
+        if (response.status === 404) {
+          navigate('/notfound');
           return;
         }
 

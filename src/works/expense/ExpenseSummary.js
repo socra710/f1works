@@ -126,8 +126,8 @@ export default function ExpenseSummary() {
     (async () => {
       // 공유 링크인데 유효하지 않은 경우 처리
       if (isSharedLink && !isValidYear) {
-        showToast('유효하지 않은 링크입니다.', 'error');
-        navigate('/works');
+        // showToast('유효하지 않은 링크입니다.', 'error');
+        navigate('/notfound');
         return;
       }
 
