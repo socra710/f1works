@@ -13,6 +13,7 @@ import Expense from './works/expense/Expense';
 import ExpenseManagement from './works/expense/ExpenseManagement';
 import SpecialItems from './works/expense/SpecialItems';
 import ExpenseSummary from './works/expense/ExpenseSummary';
+import AdminPage from './works/admin/AdminPage';
 import AssetHW from './works/asset/index';
 import Wordle from './games/wordle/Wordle';
 import Tetris from './games/tetris/Tetris';
@@ -38,6 +39,7 @@ function App() {
           <Route path="/works/calendar" element={<Calendar />}></Route>
           <Route path="/works/expense" element={<Expense />}></Route>
           <Route path="/works/expense/:expenseId" element={<Expense />} />
+          <Route path="/works/admin" element={<AdminPage />}></Route>
           <Route
             path="/works/expense-management"
             element={<ExpenseManagement />}

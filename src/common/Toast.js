@@ -1,6 +1,18 @@
 import React, { useState, useCallback } from 'react';
 import './Toast.css';
 
+// Unique ID generator to avoid duplicate keys (e.g., React strict mode double effects)
+let _toastSeq = 0;
+let _dialogSeq = 0;
+const nextToastId = () => {
+  _toastSeq += 1;
+  return `${Date.now()}-${_toastSeq}`;
+};
+const nextDialogId = () => {
+  _dialogSeq += 1;
+  return `${Date.now()}-${_dialogSeq}`;
+};
+
 /**
  * 토스트 컨텍스트 생성
  */
@@ -13,7 +25,7 @@ export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
   const showToast = useCallback((message, type = 'info', duration = 3000) => {
-    const id = Date.now();
+    const id = nextToastId();
     const newToast = { id, message, type };
 
     setToasts((prev) => [...prev, newToast]);
@@ -81,7 +93,7 @@ export function DialogProvider({ children }) {
       inputValue = '',
     } = options;
 
-    const id = Date.now();
+    const id = nextDialogId();
     const dialog = {
       id,
       title,

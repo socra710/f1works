@@ -125,6 +125,28 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+.admin-entry-button {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  z-index: 2;
+}
+
+.admin-entry-button button {
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.admin-entry-button button:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
 .hero-section::before {
   content: '';
   position: absolute;
