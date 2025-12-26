@@ -255,6 +255,12 @@
   box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
 }
 
+.selectedList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .selected {
   display: flex;
   align-items: center;

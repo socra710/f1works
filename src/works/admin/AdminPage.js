@@ -26,11 +26,11 @@ export default function AdminPage() {
 
   const [menuSearchTerm, setMenuSearchTerm] = useState('');
   const [menuSearchResults, setMenuSearchResults] = useState([]);
-  const [selectedMenuUser, setSelectedMenuUser] = useState(null);
+  const [selectedMenuUsers, setSelectedMenuUsers] = useState([]);
   const [selectedMenuKey, setSelectedMenuKey] = useState(menuOptions[0].key);
   const [globalSearchTerm, setGlobalSearchTerm] = useState('');
   const [globalSearchResults, setGlobalSearchResults] = useState([]);
-  const [selectedGlobalUser, setSelectedGlobalUser] = useState(null);
+  const [selectedGlobalUsers, setSelectedGlobalUsers] = useState([]);
 
   const selectedMenu = useMemo(
     () =>
@@ -128,21 +128,26 @@ export default function AdminPage() {
   };
 
   const handleAddMenu = async () => {
-    if (!selectedMenuUser) {
+    if (!selectedMenuUsers?.length) {
       showToast('등록할 사용자를 선택하세요.', 'warning');
       return;
     }
     try {
-      await addAdmin({
-        userId: currentUserId,
-        targetUserId: selectedMenuUser.userId,
-        targetUserName: selectedMenuUser.userName,
-        scopeType: 'MENU',
-        menuKey: selectedMenu.key,
-        menuName: selectedMenu.label,
-      });
-      showToast('메뉴 관리자로 등록되었습니다.', 'success');
-      setSelectedMenuUser(null);
+      for (const u of selectedMenuUsers) {
+        await addAdmin({
+          userId: currentUserId,
+          targetUserId: u.userId,
+          targetUserName: u.userName,
+          scopeType: 'MENU',
+          menuKey: selectedMenu.key,
+          menuName: selectedMenu.label,
+        });
+      }
+      showToast(
+        `${selectedMenuUsers.length}명 메뉴 관리자로 등록되었습니다.`,
+        'success'
+      );
+      setSelectedMenuUsers([]);
       setMenuSearchResults([]);
       setMenuSearchTerm('');
       await loadMenuAdmins(currentUserId, selectedMenu.key);
@@ -167,21 +172,26 @@ export default function AdminPage() {
   };
 
   const handleAddGlobal = async () => {
-    if (!selectedGlobalUser) {
+    if (!selectedGlobalUsers?.length) {
       showToast('등록할 사용자를 선택하세요.', 'warning');
       return;
     }
     try {
-      await addAdmin({
-        userId: currentUserId,
-        targetUserId: selectedGlobalUser.userId,
-        targetUserName: selectedGlobalUser.userName,
-        scopeType: 'GLOBAL',
-        menuKey: 'GLOBAL',
-        menuName: 'GLOBAL',
-      });
-      showToast('전체 관리자로 등록되었습니다.', 'success');
-      setSelectedGlobalUser(null);
+      for (const u of selectedGlobalUsers) {
+        await addAdmin({
+          userId: currentUserId,
+          targetUserId: u.userId,
+          targetUserName: u.userName,
+          scopeType: 'GLOBAL',
+          menuKey: 'GLOBAL',
+          menuName: 'GLOBAL',
+        });
+      }
+      showToast(
+        `${selectedGlobalUsers.length}명 전체 관리자로 등록되었습니다.`,
+        'success'
+      );
+      setSelectedGlobalUsers([]);
       setGlobalSearchResults([]);
       setGlobalSearchTerm('');
       await loadGlobalAdmins(currentUserId);
@@ -208,6 +218,15 @@ export default function AdminPage() {
     } catch (err) {
       console.error('[AdminPage] remove error', err);
       showToast(err.message, 'error');
+    }
+  };
+
+  const toggleSelectUser = (list, setter, user) => {
+    const exists = list.find((x) => x.userId === user.userId);
+    if (exists) {
+      setter(list.filter((x) => x.userId !== user.userId));
+    } else {
+      setter([...list, user]);
     }
   };
 
@@ -267,10 +286,16 @@ export default function AdminPage() {
               onChangeSearchTerm={setGlobalSearchTerm}
               onSearch={handleGlobalSearch}
               onAdd={handleAddGlobal}
-              selectedUser={selectedGlobalUser}
-              onClearSelected={() => setSelectedGlobalUser(null)}
+              selectedUsers={selectedGlobalUsers}
+              onClearSelected={() => setSelectedGlobalUsers([])}
               searchResults={globalSearchResults}
-              onSelectUser={setSelectedGlobalUser}
+              onToggleUser={(user) =>
+                toggleSelectUser(
+                  selectedGlobalUsers,
+                  setSelectedGlobalUsers,
+                  user
+                )
+              }
             />
 
             <AdminList
@@ -290,10 +315,12 @@ export default function AdminPage() {
               onChangeSearchTerm={setMenuSearchTerm}
               onSearch={handleMenuSearch}
               onAdd={handleAddMenu}
-              selectedUser={selectedMenuUser}
-              onClearSelected={() => setSelectedMenuUser(null)}
+              selectedUsers={selectedMenuUsers}
+              onClearSelected={() => setSelectedMenuUsers([])}
               searchResults={menuSearchResults}
-              onSelectUser={setSelectedMenuUser}
+              onToggleUser={(user) =>
+                toggleSelectUser(selectedMenuUsers, setSelectedMenuUsers, user)
+              }
             />
 
             <AdminList
