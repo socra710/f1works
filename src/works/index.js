@@ -185,7 +185,7 @@ export default function Works() {
             // SuperAdmin이나 GlobalAdmin은 모든 권한 부여
             const finalMenuKeys =
               !!roleAll?.isSuperAdmin || !!roleAll?.isGlobalAdmin
-                ? ['EXPENSE', 'EXPENSE_SUMMARY', ...menuKeys]
+                ? ['EXPENSE', 'EXPENSE_SUMMARY', 'GLOBAL', ...menuKeys]
                 : menuKeys;
 
             setUserMenuKeys(finalMenuKeys);
@@ -280,6 +280,16 @@ export default function Works() {
         requiresAdmin: true,
         requiredMenuKey: 'EXPENSE_SUMMARY',
         inNew: '2025-12-15', // 신규 출시 날짜
+      },
+      {
+        title: '관리자 설정',
+        description: 'F1Works 관리자 설정 페이지입니다',
+        icon: '📊',
+        path: '/works/admin',
+        category: '관리',
+        requiresAdmin: true,
+        requiredMenuKey: 'GLOBAL',
+        inNew: '2025-12-26', // 신규 출시 날짜
       },
       {
         title: '오늘의 단어',
@@ -694,13 +704,6 @@ export default function Works() {
 
       {/* Hero Section */}
       <header className="hero-section">
-        {checked && isAdmin && (
-          <div className="admin-entry-button">
-            <button onClick={() => navigate('/works/admin')}>
-              관리자 설정
-            </button>
-          </div>
-        )}
         <div className="hero-content">
           <h1 className="hero-title">F1Works</h1>
           <p className="hero-subtitle">F1Soft 직원들을 위한 통합 업무 포털</p>
