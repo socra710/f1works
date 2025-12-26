@@ -167,8 +167,7 @@ export default function Monitor() {
           }
           const divAllDay = document.querySelector('#divAllDay');
           if (divAllDay) {
-            const isNarrow = window.innerWidth <= 767;
-            divAllDay.style.display = isNarrow ? '' : 'none';
+            divAllDay.style.display = 'none';
           }
 
           document.querySelector('#dispatchNo').value = item.DISPATCH_NO;
