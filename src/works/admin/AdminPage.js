@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import styles from './AdminPage.module.css';
@@ -27,8 +27,11 @@ export default function AdminPage() {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState('');
+  const [hasAccess, setHasAccess] = useState(false);
   const [menuAdmins, setMenuAdmins] = useState([]);
   const [globalAdmins, setGlobalAdmins] = useState([]);
+  const hasShownToastRef = useRef(false);
+  const isNavigatingRef = useRef(false);
 
   const [menuSearchTerm, setMenuSearchTerm] = useState('');
   const [menuSearchResults, setMenuSearchResults] = useState([]);
@@ -78,48 +81,83 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     (async () => {
       try {
         const sessionUser = await waitForExtensionLogin({
           minWait: 300,
           maxWait: 1500,
         });
+
+        if (!isMounted) return;
+
         if (!sessionUser) {
-          showToast('로그인이 필요한 서비스입니다.', 'warning');
-          navigate('/works');
+          if (!hasShownToastRef.current && !isNavigatingRef.current) {
+            hasShownToastRef.current = true;
+            isNavigatingRef.current = true;
+            showToast('로그인이 필요한 서비스입니다.', 'warning');
+            setTimeout(() => navigate('/works'), 300);
+          }
+          setLoading(false);
           return;
         }
+
         const decoded = (decodeUserId(sessionUser) || '').trim();
         const role = await checkAdminRole({ userId: decoded });
+
+        if (!isMounted) return;
+
         const isSuper = !!role?.isSuperAdmin;
         const isGlobalAdmin = !!role?.isGlobalAdmin;
+
         if (!isSuper && !isGlobalAdmin) {
-          showToast('접근 권한이 없습니다.', 'warning');
-          navigate('/works');
+          if (!hasShownToastRef.current && !isNavigatingRef.current) {
+            hasShownToastRef.current = true;
+            isNavigatingRef.current = true;
+            showToast('해당 사용자는 접근 권한이 없습니다.', 'warning');
+            navigate('/works');
+          }
+          setLoading(false);
           return;
         }
+
         setCurrentUserId(decoded);
+        setHasAccess(true);
+
         await Promise.all([
           loadMenuAdmins(decoded, selectedMenuKey),
           loadGlobalAdmins(decoded),
         ]);
       } catch (err) {
+        if (!isMounted) return;
+
         console.error('[AdminPage] init error', err);
-        showToast('권한 확인 중 오류가 발생했습니다.', 'error');
-        navigate('/works');
+        if (!hasShownToastRef.current && !isNavigatingRef.current) {
+          hasShownToastRef.current = true;
+          isNavigatingRef.current = true;
+          showToast('권한 확인 중 오류가 발생했습니다.', 'error');
+          setTimeout(() => navigate('/works'), 300);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     })();
+
+    return () => {
+      isMounted = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!currentUserId) return;
+    if (!currentUserId || !hasAccess) return;
     loadMenuAdmins(currentUserId, selectedMenuKey);
     loadGlobalAdmins(currentUserId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMenuKey, currentUserId]);
+  }, [selectedMenuKey, currentUserId, hasAccess]);
 
   const handleMenuSearch = async () => {
     if (!menuSearchTerm.trim()) {
