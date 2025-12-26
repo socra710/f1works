@@ -1489,11 +1489,7 @@ export default function Expense() {
         localStorage.removeItem(`expense_temp_${month}_${userId}`);
         showToast('경비 청구서가 제출되었습니다.', 'success');
         setTimeout(() => {
-          if (window.history.length > 1) {
-            navigate(-1);
-          } else {
-            navigate('/works');
-          }
+          navigate('/works');
         }, 500);
       } else {
         showToast(result.message || '', 'error');
