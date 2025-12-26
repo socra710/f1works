@@ -578,8 +578,27 @@
     gap: 0.85rem;
   }
   .form-actions {
-    flex-direction: column;
+    justify-content: space-between; /* 작은 화면에서도 좌(삭제)/우(신청·닫기) 분리 */
+    align-items: center;
+  }
+}
+
+/* 작은 화면에서 3열(사용일 | 종일 | 사용시간)을 1열로 강제 */
+@media screen and (max-width: 767px) {
+  .form-row--three {
+    grid-template-columns: 1fr !important;
     align-items: stretch;
+  }
+  .form-row--three .inline-row {
+    grid-template-columns: 1fr !important;
+  }
+  .form-row--three .field--checkbox {
+    justify-content: flex-start;
+    align-self: center;
+    justify-self: start;
+  }
+  .field--checkbox label {
+    white-space: normal;
   }
 }
 
