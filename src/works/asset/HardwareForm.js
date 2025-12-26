@@ -234,6 +234,30 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
       return;
     }
 
+    // 신규납품일 경우 납품처와 납품일 필수
+    if (formData.category === '신규납품') {
+      if (!formData.deliveryLocation?.trim()) {
+        showToast('신규납품은 납품처를 입력해주세요.', 'error');
+        return;
+      }
+      if (!formData.deliveryDate?.trim()) {
+        showToast('신규납품은 납품일을 입력해주세요.', 'error');
+        return;
+      }
+    }
+
+    // 고장회수일 경우 회수처와 회수일 필수
+    if (formData.category === '고장회수') {
+      if (!formData.collectionLocation?.trim()) {
+        showToast('고장회수는 회수처를 입력해주세요.', 'error');
+        return;
+      }
+      if (!formData.collectionDate?.trim()) {
+        showToast('고장회수는 회수일을 입력해주세요.', 'error');
+        return;
+      }
+    }
+
     const receiptNoToSave = hardware ? formData.receiptNo || '' : '';
 
     const payload = {
@@ -359,68 +383,36 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
             </div>
           </div>
 
-          <div className={styles.formRow}>
-            <div className={styles.field}>
-              <label>납품일</label>
-              <input
-                type="date"
-                name="deliveryDate"
-                value={formData.deliveryDate}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className={styles.field}>
-              <label>납품처</label>
-              <div className={styles.inputWithIcon}>
-                <input
-                  type="text"
-                  name="deliveryLocation"
-                  value={formData.deliveryLocation}
-                  onChange={handleChange}
-                  placeholder="거래처 선택"
-                  readOnly
-                />
-                <button
-                  type="button"
-                  className={styles.btnIcon}
-                  aria-label="납품처 찾기"
-                  onClick={() => setCustomerModalTarget('deliveryLocation')}
-                >
-                  🔍
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {formData.category !== '신규납품' && (
+          {formData.category === '신규납품' && (
             <div className={styles.formRow}>
               <div className={styles.field}>
-                <label>회수일</label>
+                <label>납품일 *</label>
                 <input
                   type="date"
-                  name="collectionDate"
-                  value={formData.collectionDate}
+                  name="deliveryDate"
+                  value={formData.deliveryDate}
                   onChange={handleChange}
+                  required
                 />
               </div>
 
               <div className={styles.field}>
-                <label>회수처</label>
+                <label>납품처 *</label>
                 <div className={styles.inputWithIcon}>
                   <input
                     type="text"
-                    name="collectionLocation"
-                    value={formData.collectionLocation}
+                    name="deliveryLocation"
+                    value={formData.deliveryLocation}
                     onChange={handleChange}
                     placeholder="거래처 선택"
                     readOnly
+                    required
                   />
                   <button
                     type="button"
                     className={styles.btnIcon}
-                    aria-label="회수처 찾기"
-                    onClick={() => setCustomerModalTarget('collectionLocation')}
+                    aria-label="납품처 찾기"
+                    onClick={() => setCustomerModalTarget('deliveryLocation')}
                   >
                     🔍
                   </button>
@@ -432,31 +424,37 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
           {formData.category !== '신규납품' && (
             <div className={styles.formRow}>
               <div className={styles.field}>
-                <label>A/S 상태 *</label>
-                <select
-                  name="asStatus"
-                  value={formData.asStatus}
+                <label>회수일 *</label>
+                <input
+                  type="date"
+                  name="collectionDate"
+                  value={formData.collectionDate}
                   onChange={handleChange}
-                >
-                  <option value="전">대기</option>
-                  <option value="진행중">진행중</option>
-                  <option value="완">완료</option>
-                </select>
-              </div>
-            </div>
-          )}
-
-          {formData.category !== '신규납품' && (
-            <div className={styles.formRow}>
-              <div className={`${styles.field} ${styles['field--full']}`}>
-                <label>H/W 증상</label>
-                <textarea
-                  name="hwSymptom"
-                  value={formData.hwSymptom}
-                  onChange={handleChange}
-                  placeholder="증상 설명"
-                  rows="3"
+                  required
                 />
+              </div>
+
+              <div className={styles.field}>
+                <label>회수처 *</label>
+                <div className={styles.inputWithIcon}>
+                  <input
+                    type="text"
+                    name="collectionLocation"
+                    value={formData.collectionLocation}
+                    onChange={handleChange}
+                    placeholder="거래처 선택"
+                    readOnly
+                    required
+                  />
+                  <button
+                    type="button"
+                    className={styles.btnIcon}
+                    aria-label="회수처 찾기"
+                    onClick={() => setCustomerModalTarget('collectionLocation')}
+                  >
+                    🔍
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -503,53 +501,89 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
             </div>
           </div>
 
-          <div className={styles.formRow}>
-            <div className={styles.field}>
-              <label>제작사</label>
-              <input
-                type="text"
-                name="manufacturer"
-                value={formData.manufacturer}
-                onChange={handleChange}
-                placeholder="제조사명"
-              />
+          {formData.category !== '신규납품' && (
+            <div className={styles.formRow}>
+              <div className={styles.field}>
+                <label>A/S 상태 *</label>
+                <select
+                  name="asStatus"
+                  value={formData.asStatus}
+                  onChange={handleChange}
+                >
+                  <option value="전">대기</option>
+                  <option value="진행중">진행중</option>
+                  <option value="완">완료</option>
+                </select>
+              </div>
             </div>
+          )}
 
-            <div className={styles.field}>
-              <label>담당자</label>
-              <input
-                type="text"
-                name="contactPerson"
-                value={formData.contactPerson}
-                onChange={handleChange}
-                placeholder="제조사 담당자"
-              />
+          {formData.category !== '신규납품' && (
+            <div className={styles.formRow}>
+              <div className={`${styles.field} ${styles['field--full']}`}>
+                <label>H/W 증상</label>
+                <textarea
+                  name="hwSymptom"
+                  value={formData.hwSymptom}
+                  onChange={handleChange}
+                  placeholder="증상 설명"
+                  rows="3"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className={styles.formRow}>
-            <div className={styles.field}>
-              <label>연락처</label>
-              <input
-                type="tel"
-                name="contactTel"
-                value={formData.contactTel}
-                onChange={handleChange}
-                placeholder="전화번호"
-              />
-            </div>
+          {formData.category !== '신규납품' && (
+            <>
+              <div className={styles.formRow}>
+                <div className={styles.field}>
+                  <label>제작사</label>
+                  <input
+                    type="text"
+                    name="manufacturer"
+                    value={formData.manufacturer}
+                    onChange={handleChange}
+                    placeholder="제조사명"
+                  />
+                </div>
 
-            <div className={styles.field}>
-              <label>주소</label>
-              <input
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="제조사 주소"
-              />
-            </div>
-          </div>
+                <div className={styles.field}>
+                  <label>담당자</label>
+                  <input
+                    type="text"
+                    name="contactPerson"
+                    value={formData.contactPerson}
+                    onChange={handleChange}
+                    placeholder="제조사 담당자"
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label>연락처</label>
+                  <input
+                    type="tel"
+                    name="contactTel"
+                    value={formData.contactTel}
+                    onChange={handleChange}
+                    placeholder="전화번호"
+                  />
+                </div>
+              </div>
+
+              <div className={styles.formRow}>
+                <div className={`${styles.field} ${styles['field--full']}`}>
+                  <label>주소</label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    placeholder="제조사 주소"
+                  />
+                </div>
+              </div>
+            </>
+          )}
 
           <div className={styles.formActions}>
             <button type="submit" className={styles.btnSubmit}>

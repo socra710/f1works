@@ -16,49 +16,59 @@ const formatMoney = (v) => {
   return n.toLocaleString('ko-KR');
 };
 
-const TableHeader = ({ isNewView }) => (
-  <thead>
-    <tr className={styles.groupHeaderRow}>
-      <th colSpan={isNewView ? 11 : 11} className={styles.groupHeaderMain}>
-        기본 정보
-      </th>
-      {!isNewView && (
-        <>
+const TableHeader = ({ isNewView, isRepairView }) => {
+  // 기본 정보 컬럼 수: NO, 구분, 접수번호, H/W 명, 수량, 단가, 공급가액, 세액, 담당자 = 9
+  const basicInfoColSpan = 9;
+
+  return (
+    <thead>
+      <tr className={styles.groupHeaderRow}>
+        <th colSpan={basicInfoColSpan} className={styles.groupHeaderMain}>
+          기본 정보
+        </th>
+        {!isRepairView && (
           <th colSpan="2" className={styles.groupHeaderAccent}>
-            회수 정보
+            납품 정보
           </th>
-          <th colSpan="3" className={styles.groupHeaderAccent}>
-            A/S 및 제작사
-          </th>
-        </>
-      )}
-      <th rowSpan="2" className={styles.groupHeaderAction}>
-        출력
-      </th>
-      <th rowSpan="2" className={styles.groupHeaderAction}>
-        관리
-      </th>
-    </tr>
-    <tr>
-      <th>NO</th>
-      <th>구분</th>
-      <th>접수번호</th>
-      <th>H/W 명</th>
-      <th>수량</th>
-      <th>단가</th>
-      <th>공급가액</th>
-      <th>세액</th>
-      <th>담당자</th>
-      <th>납품일</th>
-      <th>납품처</th>
-      {!isNewView && <th>회수일</th>}
-      {!isNewView && <th>회수처</th>}
-      {!isNewView && <th>A/S 상태</th>}
-      {!isNewView && <th>H/W 증상</th>}
-      {!isNewView && <th>제작사/담당자/연락처</th>}
-    </tr>
-  </thead>
-);
+        )}
+        {!isNewView && (
+          <>
+            <th colSpan="2" className={styles.groupHeaderAccent}>
+              회수 정보
+            </th>
+            <th colSpan="3" className={styles.groupHeaderAccent}>
+              A/S 및 제작사
+            </th>
+          </>
+        )}
+        <th rowSpan="2" className={styles.groupHeaderAction}>
+          출력
+        </th>
+        <th rowSpan="2" className={styles.groupHeaderAction}>
+          관리
+        </th>
+      </tr>
+      <tr>
+        <th>NO</th>
+        <th>구분</th>
+        <th>접수번호</th>
+        <th>H/W 명</th>
+        <th>수량</th>
+        <th>단가</th>
+        <th>공급가액</th>
+        <th>세액</th>
+        <th>담당자</th>
+        {!isRepairView && <th>납품일</th>}
+        {!isRepairView && <th>납품처</th>}
+        {!isNewView && <th>회수일</th>}
+        {!isNewView && <th>회수처</th>}
+        {!isNewView && <th>A/S 상태</th>}
+        {!isNewView && <th>H/W 증상</th>}
+        {!isNewView && <th>제작사/담당자/연락처</th>}
+      </tr>
+    </thead>
+  );
+};
 
 const HardwareTable = ({
   filteredList,
@@ -70,6 +80,7 @@ const HardwareTable = ({
   onToggleSelect,
 }) => {
   const isNewView = filter === 'new';
+  const isRepairView = filter === 'repair';
   const { showToast } = useToast();
 
   const selectedIdArray =
@@ -105,12 +116,12 @@ const HardwareTable = ({
   };
   if (loading) {
     const skeletonRows = Array.from({ length: 5 });
-    const columnsCount = isNewView ? 13 : 18;
+    const columnsCount = isNewView ? 13 : isRepairView ? 16 : 18;
 
     return (
       <div className={styles.hardwareTableWrapper}>
         <table className={styles.hardwareTable}>
-          <TableHeader isNewView={isNewView} />
+          <TableHeader isNewView={isNewView} isRepairView={isRepairView} />
           <tbody>
             {skeletonRows.map((_, idx) => (
               <tr key={`skeleton-${idx}`}>
@@ -130,11 +141,14 @@ const HardwareTable = ({
   return (
     <div className={styles.hardwareTableWrapper}>
       <table className={styles.hardwareTable}>
-        <TableHeader isNewView={isNewView} />
+        <TableHeader isNewView={isNewView} isRepairView={isRepairView} />
         <tbody>
           {filteredList.length === 0 ? (
             <tr>
-              <td colSpan={isNewView ? 13 : 18} className={styles.noData}>
+              <td
+                colSpan={isNewView ? 13 : isRepairView ? 16 : 18}
+                className={styles.noData}
+              >
                 등록된 데이터가 없습니다.
               </td>
             </tr>
@@ -158,10 +172,12 @@ const HardwareTable = ({
                   {formatMoney(hw.taxAmount)}
                 </td>
                 <td style={{ textAlign: 'center' }}>{hw.manager}</td>
-                <td style={{ textAlign: 'center' }}>
-                  {formatDate(hw.deliveryDate)}
-                </td>
-                <td>{hw.deliveryLocation || '-'}</td>
+                {!isRepairView && (
+                  <td style={{ textAlign: 'center' }}>
+                    {formatDate(hw.deliveryDate)}
+                  </td>
+                )}
+                {!isRepairView && <td>{hw.deliveryLocation || '-'}</td>}
                 {!isNewView && (
                   <td style={{ textAlign: 'center' }}>
                     {formatDate(hw.collectionDate)}
