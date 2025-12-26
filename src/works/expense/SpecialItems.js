@@ -169,6 +169,12 @@ export default function SpecialItems() {
   const handleMonthChange = (e) => {
     const newMonth = e.target.value;
     setSelectedMonth(newMonth);
+    // 월 변경 시 localStorage에 저장
+    localStorage.setItem('specialItems_selectedMonth', newMonth);
+    // 월 변경 즉시 목록 조회
+    const factoryCode =
+      window.sessionStorage.getItem('factoryCode') || '000001';
+    fetchSpecialItemsList(factoryCode, newMonth);
   };
 
   // 검색 버튼 핸들러
@@ -263,7 +269,7 @@ export default function SpecialItems() {
   return (
     <div className="special-items-wrapper">
       <Helmet>
-        <title>특별 항목 관리 - F1Soft Works</title>
+        <title>특별 항목 관리</title>
         <meta property="og:title" content="특별 항목 관리" />
         <meta
           property="og:description"
@@ -271,7 +277,7 @@ export default function SpecialItems() {
         />
         <meta
           property="og:url"
-          content="https://codefeat.netlify.app/works/expense/special-items"
+          content="https://f1works.netlify.app/works/expense/special-items"
         />
       </Helmet>
       <div className="special-items-container">
