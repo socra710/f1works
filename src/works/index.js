@@ -2,11 +2,8 @@ import './index.css';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useMemo, useRef } from 'react';
-import {
-  checkAdminStatus,
-  getAttendanceRanking,
-  getDispatchRanking,
-} from './expense/expenseAPI';
+import { getAttendanceRanking, getDispatchRanking } from './expense/expenseAPI';
+import { checkAdminRole } from './admin/adminAPI';
 import { waitForExtensionLogin, decodeUserId } from '../common/extensionLogin';
 
 // 날짜 기반 배지 표시 체크 함수 (한 달 이내인지 확인)
@@ -45,6 +42,7 @@ export default function Works() {
     }
   });
   const [loadingInsights, setLoadingInsights] = useState(true);
+  const [hasExpenseRole, setHasExpenseRole] = useState(false);
   const [insights, setInsights] = useState({
     attendance: [
       { rank: 1, name: '데이터가 존재하지 않습니다', department: '', count: 0 },
@@ -65,8 +63,8 @@ export default function Works() {
   const adminCheckRef = useRef(false);
   const [expandedCategories, setExpandedCategories] = useState({});
   const [selectedTab, setSelectedTab] = useState(() => {
-    // localStorage에서 저장된 탭 불러오기
-    const savedTab = localStorage.getItem('selectedTab');
+    // sessionStorage에서 저장된 탭 불러오기
+    const savedTab = sessionStorage.getItem('selectedTab');
     return savedTab || '업무';
   });
   const [notificationVisible, setNotificationVisible] = useState(false);
@@ -124,7 +122,7 @@ export default function Works() {
     (async () => {
       try {
         const sessionUser = await waitForExtensionLogin({
-          minWait: 500,
+          minWait: 0,
           maxWait: 2000,
         });
         const decodedUserId = sessionUser ? decodeUserId(sessionUser) : null;
@@ -134,21 +132,43 @@ export default function Works() {
 
         if (userId) {
           try {
-            const adminStatus = await checkAdminStatus(userId);
-            setIsAdmin(adminStatus);
-            persistAdminStatus(adminStatus);
+            // 헤더 우측 관리자 버튼 권한: jvWorksCheckAdminRole 기반
+            const roleAll = await checkAdminRole({ userId });
+            const headerAdmin =
+              !!roleAll?.isSuperAdmin ||
+              !!roleAll?.isGlobalAdmin ||
+              !!roleAll?.isMenuAdmin;
+            setIsAdmin(headerAdmin);
+            persistAdminStatus(headerAdmin);
+
+            // 관리 탭(경비) 메뉴 노출 권한: EXPENSE 메뉴 권한 보유자만 (단일 호출 응답의 menuKeys로 판별)
+            const hasExpenseKey = Array.isArray(roleAll?.menuKeys)
+              ? roleAll.menuKeys
+                  .map((k) =>
+                    typeof k === 'string' ? k.trim().toUpperCase() : ''
+                  )
+                  .includes('EXPENSE')
+              : false;
+            const expenseAllowed =
+              !!roleAll?.isSuperAdmin ||
+              !!roleAll?.isGlobalAdmin ||
+              hasExpenseKey;
+            setHasExpenseRole(expenseAllowed);
           } catch (apiError) {
             console.error('[Works] API 호출 실패:', apiError);
             setIsAdmin(false);
+            setHasExpenseRole(false);
             persistAdminStatus(false);
           }
         } else {
           setIsAdmin(false);
+          setHasExpenseRole(false);
           persistAdminStatus(false);
         }
       } catch (error) {
         console.error('[Works] Admin check failed:', error);
         setIsAdmin(false);
+        setHasExpenseRole(false);
         persistAdminStatus(false);
       } finally {
         setChecked(true);
@@ -270,8 +290,9 @@ export default function Works() {
 
   // 관리자 권한이 필요한 메뉴 (권한 체크 후 표시)
   const adminFeatures = useMemo(
-    () => allFeatures.filter((feature) => feature.requiresAdmin && isAdmin),
-    [allFeatures, isAdmin]
+    () =>
+      allFeatures.filter((feature) => feature.requiresAdmin && hasExpenseRole),
+    [allFeatures, hasExpenseRole]
   );
 
   // 전체 메뉴 (일반 + 관리)
@@ -299,7 +320,7 @@ export default function Works() {
     );
     if (!hasSelected) {
       setSelectedTab(categoriesWithItems[0].category);
-      localStorage.setItem('selectedTab', categoriesWithItems[0].category);
+      sessionStorage.setItem('selectedTab', categoriesWithItems[0].category);
     }
   }, [checked, categoriesWithItems, selectedTab]);
 
@@ -502,8 +523,8 @@ export default function Works() {
                 key={catData.category}
                 onClick={() => {
                   setSelectedTab(catData.category);
-                  // localStorage에 선택된 탭 저장
-                  localStorage.setItem('selectedTab', catData.category);
+                  // sessionStorage에 선택된 탭 저장
+                  sessionStorage.setItem('selectedTab', catData.category);
                 }}
                 style={{
                   padding: '8px 14px',
@@ -624,6 +645,13 @@ export default function Works() {
 
       {/* Hero Section */}
       <header className="hero-section">
+        {checked && isAdmin && (
+          <div className="admin-entry-button">
+            <button onClick={() => navigate('/works/admin')}>
+              관리자 설정
+            </button>
+          </div>
+        )}
         <div className="hero-content">
           <h1 className="hero-title">F1Works</h1>
           <p className="hero-subtitle">F1Soft 직원들을 위한 통합 업무 포털</p>
