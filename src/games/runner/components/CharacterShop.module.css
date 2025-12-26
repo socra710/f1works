@@ -500,6 +500,31 @@
   z-index: 1;
 }
 
+.badge-period-sub {
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.9;
+  margin-top: 2px;
+  line-height: 1.1;
+}
+
+.badge-promo {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%);
+  color: #e8f7ff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  font-weight: 850;
+  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0, 114, 255, 0.28);
+  border: 2px solid #0060d4;
+  animation: pulseDiscount 2s infinite;
+  z-index: 1;
+}
+
 /* LIMITED 이벤트 뱃지 (색상 분리: 보라 톤) */
 .badge-limited-top {
   position: absolute;
@@ -548,6 +573,16 @@
 .item-card.on-sale:hover:not(.purchased) {
   border-color: #c0392b;
   box-shadow: 0 12px 28px rgba(231, 76, 60, 0.3);
+}
+
+.item-card.on-promo {
+  border-color: #0072ff;
+  box-shadow: 0 4px 12px rgba(0, 114, 255, 0.18);
+}
+
+.item-card.on-promo:hover:not(.purchased) {
+  border-color: #0052b4;
+  box-shadow: 0 12px 28px rgba(0, 114, 255, 0.26);
 }
 
 /* 가격 표시 (할인 적용) */
@@ -611,6 +646,17 @@
   color: #ffecec;
 }
 
+.price-promo .discounted-price {
+  color: #0072ff;
+  text-shadow: 0 0 8px rgba(0, 114, 255, 0.2);
+}
+
+.price-promo .discount-badge {
+  background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%);
+  color: #e8f7ff;
+  box-shadow: 0 2px 6px rgba(0, 114, 255, 0.28);
+}
+
 .price-limited .discounted-price {
   color: #8e44ad;
   text-shadow: 0 0 8px rgba(142, 68, 173, 0.25);
@@ -620,6 +666,11 @@
   background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);
   color: #f3e9ff;
   box-shadow: 0 2px 6px rgba(142, 68, 173, 0.35);
+}
+
+.price-promo .modal-discounted-price {
+  color: #0072ff;
+  text-shadow: 0 0 8px rgba(0, 114, 255, 0.2);
 }
 
 /* 모달 금액 색상도 이벤트 타입에 맞게 반영 */
@@ -646,6 +697,10 @@
 /* 비할인 한정판의 일반 가격 표시도 보라색으로 */
 .price-limited {
   color: #8e44ad;
+}
+
+.price-promo {
+  color: #0066e0;
 }
 
 .buy-button {

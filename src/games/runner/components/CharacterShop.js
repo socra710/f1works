@@ -102,13 +102,22 @@ const CharacterShop = ({
           if (aIsLimited && !bIsLimited) return -1;
           if (!aIsLimited && bIsLimited) return 1;
 
-          // 2순위: 할인 중인 아이템 (DISCOUNT)
+          // 2순위: 프로모션 (PRMO)
+          const aIsPromo = a.eventType === 'PRMO';
+          const bIsPromo = b.eventType === 'PRMO';
+
+          if (aIsPromo && !bIsPromo) return -1;
+          if (!aIsPromo && bIsPromo) return 1;
+
+          // 3순위: 할인 중인 아이템 (DISCOUNT)
           const aHasDiscount =
+            !aIsPromo &&
             a.eventType &&
             a.eventType !== 'NONE' &&
             a.eventDiscountRate > 0 &&
             a.discountedPrice < a.price;
           const bHasDiscount =
+            !bIsPromo &&
             b.eventType &&
             b.eventType !== 'NONE' &&
             b.eventDiscountRate > 0 &&
@@ -117,18 +126,18 @@ const CharacterShop = ({
           if (aHasDiscount && !bHasDiscount) return -1;
           if (!aHasDiscount && bHasDiscount) return 1;
 
-          // 3순위: 인기 아이템
+          // 4순위: 인기 아이템
           if (a.popular && !b.popular) return -1;
           if (!a.popular && b.popular) return 1;
 
-          // 4순위: 보유중 아이템 (뒤로)
+          // 5순위: 보유중 아이템 (뒤로)
           const aIsPurchased = purchasedItems.includes(a.id);
           const bIsPurchased = purchasedItems.includes(b.id);
 
           if (!aIsPurchased && bIsPurchased) return -1;
           if (aIsPurchased && !bIsPurchased) return 1;
 
-          // 5순위: 원래 정렬 순서 (sortOrder)
+          // 6순위: 원래 정렬 순서 (sortOrder)
           return (a.sortOrder || 0) - (b.sortOrder || 0);
         })
     : items.sort((a, b) => {
@@ -139,13 +148,22 @@ const CharacterShop = ({
         if (aIsLimited && !bIsLimited) return -1;
         if (!aIsLimited && bIsLimited) return 1;
 
-        // 2순위: 할인 중인 아이템 (DISCOUNT)
+        // 2순위: 프로모션 (PRMO)
+        const aIsPromo = a.eventType === 'PRMO';
+        const bIsPromo = b.eventType === 'PRMO';
+
+        if (aIsPromo && !bIsPromo) return -1;
+        if (!aIsPromo && bIsPromo) return 1;
+
+        // 3순위: 할인 중인 아이템 (DISCOUNT)
         const aHasDiscount =
+          !aIsPromo &&
           a.eventType &&
           a.eventType !== 'NONE' &&
           a.eventDiscountRate > 0 &&
           a.discountedPrice < a.price;
         const bHasDiscount =
+          !bIsPromo &&
           b.eventType &&
           b.eventType !== 'NONE' &&
           b.eventDiscountRate > 0 &&
@@ -154,18 +172,18 @@ const CharacterShop = ({
         if (aHasDiscount && !bHasDiscount) return -1;
         if (!aHasDiscount && bHasDiscount) return 1;
 
-        // 3순위: 인기 아이템
+        // 4순위: 인기 아이템
         if (a.popular && !b.popular) return -1;
         if (!a.popular && b.popular) return 1;
 
-        // 4순위: 보유중 아이템 (뒤로)
+        // 5순위: 보유중 아이템 (뒤로)
         const aIsPurchased = purchasedItems.includes(a.id);
         const bIsPurchased = purchasedItems.includes(b.id);
 
         if (!aIsPurchased && bIsPurchased) return -1;
         if (aIsPurchased && !bIsPurchased) return 1;
 
-        // 5순위: 원래 정렬 순서 (sortOrder)
+        // 6순위: 원래 정렬 순서 (sortOrder)
         return (a.sortOrder || 0) - (b.sortOrder || 0);
       });
 
@@ -349,12 +367,27 @@ const CharacterShop = ({
                   item.eventType !== 'NONE' &&
                   item.discountedPrice !== undefined &&
                   item.discountedPrice < item.price;
+                const isPromo = item.eventType === 'PRMO';
                 const finalPrice = hasDiscount
                   ? item.discountedPrice
                   : item.price;
                 const canAfford = coins >= finalPrice;
                 const isLimited = item.eventType === 'LIMITED';
                 const periodMeta = getDiscountPeriodMeta(item);
+                const badgeClass = isLimited
+                  ? styles['badge-limited-top']
+                  : isPromo
+                  ? styles['badge-promo']
+                  : styles['badge-discount'];
+                const badgeLabel =
+                  item.eventLabel ||
+                  (isLimited ? '한정' : isPromo ? '프로모션' : '할인');
+                const priceToneClass = isLimited
+                  ? styles['price-limited']
+                  : isPromo
+                  ? styles['price-promo']
+                  : styles['price-discount'];
+                const badgePeriod = periodMeta.text;
 
                 return (
                   <div
@@ -362,7 +395,11 @@ const CharacterShop = ({
                     className={`${styles['item-card']} ${
                       isPurchased ? styles['purchased'] : ''
                     } ${isLimited ? styles['limited'] : ''} ${
-                      hasDiscount && !isLimited ? styles['on-sale'] : ''
+                      isPromo
+                        ? styles['on-promo']
+                        : hasDiscount && !isLimited
+                        ? styles['on-sale']
+                        : ''
                     }`}
                     onClick={() =>
                       !isPurchased && setSelectedItemForDetails(item)
@@ -372,22 +409,21 @@ const CharacterShop = ({
                     {isPurchased ? (
                       <div className={styles['badge-owned-left']}>보유중</div>
                     ) : (
-                      (hasDiscount || isLimited) && (
-                        <div
-                          className={
-                            isLimited
-                              ? styles['badge-limited-top']
-                              : styles['badge-discount']
-                          }
-                        >
-                          {item.eventLabel || (isLimited ? '한정' : '할인')}
+                      (hasDiscount || isLimited || isPromo) && (
+                        <div className={badgeClass}>
+                          <div>{badgeLabel}</div>
+                          {badgePeriod && (
+                            <div className={styles['badge-period-sub']}>
+                              {badgePeriod}
+                            </div>
+                          )}
                         </div>
                       )
                     )}
                     {item.popular && !hasDiscount && (
                       <div className={styles['badge-popular']}>🔥 인기</div>
                     )}
-                    
+
                     <div className={styles['item-emoji']}>{item.emoji}</div>
                     <div className={styles['item-name']}>
                       {item.displayName}
@@ -402,13 +438,16 @@ const CharacterShop = ({
                         </div>
                       ) : hasDiscount ? (
                         <div
-                          className={`${styles['price-with-discount']} ${
-                            isLimited
-                              ? styles['price-limited']
-                              : styles['price-discount']
-                          }`}
+                          className={`${styles['price-with-discount']} ${priceToneClass}`}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              justifyContent: 'center',
+                            }}
+                          >
                             <span className={styles['original-price']}>
                               💰 {item.price}
                             </span>
@@ -484,57 +523,92 @@ const CharacterShop = ({
                 {selectedItemForDetails.description}
               </p>
               {(function () {
-                const isLimited = selectedItemForDetails.eventType === 'LIMITED';
+                const isLimited =
+                  selectedItemForDetails.eventType === 'LIMITED';
+                const isPromo = selectedItemForDetails.eventType === 'PRMO';
                 const hasDiscount =
                   selectedItemForDetails.eventType &&
                   selectedItemForDetails.eventType !== 'NONE' &&
                   selectedItemForDetails.discountedPrice !== undefined &&
-                  selectedItemForDetails.discountedPrice < selectedItemForDetails.price;
-                if (!(hasDiscount || isLimited)) return null;
+                  selectedItemForDetails.discountedPrice <
+                    selectedItemForDetails.price;
+                const meta = getDiscountPeriodMeta(selectedItemForDetails);
+                if (!(hasDiscount || isLimited || isPromo)) return null;
                 return (
                   <div
                     className={
                       isLimited
                         ? styles['badge-limited-top']
+                        : isPromo
+                        ? styles['badge-promo']
                         : styles['badge-discount']
                     }
                   >
-                    {selectedItemForDetails.eventLabel || (isLimited ? '한정' : '할인')}
+                    <div>
+                      {selectedItemForDetails.eventLabel ||
+                        (isLimited ? '한정' : isPromo ? '프로모션' : '할인')}
+                    </div>
+                    {meta.text && (
+                      <div className={styles['badge-period-sub']}>
+                        {meta.text}
+                      </div>
+                    )}
                   </div>
                 );
               })()}
               <div className={styles['price-info']}>
                 {(function () {
-                  const isLimited = selectedItemForDetails.eventType === 'LIMITED';
+                  const isLimited =
+                    selectedItemForDetails.eventType === 'LIMITED';
+                  const isPromo = selectedItemForDetails.eventType === 'PRMO';
                   const hasDiscount =
                     selectedItemForDetails.eventType &&
                     selectedItemForDetails.eventType !== 'NONE' &&
                     selectedItemForDetails.discountedPrice !== undefined &&
-                    selectedItemForDetails.discountedPrice < selectedItemForDetails.price;
+                    selectedItemForDetails.discountedPrice <
+                      selectedItemForDetails.price;
+                  const priceToneClass = isLimited
+                    ? styles['price-limited']
+                    : isPromo
+                    ? styles['price-promo']
+                    : styles['price-discount'];
                   if (hasDiscount) {
                     const meta = getDiscountPeriodMeta(selectedItemForDetails);
                     return (
                       <div
-                        className={`${styles['price-with-discount']} ${
-                          isLimited ? styles['price-limited'] : styles['price-discount']
-                        }`}
+                        className={`${styles['price-with-discount']} ${priceToneClass}`}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
-                          <span className={styles['modal-original-price']}>💰 {selectedItemForDetails.price}</span>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <span className={styles['modal-original-price']}>
+                            💰 {selectedItemForDetails.price}
+                          </span>
                           {selectedItemForDetails.eventDiscountRate > 0 && (
                             <span className={styles['discount-badge']}>
                               {selectedItemForDetails.eventDiscountRate}%
                             </span>
                           )}
                         </div>
-                        <span className={styles['modal-discounted-price']}>💰 {selectedItemForDetails.discountedPrice} 코인</span>
+                        <span className={styles['modal-discounted-price']}>
+                          💰 {selectedItemForDetails.discountedPrice} 코인
+                        </span>
                         {meta.text && (
                           <div
                             className={`${styles['discount-period']} ${
-                              meta.isUrgent ? styles['discount-period-soon'] : ''
+                              meta.isUrgent
+                                ? styles['discount-period-soon']
+                                : ''
                             }`}
                           >
-                            <span className={styles['discount-period-icon']}>{meta.icon}</span>
+                            <span className={styles['discount-period-icon']}>
+                              {meta.icon}
+                            </span>
                             {meta.text}
                           </div>
                         )}
@@ -543,7 +617,15 @@ const CharacterShop = ({
                   }
                   // 비할인: 한정판이면 가격 색상도 한정 스타일 반영
                   return (
-                    <div className={isLimited ? styles['price-limited'] : ''}>
+                    <div
+                      className={
+                        isLimited
+                          ? styles['price-limited']
+                          : isPromo
+                          ? styles['price-promo']
+                          : ''
+                      }
+                    >
                       💰 {selectedItemForDetails.price} 코인
                     </div>
                   );
@@ -649,6 +731,31 @@ function formatAnyDate(input) {
   }
 }
 
+// MM/DD 짧은 표시용
+function formatShortMonthDay(input) {
+  if (!input && input !== 0) return '';
+  try {
+    let dateObj;
+    if (typeof input === 'number') {
+      const ms = input < 1e12 ? input * 1000 : input;
+      dateObj = new Date(ms);
+    } else if (typeof input === 'string') {
+      const normalized = normalizeDateString(input);
+      dateObj = new Date(normalized);
+    } else if (input instanceof Date) {
+      dateObj = input;
+    } else {
+      return '';
+    }
+    if (Number.isNaN(dateObj.getTime())) return '';
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const d = String(dateObj.getDate()).padStart(2, '0');
+    return `${m}/${d}`;
+  } catch (_) {
+    return '';
+  }
+}
+
 function getDiscountPeriod(item) {
   if (!item) return '';
   // 다양한 키 지원 (서버 스키마 변화 대응)
@@ -687,11 +794,11 @@ function getDiscountPeriod(item) {
   }
 
   const startStr = formatAnyDate(start);
-  const endStr = formatAnyDate(end);
+  const endStr = formatShortMonthDay(end);
 
-  if (startStr && endStr) return `기간 ${startStr} - ${endStr}`;
-  if (!startStr && endStr) return `~ ${endStr} 까지`;
-  if (startStr && !endStr) return `시작 ${startStr}`;
+  if (!startStr && endStr) return `~ ${endStr}까지`;
+  if (startStr && endStr) return `~ ${endStr}까지`;
+  if (startStr && !endStr) return `시작 ${formatShortMonthDay(start)}`;
   return '';
 }
 
@@ -701,9 +808,8 @@ function getDiscountPeriod(item) {
 function getFallbackPeriod(days = 7) {
   const now = new Date();
   const end = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
-  const startStr = formatAnyDate(now);
-  const endStr = formatAnyDate(end);
-  return ``;
+  const endStr = formatShortMonthDay(end);
+  return endStr ? `~ ${endStr}까지` : '';
 }
 
 /**
@@ -751,6 +857,7 @@ function getDiscountPeriodMeta(item) {
   if (!item) return { text: '', icon: '📅', isUrgent: false };
   // 원본 기간 텍스트 우선
   const actualText = getDiscountPeriod(item);
+  const isPromo = item.eventType === 'PRMO';
 
   // 시작/종료 원시값 수집
   const startRaw =
@@ -785,16 +892,9 @@ function getDiscountPeriodMeta(item) {
   let icon = '📅';
   let isUrgent = false;
 
-  // 실제 텍스트 없고 할인 중이면 임시기간 생성
+  // 데이터가 있을 때만 표시 (fallback 제거)
   if (!text) {
-    const hasDiscount =
-      item.eventType &&
-      item.eventType !== 'NONE' &&
-      item.discountedPrice !== undefined &&
-      item.discountedPrice < item.price;
-    if (hasDiscount) {
-      text = getFallbackPeriod(7);
-    }
+    text = '';
   }
 
   // 아이콘 결정: 종료일만 존재하면 ⏳, 양쪽 있으면 📅
