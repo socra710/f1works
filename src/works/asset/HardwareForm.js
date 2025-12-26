@@ -459,38 +459,6 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
             </div>
           )}
 
-          {formData.category !== '신규납품' && (
-            <div className={styles.formRow}>
-              <div className={styles.field}>
-                <label>A/S 상태 *</label>
-                <select
-                  name="asStatus"
-                  value={formData.asStatus}
-                  onChange={handleChange}
-                >
-                  <option value="전">대기</option>
-                  <option value="진행중">진행중</option>
-                  <option value="완">완료</option>
-                </select>
-              </div>
-            </div>
-          )}
-
-          {formData.category !== '신규납품' && (
-            <div className={styles.formRow}>
-              <div className={`${styles.field} ${styles['field--full']}`}>
-                <label>H/W 증상</label>
-                <textarea
-                  name="hwSymptom"
-                  value={formData.hwSymptom}
-                  onChange={handleChange}
-                  placeholder="증상 설명"
-                  rows="3"
-                />
-              </div>
-            </div>
-          )}
-
           <div className={styles.formRow}>
             <div className={styles.field}>
               <label>단가</label>
@@ -533,53 +501,89 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
             </div>
           </div>
 
-          <div className={styles.formRow}>
-            <div className={styles.field}>
-              <label>제작사</label>
-              <input
-                type="text"
-                name="manufacturer"
-                value={formData.manufacturer}
-                onChange={handleChange}
-                placeholder="제조사명"
-              />
+          {formData.category !== '신규납품' && (
+            <div className={styles.formRow}>
+              <div className={styles.field}>
+                <label>A/S 상태 *</label>
+                <select
+                  name="asStatus"
+                  value={formData.asStatus}
+                  onChange={handleChange}
+                >
+                  <option value="전">대기</option>
+                  <option value="진행중">진행중</option>
+                  <option value="완">완료</option>
+                </select>
+              </div>
             </div>
+          )}
 
-            <div className={styles.field}>
-              <label>담당자</label>
-              <input
-                type="text"
-                name="contactPerson"
-                value={formData.contactPerson}
-                onChange={handleChange}
-                placeholder="제조사 담당자"
-              />
+          {formData.category !== '신규납품' && (
+            <div className={styles.formRow}>
+              <div className={`${styles.field} ${styles['field--full']}`}>
+                <label>H/W 증상</label>
+                <textarea
+                  name="hwSymptom"
+                  value={formData.hwSymptom}
+                  onChange={handleChange}
+                  placeholder="증상 설명"
+                  rows="3"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className={styles.formRow}>
-            <div className={styles.field}>
-              <label>연락처</label>
-              <input
-                type="tel"
-                name="contactTel"
-                value={formData.contactTel}
-                onChange={handleChange}
-                placeholder="전화번호"
-              />
-            </div>
+          {formData.category !== '신규납품' && (
+            <>
+              <div className={styles.formRow}>
+                <div className={styles.field}>
+                  <label>제작사</label>
+                  <input
+                    type="text"
+                    name="manufacturer"
+                    value={formData.manufacturer}
+                    onChange={handleChange}
+                    placeholder="제조사명"
+                  />
+                </div>
 
-            <div className={styles.field}>
-              <label>주소</label>
-              <input
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="제조사 주소"
-              />
-            </div>
-          </div>
+                <div className={styles.field}>
+                  <label>담당자</label>
+                  <input
+                    type="text"
+                    name="contactPerson"
+                    value={formData.contactPerson}
+                    onChange={handleChange}
+                    placeholder="제조사 담당자"
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label>연락처</label>
+                  <input
+                    type="tel"
+                    name="contactTel"
+                    value={formData.contactTel}
+                    onChange={handleChange}
+                    placeholder="전화번호"
+                  />
+                </div>
+              </div>
+
+              <div className={styles.formRow}>
+                <div className={`${styles.field} ${styles['field--full']}`}>
+                  <label>주소</label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    placeholder="제조사 주소"
+                  />
+                </div>
+              </div>
+            </>
+          )}
 
           <div className={styles.formActions}>
             <button type="submit" className={styles.btnSubmit}>
