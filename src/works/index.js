@@ -35,14 +35,25 @@ export default function Works() {
   });
   const [checked, setChecked] = useState(() => {
     try {
-      const cached = sessionStorage.getItem('isAdminStatus');
-      return cached === 'true' || cached === 'false';
+      const cachedAdmin = sessionStorage.getItem('isAdminStatus');
+      const cachedMenuKeys = sessionStorage.getItem('userMenuKeys');
+      return (
+        (cachedAdmin === 'true' || cachedAdmin === 'false') &&
+        cachedMenuKeys !== null
+      );
     } catch (err) {
       return false;
     }
   });
   const [loadingInsights, setLoadingInsights] = useState(true);
-  const [hasExpenseRole, setHasExpenseRole] = useState(false);
+  const [userMenuKeys, setUserMenuKeys] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem('userMenuKeys');
+      return cached ? JSON.parse(cached) : [];
+    } catch (err) {
+      return [];
+    }
+  });
   const [insights, setInsights] = useState({
     attendance: [
       { rank: 1, name: '데이터가 존재하지 않습니다', department: '', count: 0 },
@@ -77,15 +88,25 @@ export default function Works() {
     }
   };
 
-  const hasAdminStatusCached = () => {
+  const persistUserMenuKeys = (menuKeys) => {
     try {
-      return sessionStorage.getItem('isAdminStatus');
+      sessionStorage.setItem('userMenuKeys', JSON.stringify(menuKeys || []));
     } catch (err) {
-      return null;
+      // 세션스토리지 접근 불가 시 무시
     }
   };
 
-  const skipAdminSkeleton = checked || !!hasAdminStatusCached();
+  const hasAdminStatusCached = () => {
+    try {
+      const cachedAdmin = sessionStorage.getItem('isAdminStatus');
+      const cachedMenuKeys = sessionStorage.getItem('userMenuKeys');
+      return cachedAdmin !== null && cachedMenuKeys !== null;
+    } catch (err) {
+      return false;
+    }
+  };
+
+  const skipAdminSkeleton = checked || hasAdminStatusCached();
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -120,6 +141,17 @@ export default function Works() {
     adminCheckRef.current = true;
 
     (async () => {
+      // 캐시된 권한 정보가 있으면 API 호출 건너뛰기
+      const cachedAdmin = sessionStorage.getItem('isAdminStatus');
+      const cachedMenuKeys = sessionStorage.getItem('userMenuKeys');
+      const hasCachedData = cachedAdmin !== null && cachedMenuKeys !== null;
+
+      if (hasCachedData) {
+        // 캐시된 데이터만 사용하고 API 호출 건너뛰기
+        setChecked(true);
+        return;
+      }
+
       try {
         const sessionUser = await waitForExtensionLogin({
           minWait: 0,
@@ -141,35 +173,42 @@ export default function Works() {
             setIsAdmin(headerAdmin);
             persistAdminStatus(headerAdmin);
 
-            // 관리 탭(경비) 메뉴 노출 권한: EXPENSE 메뉴 권한 보유자만 (단일 호출 응답의 menuKeys로 판별)
-            const hasExpenseKey = Array.isArray(roleAll?.menuKeys)
+            // 관리 탭 메뉴 권한: menuKeys 배열로 저장
+            const menuKeys = Array.isArray(roleAll?.menuKeys)
               ? roleAll.menuKeys
                   .map((k) =>
                     typeof k === 'string' ? k.trim().toUpperCase() : ''
                   )
-                  .includes('EXPENSE')
-              : false;
-            const expenseAllowed =
-              !!roleAll?.isSuperAdmin ||
-              !!roleAll?.isGlobalAdmin ||
-              hasExpenseKey;
-            setHasExpenseRole(expenseAllowed);
+                  .filter((k) => k !== '')
+              : [];
+
+            // SuperAdmin이나 GlobalAdmin은 모든 권한 부여
+            const finalMenuKeys =
+              !!roleAll?.isSuperAdmin || !!roleAll?.isGlobalAdmin
+                ? ['EXPENSE', 'EXPENSE_SUMMARY', ...menuKeys]
+                : menuKeys;
+
+            setUserMenuKeys(finalMenuKeys);
+            persistUserMenuKeys(finalMenuKeys);
           } catch (apiError) {
             console.error('[Works] API 호출 실패:', apiError);
             setIsAdmin(false);
-            setHasExpenseRole(false);
+            setUserMenuKeys([]);
             persistAdminStatus(false);
+            persistUserMenuKeys([]);
           }
         } else {
           setIsAdmin(false);
-          setHasExpenseRole(false);
+          setUserMenuKeys([]);
           persistAdminStatus(false);
+          persistUserMenuKeys([]);
         }
       } catch (error) {
         console.error('[Works] Admin check failed:', error);
         setIsAdmin(false);
-        setHasExpenseRole(false);
+        setUserMenuKeys([]);
         persistAdminStatus(false);
+        persistUserMenuKeys([]);
       } finally {
         setChecked(true);
       }
@@ -229,6 +268,7 @@ export default function Works() {
         path: '/works/expense-management',
         category: '관리',
         requiresAdmin: true,
+        requiredMenuKey: 'EXPENSE',
         inNew: '2025-12-15', // 신규 출시 날짜
       },
       {
@@ -238,6 +278,7 @@ export default function Works() {
         path: '/works/expense-summary',
         category: '관리',
         requiresAdmin: true,
+        requiredMenuKey: 'EXPENSE_SUMMARY',
         inNew: '2025-12-15', // 신규 출시 날짜
       },
       {
@@ -291,8 +332,13 @@ export default function Works() {
   // 관리자 권한이 필요한 메뉴 (권한 체크 후 표시)
   const adminFeatures = useMemo(
     () =>
-      allFeatures.filter((feature) => feature.requiresAdmin && hasExpenseRole),
-    [allFeatures, hasExpenseRole]
+      allFeatures.filter(
+        (feature) =>
+          feature.requiresAdmin &&
+          (!feature.requiredMenuKey ||
+            userMenuKeys.includes(feature.requiredMenuKey))
+      ),
+    [allFeatures, userMenuKeys]
   );
 
   // 전체 메뉴 (일반 + 관리)
@@ -315,14 +361,17 @@ export default function Works() {
 
   useEffect(() => {
     if (!checked || !categoriesWithItems.length) return;
+
     const hasSelected = categoriesWithItems.some(
       (cat) => cat.category === selectedTab
     );
+
     if (!hasSelected) {
-      setSelectedTab(categoriesWithItems[0].category);
-      sessionStorage.setItem('selectedTab', categoriesWithItems[0].category);
+      const newTab = categoriesWithItems[0].category;
+      setSelectedTab(newTab);
+      sessionStorage.setItem('selectedTab', newTab);
     }
-  }, [checked, categoriesWithItems, selectedTab]);
+  }, [checked, categoriesWithItems, selectedTab, userMenuKeys]);
 
   const updates = [
     {

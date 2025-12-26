@@ -63,9 +63,7 @@ export default function ExpenseSummary() {
   const [authChecked, setAuthChecked] = useState(false);
   // const [isManagerMode] = useState(searchParams.get('mode') === 'manager');
   const [factoryCode] = useState('000001'); // 예시, 실제로는 로그인 정보에서 가져옴
-  const [userId] = useState(
-    window.sessionStorage.getItem('extensionLogin') || ''
-  );
+  const [userId, setUserId] = useState('');
 
   // 상단 로딩바 표시
   useEffect(() => {
@@ -143,33 +141,47 @@ export default function ExpenseSummary() {
         return;
       }
 
-      if (!didFetch.current) {
-        loadSummaryData();
-        didFetch.current = true;
-      }
-
+      // 세션 사용자 설정 후 데이터 로드
+      setUserId(sessionUser);
       setAuthChecked(true);
     })();
     // eslint-disable-next-line
   }, [navigate, showToast]);
 
+  // userId가 설정되면 데이터 로드
   useEffect(() => {
-    if (!didFetch.current) {
+    if (!userId || !authChecked) {
       return;
     }
-    // year가 변경되면 데이터 다시 로드
-    loadSummaryData();
+
+    if (!didFetch.current) {
+      loadSummaryData(userId);
+      didFetch.current = true;
+    }
+    // eslint-disable-next-line
+  }, [userId, authChecked]);
+
+  // year가 변경되면 데이터 다시 로드
+  useEffect(() => {
+    if (!didFetch.current || !userId) {
+      return;
+    }
+    loadSummaryData(userId);
     // eslint-disable-next-line
   }, [year]);
 
-  const loadSummaryData = async () => {
+  const loadSummaryData = async (userIdParam) => {
+    const currentUserId = userIdParam || userId;
+    if (!currentUserId) {
+      return;
+    }
     setIsLoading(true);
     try {
       // 승인된 경비 데이터 집계 조회
       const aggregationData = await getExpenseAggregationByYear(
         factoryCode,
         year,
-        decodeUserId(userId)
+        decodeUserId(currentUserId)
       );
 
       // 집계 데이터를 closingData 형식으로 변환
@@ -190,7 +202,7 @@ export default function ExpenseSummary() {
         const prevAggregationData = await getExpenseAggregationByYear(
           factoryCode,
           prevYear,
-          decodeUserId(userId)
+          decodeUserId(currentUserId)
         );
         prevTransformedData = prevAggregationData.map((item) => ({
           monthYm: item.monthYm,
@@ -208,7 +220,11 @@ export default function ExpenseSummary() {
       );
       const userAggResults = await Promise.all(
         months.map((m) =>
-          getExpenseAggregationByUser(factoryCode, m, decodeUserId(userId))
+          getExpenseAggregationByUser(
+            factoryCode,
+            m,
+            decodeUserId(currentUserId)
+          )
         )
       );
 
@@ -270,7 +286,7 @@ export default function ExpenseSummary() {
       const workStatsData = await getMonthlyWorkStatistics(
         factoryCode,
         year,
-        decodeUserId(userId)
+        decodeUserId(currentUserId)
       );
 
       // 숫자 변환 유틸
