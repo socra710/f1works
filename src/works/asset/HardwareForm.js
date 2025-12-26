@@ -234,6 +234,30 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
       return;
     }
 
+    // 신규납품일 경우 납품처와 납품일 필수
+    if (formData.category === '신규납품') {
+      if (!formData.deliveryLocation?.trim()) {
+        showToast('신규납품은 납품처를 입력해주세요.', 'error');
+        return;
+      }
+      if (!formData.deliveryDate?.trim()) {
+        showToast('신규납품은 납품일을 입력해주세요.', 'error');
+        return;
+      }
+    }
+
+    // 고장회수일 경우 회수처와 회수일 필수
+    if (formData.category === '고장회수') {
+      if (!formData.collectionLocation?.trim()) {
+        showToast('고장회수는 회수처를 입력해주세요.', 'error');
+        return;
+      }
+      if (!formData.collectionDate?.trim()) {
+        showToast('고장회수는 회수일을 입력해주세요.', 'error');
+        return;
+      }
+    }
+
     const receiptNoToSave = hardware ? formData.receiptNo || '' : '';
 
     const payload = {
@@ -359,54 +383,59 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
             </div>
           </div>
 
-          <div className={styles.formRow}>
-            <div className={styles.field}>
-              <label>납품일</label>
-              <input
-                type="date"
-                name="deliveryDate"
-                value={formData.deliveryDate}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className={styles.field}>
-              <label>납품처</label>
-              <div className={styles.inputWithIcon}>
+          {formData.category === '신규납품' && (
+            <div className={styles.formRow}>
+              <div className={styles.field}>
+                <label>납품일 *</label>
                 <input
-                  type="text"
-                  name="deliveryLocation"
-                  value={formData.deliveryLocation}
+                  type="date"
+                  name="deliveryDate"
+                  value={formData.deliveryDate}
                   onChange={handleChange}
-                  placeholder="거래처 선택"
-                  readOnly
+                  required
                 />
-                <button
-                  type="button"
-                  className={styles.btnIcon}
-                  aria-label="납품처 찾기"
-                  onClick={() => setCustomerModalTarget('deliveryLocation')}
-                >
-                  🔍
-                </button>
+              </div>
+
+              <div className={styles.field}>
+                <label>납품처 *</label>
+                <div className={styles.inputWithIcon}>
+                  <input
+                    type="text"
+                    name="deliveryLocation"
+                    value={formData.deliveryLocation}
+                    onChange={handleChange}
+                    placeholder="거래처 선택"
+                    readOnly
+                    required
+                  />
+                  <button
+                    type="button"
+                    className={styles.btnIcon}
+                    aria-label="납품처 찾기"
+                    onClick={() => setCustomerModalTarget('deliveryLocation')}
+                  >
+                    🔍
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {formData.category !== '신규납품' && (
             <div className={styles.formRow}>
               <div className={styles.field}>
-                <label>회수일</label>
+                <label>회수일 *</label>
                 <input
                   type="date"
                   name="collectionDate"
                   value={formData.collectionDate}
                   onChange={handleChange}
+                  required
                 />
               </div>
 
               <div className={styles.field}>
-                <label>회수처</label>
+                <label>회수처 *</label>
                 <div className={styles.inputWithIcon}>
                   <input
                     type="text"
@@ -415,6 +444,7 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
                     onChange={handleChange}
                     placeholder="거래처 선택"
                     readOnly
+                    required
                   />
                   <button
                     type="button"
