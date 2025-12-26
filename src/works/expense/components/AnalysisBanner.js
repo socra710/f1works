@@ -103,8 +103,8 @@ export default function AnalysisBanner({ comment, isLoading }) {
     if (hasFinished || isStreaming) return;
 
     setIsStreaming(true);
-    // 랜덤 로딩 지연(초 단위): 1.0s ~ 2.5s
-    const startDelay = Math.floor(1000 + Math.random() * 1500); // ms
+    // 랜덤 로딩 지연(초 단위): 1.0s ~ 5.0s
+    const startDelay = Math.floor(1000 + Math.random() * 4000); // ms
     const tickMs = 24; // 프레임 간격
     const charsPerTick = 2; // 틱당 출력 문자 수
 

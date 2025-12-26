@@ -534,6 +534,13 @@
   gap: 0.75rem;
 }
 
+@media screen and (max-width: 767px) {
+  .form-actions {
+    justify-content: space-between; /* 작은 화면에서도 좌/우 분리 유지 */
+    align-items: center;
+  }
+}
+
 .btn {
   padding: 0.65rem 1.2rem;
   border-radius: 8px;
@@ -616,6 +623,25 @@
   .form-row {
     grid-template-columns: 1fr;
     gap: 0.85rem;
+  }
+}
+
+/* 작은 화면에서 3열(사용일 | 종일 | 사용시간)을 1열로 강제 */
+@media screen and (max-width: 767px) {
+  .form-row--three {
+    grid-template-columns: 1fr !important;
+    align-items: stretch;
+  }
+  .form-row--three .inline-row {
+    grid-template-columns: 1fr !important;
+  }
+  .form-row--three .field--checkbox {
+    justify-content: flex-start;
+    align-self: center;
+    justify-self: start;
+  }
+  .field--checkbox label {
+    white-space: normal; /* 라벨 줄바꿈 허용 */
   }
 }
 
