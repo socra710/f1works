@@ -224,6 +224,15 @@ export default function ExpenseManagement() {
     }
     // 유류비 설정 확인
     checkFuelSettings(newMonth);
+    // 월 변경 즉시 목록 조회
+    const factoryCode =
+      window.sessionStorage.getItem('factoryCode') || '000001';
+    const userIdEncoded =
+      userIdEncodedRef.current ||
+      window.sessionStorage.getItem('extensionLogin');
+    if (userIdEncoded) {
+      fetchExpenseList(factoryCode, newMonth, userIdEncoded);
+    }
   };
 
   // 검색 버튼 핸들러
