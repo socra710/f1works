@@ -258,6 +258,23 @@
   border-color: #e5e7eb;
 }
 
+.preview {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #10b981;
+  background: #10b981;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.15s ease;
+}
+
+.preview:hover {
+  background: #059669;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
 .guide {
   flex-shrink: 0;
   padding: 12px;

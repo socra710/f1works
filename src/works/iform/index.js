@@ -10,6 +10,7 @@ import {
   getDocumentList,
   getDocument,
   updateDocumentStatus,
+  buildRjsfSchema,
 } from './api';
 import {
   waitForExtensionLogin,
@@ -193,6 +194,17 @@ export default function IFormPage() {
   }, [documents, docFilterTemplate, docFilterStatus, docSearch]);
 
   const handleSaveTemplate = async (tpl) => {
+    // _preview 플래그가 있으면 미리보기 탭으로 전환하고 스키마 업데이트
+    if (tpl?._preview) {
+      const { schema, uiSchema, formData } = buildRjsfSchema(tpl);
+      setRawTemplate(tpl);
+      setSchema(schema);
+      setUiSchema(uiSchema);
+      setFormData(formData);
+      setActiveTab('new');
+      return;
+    }
+
     try {
       const result = await saveTemplate(tpl, showToast);
       if (result && result.ok) {
@@ -559,6 +571,9 @@ export default function IFormPage() {
                           <th style={{ width: '12%', textAlign: 'center' }}>
                             상태
                           </th>
+                          <th style={{ width: '12%', textAlign: 'center' }}>
+                            작성자
+                          </th>
                           <th style={{ width: '15%', textAlign: 'center' }}>
                             작성일
                           </th>
@@ -590,6 +605,9 @@ export default function IFormPage() {
                               >
                                 {getStatusLabel(doc.status)}
                               </span>
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              {doc.createdByName || doc.createdBy || '-'}
                             </td>
                             <td
                               style={{ textAlign: 'center' }}
@@ -696,7 +714,11 @@ export default function IFormPage() {
                         formData={activeDoc.formData || {}}
                         key={activeDoc.docId || activeDoc.id || 'view-form'}
                         readOnly
-                        onComplete={handleCompleteDocument}
+                        onComplete={
+                          activeDoc.status !== 'COMPLETED'
+                            ? handleCompleteDocument
+                            : undefined
+                        }
                       />
                     ) : null}
                     {!viewLoading && !viewSchema && (
