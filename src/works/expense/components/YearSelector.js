@@ -17,11 +17,18 @@ export default function YearSelector({ year, onYearChange, disabled = false }) {
     return years;
   };
 
+  // 년도 변경 핸들러
+  const handleYearChange = (selectedYear) => {
+    onYearChange(selectedYear);
+    // 세션스토리지에 저장
+    window.sessionStorage.setItem('selectedYear', selectedYear);
+  };
+
   return (
     <div className="year-selector">
       <select
         value={year}
-        onChange={(e) => onYearChange(e.target.value)}
+        onChange={(e) => handleYearChange(e.target.value)}
         disabled={disabled}
       >
         {getYearOptions().map((y) => (
