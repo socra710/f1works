@@ -146,5 +146,5 @@ export const searchUsers = async ({ factoryCode = '000001', query = '' }) => {
 
   const data = await parseJsonSafe(response, '사용자 검색에 실패했습니다.');
   assertSuccess(response, data, '사용자 검색에 실패했습니다.');
-  return data.list || data || [];
+  return data.data || data.list || [];
 };
