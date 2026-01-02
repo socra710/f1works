@@ -486,6 +486,8 @@ export default function Expense() {
         ? data.list
         : Array.isArray(data?.users)
         ? data.users
+        : Array.isArray(data?.data)
+        ? data.data
         : [];
 
       // 중복 제거 및 필드 매핑
@@ -1154,11 +1156,33 @@ export default function Expense() {
   //   }, 0);
   // };
 
+  /** 월 일치 확인 함수 */
+  const checkMonthMismatch = () => {
+    const headerMonth = month; // 'YYYY-MM' 형식
+    const hasMismatchMonth = rows.some((row) => {
+      if (!row.date) return false; // 날짜가 없으면 위에서 이미 체크됨
+      // date 형식: 'YYYY-MM-DD'
+      const rowMonth = row.date.substring(0, 7); // 'YYYY-MM'
+      return rowMonth !== headerMonth;
+    });
+
+    if (hasMismatchMonth) {
+      showToast('모든 경비 항목의 월이 청구월과 동일해야 합니다.', 'warning');
+      return true; // 불일치 있음
+    }
+    return false; // 모두 일치
+  };
+
   /** 임시 저장 */
   const handleTempSave = async () => {
     // ...existing code...
     if (!month || !userId) {
       showToast('월 정보와 사용자 정보가 필요합니다.', 'warning');
+      return;
+    }
+
+    // 월 일치 확인
+    if (checkMonthMismatch()) {
       return;
     }
 
@@ -1264,6 +1288,11 @@ export default function Expense() {
     // ...existing code...
     if (!month || !userId) {
       showToast('월 정보와 사용자 정보가 필요합니다.', 'warning');
+      return;
+    }
+
+    // 월 일치 확인
+    if (checkMonthMismatch()) {
       return;
     }
 
@@ -1410,17 +1439,8 @@ export default function Expense() {
       return;
     }
 
-    // 헤더 청구월과 그리드 항목 날짜의 월이 다르면 저장 불가
-    const headerMonth = month; // 'YYYY-MM' 형식
-    const hasMismatchMonth = rows.some((row) => {
-      if (!row.date) return false; // 날짜가 없으면 위에서 이미 체크됨
-      // date 형식: 'YYYY-MM-DD'
-      const rowMonth = row.date.substring(0, 7); // 'YYYY-MM'
-      return rowMonth !== headerMonth;
-    });
-
-    if (hasMismatchMonth) {
-      showToast('모든 경비 항목의 월이 청구월과 동일해야 합니다.', 'warning');
+    // 월 일치 확인
+    if (checkMonthMismatch()) {
       return;
     }
 
