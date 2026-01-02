@@ -185,7 +185,7 @@ export default function Works() {
             // SuperAdmin이나 GlobalAdmin은 모든 권한 부여
             const finalMenuKeys =
               !!roleAll?.isSuperAdmin || !!roleAll?.isGlobalAdmin
-                ? ['EXPENSE', 'EXPENSE_SUMMARY', 'GLOBAL', ...menuKeys]
+                ? ['EXPENSE', 'EXPENSE_SUMMARY', 'GLOBAL', 'IFORM', ...menuKeys]
                 : menuKeys;
 
             setUserMenuKeys(finalMenuKeys);
@@ -261,6 +261,14 @@ export default function Works() {
         category: '업무',
         inNew: '2025-12-22', // 신규 출시 날짜
       },
+      // {
+      //   title: '통합 문서 작성',
+      //   description: '동적 양식 기반의 문서 템플릿을 선택하고 작성하세요',
+      //   icon: '🖥️',
+      //   path: '/works/iform/user',
+      //   category: '업무',
+      //   inNew: '2025-12-29', // 신규 출시 날짜
+      // },
       {
         title: '경비 청구 관리',
         description: '직원들의 경비 청구 내역을 확인하고 승인하세요',
@@ -280,6 +288,16 @@ export default function Works() {
         requiresAdmin: true,
         requiredMenuKey: 'EXPENSE_SUMMARY',
         inNew: '2025-12-15', // 신규 출시 날짜
+      },
+      {
+        title: '통합 문서 관리',
+        description: '동적 양식 기반의 문서 템플릿을 생성하고 관리하세요',
+        icon: '🖥️',
+        path: '/works/iform',
+        category: '관리',
+        requiresAdmin: true,
+        requiredMenuKey: 'IFORM',
+        inNew: '2025-12-29', // 신규 출시 날짜
       },
       {
         title: '관리자 설정',
