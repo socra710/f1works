@@ -26,6 +26,20 @@ export default function UserForm() {
   const hasShownToastRef = useRef(false);
   const isNavigatingRef = useRef(false);
 
+  // 상태값 한글 변환 함수
+  const getStatusLabel = (status) => {
+    const statusMap = {
+      DRAFT: '임시 저장',
+      SUBMITTED: '제출 완료',
+      APPROVED: '승인됨',
+      REJECTED: '반려됨',
+      COMPLETED: '완료 처리',
+      NOT_SUBMITTED: '제출 없음',
+      MODIFY: '수정 중',
+    };
+    return statusMap[status] || status || 'N/A';
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -97,13 +111,13 @@ export default function UserForm() {
 
   const loadMyDocuments = useCallback(async () => {
     try {
-      const docs = await getDocumentList();
+      const docs = await getDocumentList(currentUserId);
       setMyDocuments(Array.isArray(docs) ? docs : []);
     } catch (err) {
       console.error('문서 목록 로드 실패:', err);
       throw new Error('문서 목록을 불러올 수 없습니다.');
     }
-  }, []);
+  }, [currentUserId]);
 
   const handleSelectTemplate = useCallback(
     (template) => {
@@ -132,6 +146,18 @@ export default function UserForm() {
 
       if (!data || Object.keys(data).length === 0) {
         showMessage('문서 내용을 입력해주세요.', 'error');
+        return;
+      }
+
+      // 서명 필드 검증
+      const signatureFields = Object.keys(data).filter(
+        (key) => key.includes('sign') || key.includes('signature')
+      );
+      const hasEmptySignature = signatureFields.some(
+        (key) => !data[key] || data[key].trim() === ''
+      );
+      if (hasEmptySignature) {
+        showMessage('서명을 완료해주세요.', 'error');
         return;
       }
 
@@ -176,7 +202,60 @@ export default function UserForm() {
         setLoading(false);
       }
     },
-    [selectedTemplate, loadMyDocuments, showMessage]
+    [selectedTemplate, loadMyDocuments, showMessage, currentUserId]
+  );
+
+  const handleSaveDraft = useCallback(
+    async (data) => {
+      if (!selectedTemplate) {
+        showMessage('템플릿이 선택되지 않았습니다.', 'error');
+        return;
+      }
+
+      setLoading(true);
+      setMessage('');
+
+      try {
+        // data 정제: 문자열은 trim, 서명 필드는 그대로 유지
+        const cleanedData = Object.entries(data).reduce((acc, [key, value]) => {
+          if (typeof value === 'string') {
+            acc[key] =
+              key.includes('sign') || key.includes('signature')
+                ? value
+                : value.trim();
+          } else {
+            acc[key] = value;
+          }
+          return acc;
+        }, {});
+
+        const doc = {
+          userId: currentUserId,
+          templateId: selectedTemplate.id,
+          title: selectedTemplate.name,
+          formData: cleanedData,
+          status: 'DRAFT',
+        };
+
+        console.log('임시저장 문서:', doc);
+        console.log('폼데이터:', cleanedData);
+        await createDocument(doc);
+        showMessage('문서가 임시 저장되었습니다.', 'success');
+        setView('list');
+        setSelectedTemplate(null);
+        setFormData({});
+        await loadMyDocuments();
+      } catch (err) {
+        console.error('문서 임시 저장 실패:', err);
+        showMessage(
+          err.message || '임시 저장에 실패했습니다. 다시 시도해주세요.',
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [selectedTemplate, loadMyDocuments, showMessage, currentUserId]
   );
 
   const handleCancel = useCallback(() => {
@@ -302,6 +381,7 @@ export default function UserForm() {
                           <th>상태</th>
                           <th>작성일</th>
                           <th>수정일</th>
+                          <th>작업</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -310,7 +390,7 @@ export default function UserForm() {
                             <td>{doc.title}</td>
                             <td>
                               <span className={styles['status-' + doc.status]}>
-                                {doc.status}
+                                {getStatusLabel(doc.status)}
                               </span>
                             </td>
                             <td>
@@ -326,6 +406,17 @@ export default function UserForm() {
                                     'ko-KR'
                                   )
                                 : '-'}
+                            </td>
+                            <td>
+                              <button
+                                className={styles.btnView}
+                                onClick={() =>
+                                  navigate(`/works/iform/user/${doc.docId}`)
+                                }
+                                aria-label="문서 상세보기"
+                              >
+                                보기
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -360,20 +451,10 @@ export default function UserForm() {
                 uiSchema={selectedTemplate.uiSchema}
                 formData={formData}
                 onSubmit={handleSubmit}
+                onSaveDraft={handleSaveDraft}
                 onChange={handleFormDataChange}
                 disabled={loading}
-              >
-                <div className={styles.formActions}>
-                  <button
-                    type="submit"
-                    className={styles.btnSubmit}
-                    disabled={loading}
-                    aria-label={loading ? '문서 제출 중' : '문서 제출하기'}
-                  >
-                    {loading ? '제출 중...' : '제출하기'}
-                  </button>
-                </div>
-              </FormRenderer>
+              />
             </div>
           )}
         </>

@@ -87,6 +87,7 @@ export default function FormRenderer({
   uiSchema,
   formData,
   onSubmit,
+  onSaveDraft,
   onChange,
   readOnly = false,
   onComplete,
@@ -137,6 +138,7 @@ export default function FormRenderer({
         validator={validator}
         disabled={readOnly}
         readonly={readOnly}
+        noHtml5Validate
         onChange={(e) => {
           // RJSF formData와 pending related fields를 병합하여 즉시 업데이트
           const merged = {
@@ -154,24 +156,21 @@ export default function FormRenderer({
           onSubmit && onSubmit(currentFormData);
         }}
       >
-        {!readOnly && (
-          <div className={styles.actions}>
-            <button type="submit" className={styles.primary}>
-              저장
-            </button>
-          </div>
-        )}
-        {readOnly && (
+        {!readOnly ? (
           <div className={styles.actions}>
             <button
               type="button"
-              className={styles.primary}
-              onClick={onComplete}
-              disabled={!onComplete}
+              className={styles.secondary}
+              onClick={() => onSaveDraft && onSaveDraft(currentFormData)}
             >
-              확인
+              저장
+            </button>
+            <button type="submit" className={styles.primary}>
+              제출
             </button>
           </div>
+        ) : (
+          <></>
         )}
       </Form>
       {docDescription ? (

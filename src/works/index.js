@@ -261,14 +261,14 @@ export default function Works() {
         category: '업무',
         inNew: '2025-12-22', // 신규 출시 날짜
       },
-      // {
-      //   title: '통합 문서 작성',
-      //   description: '동적 양식 기반의 문서 템플릿을 선택하고 작성하세요',
-      //   icon: '🖥️',
-      //   path: '/works/iform/user',
-      //   category: '업무',
-      //   inNew: '2025-12-29', // 신규 출시 날짜
-      // },
+      {
+        title: '통합 문서 작성(베타)',
+        description: '동적 양식 기반의 문서 템플릿을 선택하고 작성하세요',
+        icon: '🖥️',
+        path: '/works/iform/user',
+        category: '업무',
+        inNew: '2026-01-02', // 신규 출시 날짜
+      },
       {
         title: '경비 청구 관리',
         description: '직원들의 경비 청구 내역을 확인하고 승인하세요',

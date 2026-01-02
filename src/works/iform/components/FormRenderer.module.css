@@ -164,3 +164,25 @@
   transform: translateY(-1px);
   box-shadow: 0 8px 18px rgba(29, 78, 216, 0.25);
 }
+
+.secondary {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+  color: #374151;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.secondary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(55, 65, 81, 0.15);
+}
+/* RJSF가 자동 생성하는 submit 버튼 숨기기 */
+.rjsfForm :global(.btn),
+.rjsfForm :global(.btn-info),
+.rjsfForm :global(button.btn-info) {
+  display: none !important;
+}
