@@ -23,6 +23,7 @@ import Calendar from './works/Calendar';
 import NotFound from './NotFound';
 import IFormPage from './works/iform';
 import UserForm from './works/iform/user/UserForm';
+import UserDocumentView from './works/iform/user/UserDocumentView';
 
 function App() {
   return (
@@ -58,6 +59,10 @@ function App() {
           <Route path="/works/asset/hw" element={<AssetHW />}></Route>
           <Route path="/works/iform" element={<IFormPage />}></Route>
           <Route path="/works/iform/user" element={<UserForm />}></Route>
+          <Route
+            path="/works/iform/user/:docId"
+            element={<UserDocumentView />}
+          ></Route>
           {/* <Route path="/works/dispatch/:id" element={<Dispatch />}></Route> */}
           <Route path="/games/wordle" element={<Wordle />}></Route>
           <Route path="/games/tetris" element={<Tetris />}></Route>

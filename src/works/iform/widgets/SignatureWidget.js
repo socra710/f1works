@@ -6,12 +6,14 @@ export default function SignatureWidget(props) {
   const { value, onChange, readonly, disabled } = props;
   const sigRef = useRef(null);
   const [hasSignature, setHasSignature] = useState(!!value);
+  const isLoadedRef = useRef(false);
 
   const handleClear = () => {
     if (sigRef.current) {
       sigRef.current.clear();
       onChange('');
       setHasSignature(false);
+      isLoadedRef.current = false;
     }
   };
 
@@ -35,15 +37,23 @@ export default function SignatureWidget(props) {
   };
 
   React.useEffect(() => {
-    if (value && sigRef.current && !hasSignature) {
+    if (value && sigRef.current && !isLoadedRef.current) {
       try {
         sigRef.current.fromDataURL(value);
         setHasSignature(true);
+        isLoadedRef.current = true;
       } catch (e) {
         console.error('Failed to load signature:', e);
       }
+    } else if (!value && isLoadedRef.current) {
+      // value가 비워지면 초기화
+      if (sigRef.current) {
+        sigRef.current.clear();
+      }
+      setHasSignature(false);
+      isLoadedRef.current = false;
     }
-  }, [value, hasSignature]);
+  }, [value]);
 
   if (readonly || disabled) {
     return value ? (
