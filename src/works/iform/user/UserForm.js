@@ -67,7 +67,12 @@ export default function UserForm() {
         setCurrentUserId(decoded);
         setHasAccess(true);
 
-        await Promise.all([loadTemplates(), loadMyDocuments()]);
+        await Promise.all([
+          loadTemplates(),
+          getDocumentList(decoded).then((docs) => {
+            setMyDocuments(Array.isArray(docs) ? docs : []);
+          }),
+        ]);
       } catch (err) {
         if (!isMounted) return;
 
