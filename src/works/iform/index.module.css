@@ -418,6 +418,9 @@
 .status-DRAFT,
 .status-APPROVED,
 .status-REJECTED,
+.status-COMPLETED,
+.status-NOT_SUBMITTED,
+.status-MODIFY,
 .status-unknown {
   display: inline-flex;
   align-items: center;
@@ -448,6 +451,21 @@
   color: #b91c1c;
 }
 
+.status-COMPLETED {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-NOT_SUBMITTED {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.status-MODIFY {
+  background: #fef3c7;
+  color: #92400e;
+}
+
 .status-unknown {
   background: #e5e7eb;
   color: #374151;
@@ -469,7 +487,7 @@
   border-radius: 16px;
   border: 1px solid var(--border);
   box-shadow: 0 22px 48px rgba(15, 23, 42, 0.22);
-  width: min(880px, 100%);
+  width: min(1200px, 100%);
   max-height: 90vh;
   overflow: hidden;
   display: flex;

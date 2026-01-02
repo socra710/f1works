@@ -73,6 +73,17 @@ export default function TemplateEditor({ onSave, templates = [] }) {
     setIsDirty(true);
   };
 
+  const handlePreview = () => {
+    setError('');
+    try {
+      const tpl = JSON.parse(templateText);
+      // _preview 플래그를 추가하면 부모에서 미리보기 탭으로 전환
+      onSave && onSave({ ...tpl, _preview: true });
+    } catch (e) {
+      setError('JSON 파싱 오류: 올바른 형식을 입력하세요');
+    }
+  };
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.header}>
@@ -179,6 +190,13 @@ export default function TemplateEditor({ onSave, templates = [] }) {
                   disabled={!isDirty}
                 >
                   변경사항 폐기
+                </button>
+                <button
+                  className={styles.preview}
+                  onClick={handlePreview}
+                  title="JSON이 유효한 형식이면 미리보기 탭에서 확인할 수 있습니다"
+                >
+                  미리보기
                 </button>
               </div>
 

@@ -62,7 +62,7 @@ async function searchUserList(searchTerm = '') {
   }
 }
 
-function buildRjsfSchema(template) {
+export function buildRjsfSchema(template) {
   if (!template)
     return {
       schema: { type: 'object', properties: {} },
@@ -780,6 +780,7 @@ export async function getDocumentList(createdBy, status, showToast) {
         formData: JSON.parse(dto.formData || '{}'),
         status: dto.status,
         createdBy: dto.createdBy,
+        createdByName: dto.createdByName || dto.userName,
         createdAt: dto.createdAt,
         updatedAt: dto.updatedAt,
       }));
