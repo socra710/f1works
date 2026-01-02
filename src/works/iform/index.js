@@ -17,6 +17,7 @@ import {
   decodeUserId,
 } from '../../common/extensionLogin';
 import { useToast } from '../../common/Toast';
+import { checkAdminRole } from '../admin/adminAPI';
 import styles from './index.module.css';
 
 export default function IFormPage() {
@@ -106,6 +107,28 @@ export default function IFormPage() {
         }
 
         const decoded = (decodeUserId(sessionUser) || '').trim();
+        const role = await checkAdminRole({
+          userId: decoded,
+          menuKey: 'IFORM',
+        });
+
+        if (!isMounted) return;
+
+        const isSuper = !!role?.isSuperAdmin;
+        const isGlobalAdmin = !!role?.isGlobalAdmin;
+        const isMenuAdmin = !!role?.isMenuAdmin;
+
+        if (!isSuper && !isGlobalAdmin && !isMenuAdmin) {
+          if (!hasShownToastRef.current && !isNavigatingRef.current) {
+            hasShownToastRef.current = true;
+            isNavigatingRef.current = true;
+            showToast('해당 사용자는 접근 권한이 없습니다.', 'warning');
+            navigate('/works');
+          }
+          setLoading(false);
+          return;
+        }
+
         setCurrentUserId(decoded);
         setHasAccess(true);
 
