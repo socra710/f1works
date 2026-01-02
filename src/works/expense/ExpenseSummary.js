@@ -46,12 +46,21 @@ export default function ExpenseSummary() {
   const { year: initialYear, isValid: isValidYear } =
     parseYearFromUrl(encodedYear);
 
+  const [year, setYear] = useState(() => {
+    // 세션스토리지에서 저장된 년도 확인
+    const savedYear = window.sessionStorage.getItem('selectedYear');
+    return savedYear || initialYear;
+  });
+
   // 링크 생성 함수
   const handleCreateLink = () => {
     createShareLink(year, showToast);
   };
 
-  const [year, setYear] = useState(() => initialYear);
+  // 년도 변경시 세션스토리지에 저장
+  useEffect(() => {
+    window.sessionStorage.setItem('selectedYear', year);
+  }, [year]);
   const [closingData, setClosingData] = useState([]);
   // const [previousYearData, setPreviousYearData] = useState([]);
   const [userMonthlyData, setUserMonthlyData] = useState({});
