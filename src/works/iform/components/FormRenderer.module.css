@@ -1,0 +1,166 @@
+.formShell {
+  background: linear-gradient(180deg, #f9fafb 0%, #f1f5f9 100%);
+  border: none;
+  border-radius: 14px;
+  padding: 18px 18px 14px;
+  box-shadow: none;
+}
+
+.docHeader {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #1d4ed8;
+}
+
+.docTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.gridContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+.colHalf {
+  grid-column: span 1;
+}
+
+.colFull {
+  grid-column: span 2;
+}
+
+.rjsfForm :global(#root) {
+  border: 1px solid #d7dde6;
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.rjsfForm :global(.form-group) {
+  padding: 0;
+  margin: 0;
+  border: none;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  min-height: 48px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.cellLabel {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  background: #fafbfc;
+  font-weight: 700;
+  font-size: 13px;
+  color: #374151;
+  border-right: 1px solid #f1f5f9;
+}
+
+.cellControl {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: #fff;
+  align-items: stretch;
+  font-size: 0.9rem;
+}
+
+.required {
+  color: #dc2626;
+  margin-left: 4px;
+  font-weight: 800;
+}
+
+.rjsfForm :global(label.control-label),
+.rjsfForm :global(.field-label) {
+  display: none;
+}
+
+.rjsfForm :global(input.form-control),
+.rjsfForm :global(select.form-control),
+.rjsfForm :global(textarea.form-control) {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background 0.15s ease;
+  background: #fdfefe;
+}
+
+.rjsfForm :global(textarea.form-control) {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.rjsfForm :global(input.form-control:focus),
+.rjsfForm :global(select.form-control:focus),
+.rjsfForm :global(textarea.form-control:focus) {
+  outline: none;
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+  background: #fff;
+}
+
+.rjsfForm :global(input.form-control[readonly]),
+.rjsfForm :global(select.form-control[readonly]),
+.rjsfForm :global(textarea.form-control[readonly]) {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.rjsfForm :global(.help-block) {
+  color: #6b7280;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.rjsfForm :global(.array-item) {
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin-bottom: 10px;
+  background: transparent;
+  grid-column: 1 / -1;
+}
+
+.rjsfForm :global(.panel) {
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.primary {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid #1d4ed8;
+  background: #1d4ed8;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(29, 78, 216, 0.25);
+}
