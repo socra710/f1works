@@ -824,3 +824,27 @@
   color: #9ca3af;
   font-size: 14px;
 }
+
+/* Skeleton Loading Animation */
+@keyframes skeletonShimmer {
+  0% {
+    background-color: #e0e0e0;
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    background-position: -1000px 0;
+  }
+  100% {
+    background-color: #e0e0e0;
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    background-position: 1000px 0;
+  }
+}

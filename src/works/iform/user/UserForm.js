@@ -286,8 +286,39 @@ export default function UserForm() {
     setMessage('');
   }, [loading, formData]);
 
+  // 로딩 중일 때는 로딩 화면만 표시
+  if (initialLoading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loadingWrapper}>
+          <div
+            className={styles.loadingBar}
+            role="status"
+            aria-label="데이터 로딩 중"
+          >
+            <div className={styles.loadingBarIndicator} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 접근 권한이 없으면 아무것도 표시하지 않음
+  if (!hasAccess) {
+    return null;
+  }
+
   return (
     <div className={styles.container}>
+      {loading && (
+        <div
+          className={styles.loadingBar}
+          role="status"
+          aria-label="데이터 로딩 중"
+        >
+          <div className={styles.loadingBarIndicator} />
+        </div>
+      )}
       <div className={styles.adminHeader}>
         <div className={styles.adminHeaderText}>
           <h1>전자문서 작성</h1>
@@ -318,151 +349,137 @@ export default function UserForm() {
         </div>
       )}
 
-      {initialLoading ? (
-        <div
-          className={styles.loadingBar}
-          role="status"
-          aria-label="데이터 로딩 중"
-        >
-          <div className={styles.loadingBarIndicator} />
-        </div>
-      ) : !hasAccess ? null : (
-        <>
-          {view === 'list' && (
-            <div className={styles.listView}>
-              <section className={styles.section}>
-                <h2>양식 선택</h2>
-                {templates.length === 0 ? (
-                  <div className={styles.emptyMessage}>
-                    사용 가능한 양식이 없습니다.
-                  </div>
-                ) : (
-                  <div className={styles.templateGrid}>
-                    {templates.map((tpl) => (
-                      <div
-                        key={tpl.id}
-                        className={styles.templateCard}
-                        onClick={() => handleSelectTemplate(tpl)}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={`${tpl.name} 양식 선택`}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            handleSelectTemplate(tpl);
-                          }
-                        }}
-                      >
-                        <div className={styles.templateIcon} aria-hidden="true">
-                          📄
-                        </div>
-                        <div className={styles.templateName}>{tpl.name}</div>
-                        {tpl.description && (
-                          <div className={styles.templateDescription}>
-                            {tpl.description}
-                          </div>
-                        )}
-                        <div className={styles.templateVersion}>
-                          v{tpl.version}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </section>
-
-              <section className={styles.section}>
-                <h2>내 문서</h2>
-                <div className={styles.documentList}>
-                  {myDocuments.length === 0 ? (
-                    <div className={styles.emptyMessage}>
-                      작성된 문서가 없습니다.
-                    </div>
-                  ) : (
-                    <table className={styles.documentTable}>
-                      <thead>
-                        <tr>
-                          <th>제목</th>
-                          <th>상태</th>
-                          <th>작성일</th>
-                          <th>수정일</th>
-                          <th>작업</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {myDocuments.map((doc) => (
-                          <tr key={doc.docId}>
-                            <td>{doc.title}</td>
-                            <td>
-                              <span className={styles['status-' + doc.status]}>
-                                {getStatusLabel(doc.status)}
-                              </span>
-                            </td>
-                            <td>
-                              {doc.createdAt
-                                ? new Date(doc.createdAt).toLocaleDateString(
-                                    'ko-KR'
-                                  )
-                                : '-'}
-                            </td>
-                            <td>
-                              {doc.updatedAt
-                                ? new Date(doc.updatedAt).toLocaleDateString(
-                                    'ko-KR'
-                                  )
-                                : '-'}
-                            </td>
-                            <td>
-                              <button
-                                className={styles.btnView}
-                                onClick={() =>
-                                  navigate(`/works/iform/user/${doc.docId}`)
-                                }
-                                aria-label="문서 상세보기"
-                              >
-                                보기
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-              </section>
-            </div>
-          )}
-
-          {view === 'create' && selectedTemplate && (
-            <div className={styles.formView}>
-              <div className={styles.formHeader}>
-                <div className={styles.formHeaderText}>
-                  <h2>{selectedTemplate.name}</h2>
-                  <div className={styles.formVersion}>
-                    버전 {selectedTemplate.version}
-                  </div>
-                </div>
-                <button
-                  className={styles.btnBack}
-                  onClick={handleCancel}
-                  disabled={loading}
-                  aria-label="양식 작성 취소"
-                >
-                  취소
-                </button>
+      {view === 'list' && (
+        <div className={styles.listView}>
+          <section className={styles.section}>
+            <h2>양식 선택</h2>
+            {templates.length === 0 ? (
+              <div className={styles.emptyMessage}>
+                사용 가능한 양식이 없습니다.
               </div>
-              <FormRenderer
-                schema={selectedTemplate.schema}
-                uiSchema={selectedTemplate.uiSchema}
-                formData={formData}
-                onSubmit={handleSubmit}
-                onSaveDraft={handleSaveDraft}
-                onChange={handleFormDataChange}
-                disabled={loading}
-              />
+            ) : (
+              <div className={styles.templateGrid}>
+                {templates.map((tpl) => (
+                  <div
+                    key={tpl.id}
+                    className={styles.templateCard}
+                    onClick={() => handleSelectTemplate(tpl)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${tpl.name} 양식 선택`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleSelectTemplate(tpl);
+                      }
+                    }}
+                  >
+                    <div className={styles.templateIcon} aria-hidden="true">
+                      📄
+                    </div>
+                    <div className={styles.templateName}>{tpl.name}</div>
+                    {tpl.description && (
+                      <div className={styles.templateDescription}>
+                        {tpl.description}
+                      </div>
+                    )}
+                    <div className={styles.templateVersion}>v{tpl.version}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className={styles.section}>
+            <h2>내 문서</h2>
+            <div className={styles.documentList}>
+              {myDocuments.length === 0 ? (
+                <div className={styles.emptyMessage}>
+                  작성된 문서가 없습니다.
+                </div>
+              ) : (
+                <table className={styles.documentTable}>
+                  <thead>
+                    <tr>
+                      <th>제목</th>
+                      <th>상태</th>
+                      <th>작성일</th>
+                      <th>수정일</th>
+                      <th>작업</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {myDocuments.map((doc) => (
+                      <tr key={doc.docId}>
+                        <td>{doc.title}</td>
+                        <td>
+                          <span className={styles['status-' + doc.status]}>
+                            {getStatusLabel(doc.status)}
+                          </span>
+                        </td>
+                        <td>
+                          {doc.createdAt
+                            ? new Date(doc.createdAt).toLocaleDateString(
+                                'ko-KR'
+                              )
+                            : '-'}
+                        </td>
+                        <td>
+                          {doc.updatedAt
+                            ? new Date(doc.updatedAt).toLocaleDateString(
+                                'ko-KR'
+                              )
+                            : '-'}
+                        </td>
+                        <td>
+                          <button
+                            className={styles.btnView}
+                            onClick={() =>
+                              navigate(`/works/iform/user/${doc.docId}`)
+                            }
+                            aria-label="문서 상세보기"
+                          >
+                            보기
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
-          )}
-        </>
+          </section>
+        </div>
+      )}
+
+      {view === 'create' && selectedTemplate && (
+        <div className={styles.formView}>
+          <div className={styles.formHeader}>
+            <div className={styles.formHeaderText}>
+              <h2>{selectedTemplate.name}</h2>
+              <div className={styles.formVersion}>
+                버전 {selectedTemplate.version}
+              </div>
+            </div>
+            <button
+              className={styles.btnBack}
+              onClick={handleCancel}
+              disabled={loading}
+              aria-label="양식 작성 취소"
+            >
+              취소
+            </button>
+          </div>
+          <FormRenderer
+            schema={selectedTemplate.schema}
+            uiSchema={selectedTemplate.uiSchema}
+            formData={formData}
+            onSubmit={handleSubmit}
+            onSaveDraft={handleSaveDraft}
+            onChange={handleFormDataChange}
+            disabled={loading}
+          />
+        </div>
       )}
     </div>
   );

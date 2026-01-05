@@ -2,6 +2,7 @@
   min-height: 100vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   padding: 0;
+  position: relative;
 }
 
 .adminHeader {
@@ -117,16 +118,26 @@
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
 }
 
-/* Loading Bar (AdminPage Style) */
+/* Loading Wrapper */
+.loadingWrapper {
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* Loading Bar (Expense Style) */
 .loadingBar {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
   background: rgba(90, 117, 230, 0.15);
   overflow: hidden;
-  z-index: 2;
+  z-index: 9999;
 }
 
 .loadingBarIndicator {
