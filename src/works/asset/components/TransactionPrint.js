@@ -114,6 +114,7 @@ export const printTransactionSheets = (rows) => {
     const customerAddr = primary.customerAddress || '';
     const customerTel = primary.customerTel || '';
     const customerFax = primary.customerFax || '';
+    const customerEmail = primary.customerEmail || '';
 
     let html = `<div class="page-container ${colorTheme}">`;
     html += `<div class="transaction-header">거래명세서</div>`;
@@ -144,8 +145,8 @@ export const printTransactionSheets = (rows) => {
             <div class="party-value">${customerTel || ''}</div>
           </div>
           <div>
-            <div class="party-label">팩스</div>
-            <div class="party-value">${customerFax || ''}</div>
+            <div class="party-label">이메일</div>
+            <div class="party-value">${customerEmail || ''}</div>
           </div>
         </div>
       </div>
@@ -173,8 +174,8 @@ export const printTransactionSheets = (rows) => {
             <div class="party-value">031-5183-5341</div>
           </div>
           <div>
-            <div class="party-label">팩스</div>
-            <div class="party-value">031-5183-5340</div>
+            <div class="party-label">이메일</div>
+            <div class="party-value">info@f1soft.co.kr</div>
           </div>
         </div>
       </div>
