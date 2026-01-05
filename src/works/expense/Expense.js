@@ -2121,6 +2121,28 @@ export default function Expense() {
             </div>
           )}
 
+          {/* 필수값 안내 */}
+          <div
+            className="info-box"
+            style={{
+              marginBottom: '1.5rem',
+              background: '#f0f8ff',
+              borderLeftColor: '#667eea',
+              color: '#2c3e50',
+            }}
+          >
+            <strong style={{ color: '#667eea' }}>ℹ️ 최종 제출 필수항목</strong>
+            <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.95rem' }}>
+              <span style={{ color: '#ff4444', fontWeight: 'bold' }}>*</span>로
+              표시된 항목은 <strong>반드시 입력</strong>해야 합니다.
+              <br />
+              <strong>일반경비:</strong> 항목, 날짜, 인원, 금액
+              <br />
+              <strong>유류비:</strong> 항목, 날짜, 비고, 유류종류, (거리 -
+              유류종류가 '없음'이 아닐 때)
+            </p>
+          </div>
+
           <div className="expense-table-container">
             <table
               className={`expense-table ${isManagerMode ? 'manager-mode' : ''}`}
@@ -2135,8 +2157,9 @@ export default function Expense() {
                       width: '10%',
                       minWidth: '100px',
                     }}
+                    className="required-field"
                   >
-                    항목 *
+                    항목
                   </th>
                   <th
                     style={{
@@ -2144,8 +2167,9 @@ export default function Expense() {
                       width: '12%',
                       minWidth: '130px',
                     }}
+                    className="required-field"
                   >
-                    날짜 *
+                    날짜
                   </th>
                   <th
                     style={{
@@ -2153,8 +2177,9 @@ export default function Expense() {
                       width: '25%',
                       minWidth: '180px',
                     }}
+                    className="required-field"
                   >
-                    비고 *
+                    비고
                   </th>
                   <th
                     style={{
@@ -2171,6 +2196,7 @@ export default function Expense() {
                       width: '8%',
                       minWidth: '70px',
                     }}
+                    className="required-field"
                   >
                     거리/인원
                   </th>
@@ -2189,6 +2215,7 @@ export default function Expense() {
                       width: '10%',
                       minWidth: '100px',
                     }}
+                    className="required-field"
                   >
                     금액
                   </th>
@@ -2280,7 +2307,9 @@ export default function Expense() {
                                       e.target.value
                                     )
                                   }
-                                  className="select-field"
+                                  className={`select-field ${
+                                    !row.category ? 'required-input' : ''
+                                  }`}
                                   disabled={isInputDisabled()}
                                 >
                                   <option value="">선택</option>
@@ -2299,7 +2328,9 @@ export default function Expense() {
                                 onChange={(e) =>
                                   updateRow(originalIdx, 'date', e.target.value)
                                 }
-                                className="input-field"
+                                className={`input-field ${
+                                  !row.date ? 'required-input' : ''
+                                }`}
                                 disabled={isInputDisabled()}
                               />
                             </td>
@@ -2314,7 +2345,11 @@ export default function Expense() {
                                     e.target.value
                                   )
                                 }
-                                className="input-field"
+                                className={`input-field ${
+                                  row.type === 'fuel' && !row.description
+                                    ? 'required-input'
+                                    : ''
+                                }`}
                                 placeholder={
                                   row.category === 'LUNCH' ||
                                   row.category === 'DINNER'
@@ -2367,7 +2402,11 @@ export default function Expense() {
                                       e.target.value
                                     )
                                   }
-                                  className="input-field text-right"
+                                  className={`input-field text-right ${
+                                    row.fuelType !== '없음' && !row.distance
+                                      ? 'required-input'
+                                      : ''
+                                  }`}
                                   placeholder="km"
                                   disabled={isInputDisabled()}
                                 />
@@ -2383,7 +2422,11 @@ export default function Expense() {
                                       e.target.value
                                     )
                                   }
-                                  className="input-field text-right"
+                                  className={`input-field text-right ${
+                                    parseInt(row.people) === 0
+                                      ? 'required-input'
+                                      : ''
+                                  }`}
                                   disabled={isInputDisabled()}
                                 />
                               )}
@@ -2443,7 +2486,11 @@ export default function Expense() {
                                   onBlur={() =>
                                     handleMoneyBlur(originalIdx, 'amount')
                                   }
-                                  className="input-field text-right"
+                                  className={`input-field text-right ${
+                                    unformatToInt(row.amount) === 0
+                                      ? 'required-input'
+                                      : ''
+                                  }`}
                                   placeholder="0"
                                   disabled={isInputDisabled()}
                                 />
@@ -2598,8 +2645,9 @@ export default function Expense() {
                             width: '11%',
                             minWidth: '110px',
                           }}
+                          className="required-field"
                         >
-                          카드 종류 *
+                          카드 종류
                         </th>
                         <th
                           style={{
@@ -2607,8 +2655,9 @@ export default function Expense() {
                             width: '8%',
                             minWidth: '90px',
                           }}
+                          className="required-field"
                         >
-                          항목 *
+                          항목
                         </th>
                         <th
                           style={{
@@ -2616,8 +2665,9 @@ export default function Expense() {
                             width: '9%',
                             minWidth: '95px',
                           }}
+                          className="required-field"
                         >
-                          날짜 *
+                          날짜
                         </th>
                         <th
                           style={{
@@ -2643,6 +2693,7 @@ export default function Expense() {
                             width: '10%',
                             minWidth: '90px',
                           }}
+                          className="required-field"
                         >
                           금액
                         </th>
