@@ -2121,27 +2121,31 @@ export default function Expense() {
             </div>
           )}
 
-          {/* 필수값 안내 */}
-          <div
-            className="info-box"
-            style={{
-              marginBottom: '1.5rem',
-              background: '#f0f8ff',
-              borderLeftColor: '#667eea',
-              color: '#2c3e50',
-            }}
-          >
-            <strong style={{ color: '#667eea' }}>ℹ️ 최종 제출 필수항목</strong>
-            <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.95rem' }}>
-              <span style={{ color: '#ff4444', fontWeight: 'bold' }}>*</span>로
-              표시된 항목은 <strong>반드시 입력</strong>해야 합니다.
-              <br />
-              <strong>일반경비:</strong> 항목, 날짜, 인원, 금액
-              <br />
-              <strong>유류비:</strong> 항목, 날짜, 비고, 유류종류, (거리 -
-              유류종류가 '없음'이 아닐 때)
-            </p>
-          </div>
+          {/* 필수값 안내 - 로딩 완료 후, 임시저장(DRAFT)이나 반려(REJECTED) 상태일 때만 표시 */}
+          {!isLoading && (status === 'DRAFT' || status === 'REJECTED') && (
+            <div
+              className="info-box"
+              style={{
+                marginBottom: '1.5rem',
+                background: '#f0f8ff',
+                borderLeftColor: '#667eea',
+                color: '#2c3e50',
+              }}
+            >
+              <strong style={{ color: '#667eea' }}>
+                ℹ️ 최종 제출 필수항목
+              </strong>
+              <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.95rem' }}>
+                <span style={{ color: '#ff4444', fontWeight: 'bold' }}>*</span>
+                로 표시된 항목은 <strong>반드시 입력</strong>해야 합니다.
+                <br />
+                <strong>일반경비:</strong> 항목, 날짜, 인원, 금액
+                <br />
+                <strong>유류비:</strong> 항목, 날짜, 비고, 유류종류, (거리 -
+                유류종류가 '없음'이 아닐 때)
+              </p>
+            </div>
+          )}
 
           <div className="expense-table-container">
             <table
