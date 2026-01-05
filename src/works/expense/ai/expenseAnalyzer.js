@@ -307,10 +307,10 @@ const generateUserAnalysis = (userData, esc) => {
     avgPerUser
   ).toLocaleString()}원</strong>`;
 
-  // 최대 사용자
-  const sortedUsers = Object.entries(userData).sort(
-    (a, b) => b[1].total - a[1].total
-  );
+  // 최대 사용자 (오승호 제외)
+  const sortedUsers = Object.entries(userData)
+    .filter(([name]) => name !== '오승호')
+    .sort((a, b) => b[1].total - a[1].total);
 
   if (sortedUsers.length > 0) {
     const [topUser, topData] = sortedUsers[0];
@@ -319,19 +319,21 @@ const generateUserAnalysis = (userData, esc) => {
     )}</strong> (<strong>${topData.total.toLocaleString()}원</strong>)`;
   }
 
-  // 사용자 이상치 분석
+  // 사용자 이상치 분석 (오승호 제외)
   if (activeUsers.length > 1 && avgPerUser > 0) {
     let spikeUser = null;
     let dropUser = null;
 
-    activeUsers.forEach(([name, entry]) => {
-      const userAvg = entry.avg || 0;
-      const ratio = (userAvg - avgPerUser) / avgPerUser;
-      if (!spikeUser || ratio > spikeUser.ratio)
-        spikeUser = { name, avg: userAvg, ratio };
-      if (!dropUser || ratio < dropUser.ratio)
-        dropUser = { name, avg: userAvg, ratio };
-    });
+    activeUsers
+      .filter(([name]) => name !== '오승호')
+      .forEach(([name, entry]) => {
+        const userAvg = entry.avg || 0;
+        const ratio = (userAvg - avgPerUser) / avgPerUser;
+        if (!spikeUser || ratio > spikeUser.ratio)
+          spikeUser = { name, avg: userAvg, ratio };
+        if (!dropUser || ratio < dropUser.ratio)
+          dropUser = { name, avg: userAvg, ratio };
+      });
 
     const incUserThresh = 0.5;
     const decUserThresh = 0.4;
@@ -665,6 +667,12 @@ export const generateAnalysisComment = (
   year
 ) => {
   if (!currentData || currentData.length === 0) return '';
+
+  // 2025년 12월부터 분석 제공 (서비스 오픈 시점)
+  const currentYear = parseInt(year);
+  if (currentYear < 2025) {
+    return '';
+  }
 
   const esc = escapeHtml;
 

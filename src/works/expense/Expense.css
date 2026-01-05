@@ -358,6 +358,28 @@
   min-width: 80px;
 }
 
+/* 필수 필드 표시 */
+.required-field::after {
+  content: ' *';
+  color: #ff4444;
+  font-weight: 700;
+  margin-left: 2px;
+}
+
+/* 필수 입력 필드 강조 */
+.expense-table td input.required-input,
+.expense-table td select.required-input {
+  border: 1.5px solid #ff6b6b;
+  background-color: #fff9f9;
+}
+
+.expense-table td input.required-input:focus,
+.expense-table td select.required-input:focus {
+  border-color: #ff4444;
+  box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.15);
+  background-color: white;
+}
+
 /* 날짜 열 최소 너비 보장 */
 .expense-table th:nth-child(2) {
   min-width: 130px;
