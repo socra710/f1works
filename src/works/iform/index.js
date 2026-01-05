@@ -83,6 +83,32 @@ export default function IFormPage() {
     return statusMap[status] || status || 'N/A';
   };
 
+  // 스켈레톤 로딩 UI
+  const renderSkeletonRows = (columnCount, rowCount = 5) => (
+    <>
+      {Array.from({ length: rowCount }).map((_, rowIdx) => (
+        <tr key={`skeleton-${columnCount}-${rowIdx}`} className="skeleton-row">
+          {Array.from({ length: columnCount }).map((__, cellIdx) => (
+            <td
+              key={`skeleton-cell-${columnCount}-${rowIdx}-${cellIdx}`}
+              style={{ padding: '12px 8px' }}
+            >
+              <div
+                className="skeleton-cell"
+                style={{
+                  height: '20px',
+                  backgroundColor: '#e0e0e0',
+                  borderRadius: '4px',
+                  animation: 'skeletonShimmer 1.5s infinite',
+                }}
+              />
+            </td>
+          ))}
+        </tr>
+      ))}
+    </>
+  );
+
   useEffect(() => {
     let isMounted = true;
 
@@ -339,7 +365,7 @@ export default function IFormPage() {
           <div className={styles.loadingBarIndicator} />
         </div>
       )}
-      {!loading && !hasAccess ? null : (
+      {!loading && hasAccess && (
         <div className={styles.container}>
           <div className={styles.shell}>
             <div className={styles.header}>
@@ -728,7 +754,11 @@ export default function IFormPage() {
 
                   <div className={styles.modalBody}>
                     {viewLoading && (
-                      <div className={styles.muted}>불러오는 중...</div>
+                      <table
+                        style={{ width: '100%', borderCollapse: 'collapse' }}
+                      >
+                        <tbody>{renderSkeletonRows(2, 8)}</tbody>
+                      </table>
                     )}
                     {!viewLoading && viewSchema ? (
                       <FormRenderer
