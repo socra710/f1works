@@ -23,8 +23,6 @@ export default function UserForm() {
   const [currentUserId, setCurrentUserId] = useState('');
   const [loginJson, setLoginJson] = useState(null);
   const [hasAccess, setHasAccess] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState('success'); // 'success' | 'error'
   const hasShownToastRef = useRef(false);
   const isNavigatingRef = useRef(false);
 
@@ -99,14 +97,6 @@ export default function UserForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const showMessage = useCallback((text, type = 'success') => {
-    setMessage(text);
-    setMessageType(type);
-    setTimeout(() => {
-      setMessage('');
-    }, 5000);
-  }, []);
-
   const loadTemplates = useCallback(async () => {
     try {
       const list = await listTemplates();
@@ -130,7 +120,7 @@ export default function UserForm() {
   const handleSelectTemplate = useCallback(
     async (template) => {
       if (!template || !template.id) {
-        showMessage('유효하지 않은 템플릿입니다.', 'error');
+        showToast('유효하지 않은 템플릿입니다.', 'error');
         return;
       }
 
@@ -170,9 +160,8 @@ export default function UserForm() {
       setSelectedTemplate(template);
       setFormData(initialData);
       setView('create');
-      setMessage('');
     },
-    [showMessage, loginJson]
+    [showToast, loginJson]
   );
 
   const handleFormDataChange = useCallback((newFormData) => {
@@ -182,12 +171,12 @@ export default function UserForm() {
   const handleSubmit = useCallback(
     async (data) => {
       if (!selectedTemplate) {
-        showMessage('템플릿이 선택되지 않았습니다.', 'error');
+        showToast('템플릿이 선택되지 않았습니다.', 'error');
         return;
       }
 
       if (!data || Object.keys(data).length === 0) {
-        showMessage('문서 내용을 입력해주세요.', 'error');
+        showToast('문서 내용을 입력해주세요.', 'error');
         return;
       }
 
@@ -199,12 +188,17 @@ export default function UserForm() {
         (key) => !data[key] || data[key].trim() === ''
       );
       if (hasEmptySignature) {
-        showMessage('서명을 완료해주세요.', 'error');
+        showToast('서명을 완료해주세요.', 'error');
+        return;
+      }
+
+      // 제출 확인
+      const confirmed = window.confirm('정말 제출하시겠습니까?');
+      if (!confirmed) {
         return;
       }
 
       setLoading(true);
-      setMessage('');
 
       try {
         // data 정제: 문자열은 trim, 서명 필드는 그대로 유지
@@ -229,14 +223,14 @@ export default function UserForm() {
         };
 
         await createDocument(doc);
-        showMessage('문서가 성공적으로 제출되었습니다.', 'success');
+        showToast('문서가 성공적으로 제출되었습니다.', 'success');
         setView('list');
         setSelectedTemplate(null);
         setFormData({});
         await loadMyDocuments();
       } catch (err) {
         console.error('문서 제출 실패:', err);
-        showMessage(
+        showToast(
           err.message || '문서 제출에 실패했습니다. 다시 시도해주세요.',
           'error'
         );
@@ -244,18 +238,17 @@ export default function UserForm() {
         setLoading(false);
       }
     },
-    [selectedTemplate, loadMyDocuments, showMessage, currentUserId]
+    [selectedTemplate, loadMyDocuments, showToast, currentUserId]
   );
 
   const handleSaveDraft = useCallback(
     async (data) => {
       if (!selectedTemplate) {
-        showMessage('템플릿이 선택되지 않았습니다.', 'error');
+        showToast('템플릿이 선택되지 않았습니다.', 'error');
         return;
       }
 
       setLoading(true);
-      setMessage('');
 
       try {
         // data 정제: 문자열은 trim, 서명 필드는 그대로 유지
@@ -282,14 +275,14 @@ export default function UserForm() {
         console.log('임시저장 문서:', doc);
         console.log('폼데이터:', cleanedData);
         await createDocument(doc);
-        showMessage('문서가 임시 저장되었습니다.', 'success');
+        showToast('문서가 임시 저장되었습니다.', 'success');
         setView('list');
         setSelectedTemplate(null);
         setFormData({});
         await loadMyDocuments();
       } catch (err) {
         console.error('문서 임시 저장 실패:', err);
-        showMessage(
+        showToast(
           err.message || '임시 저장에 실패했습니다. 다시 시도해주세요.',
           'error'
         );
@@ -297,7 +290,7 @@ export default function UserForm() {
         setLoading(false);
       }
     },
-    [selectedTemplate, loadMyDocuments, showMessage, currentUserId]
+    [selectedTemplate, loadMyDocuments, showToast, currentUserId]
   );
 
   const handleCancel = useCallback(() => {
@@ -320,7 +313,6 @@ export default function UserForm() {
     setView('list');
     setSelectedTemplate(null);
     setFormData({});
-    setMessage('');
   }, [loading, formData]);
 
   // 로딩 중일 때는 로딩 화면만 표시
@@ -373,18 +365,6 @@ export default function UserForm() {
           </button>
         </div>
       </div>
-
-      {message && (
-        <div
-          className={`${styles.message} ${
-            messageType === 'error' ? styles.messageError : ''
-          }`}
-          role="alert"
-          aria-live="polite"
-        >
-          {message}
-        </div>
-      )}
 
       {view === 'list' && (
         <div className={styles.listView}>
