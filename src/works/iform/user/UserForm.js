@@ -4,6 +4,7 @@ import { listTemplates, createDocument, getDocumentList } from '../api';
 import FormRenderer from '../components/FormRenderer';
 import {
   waitForExtensionLogin,
+  waitForExtensionLoginJson,
   decodeUserId,
 } from '../../../common/extensionLogin';
 import { useToast } from '../../../common/Toast';
@@ -20,6 +21,7 @@ export default function UserForm() {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState('');
+  const [loginJson, setLoginJson] = useState(null);
   const [hasAccess, setHasAccess] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success'); // 'success' | 'error'
@@ -45,14 +47,14 @@ export default function UserForm() {
 
     (async () => {
       try {
-        const sessionUser = await waitForExtensionLogin({
+        const sessionLoginJson = await waitForExtensionLoginJson({
           minWait: 300,
           maxWait: 1500,
         });
 
         if (!isMounted) return;
 
-        if (!sessionUser) {
+        if (!sessionLoginJson || !sessionLoginJson.USR_ID) {
           if (!hasShownToastRef.current && !isNavigatingRef.current) {
             hasShownToastRef.current = true;
             isNavigatingRef.current = true;
@@ -63,8 +65,9 @@ export default function UserForm() {
           return;
         }
 
-        const decoded = (decodeUserId(sessionUser) || '').trim();
+        const decoded = (sessionLoginJson.USR_ID || '').trim();
         setCurrentUserId(decoded);
+        setLoginJson(sessionLoginJson);
         setHasAccess(true);
 
         await Promise.all([
@@ -125,17 +128,51 @@ export default function UserForm() {
   }, [currentUserId]);
 
   const handleSelectTemplate = useCallback(
-    (template) => {
+    async (template) => {
       if (!template || !template.id) {
         showMessage('유효하지 않은 템플릿입니다.', 'error');
         return;
       }
+
+      // 템플릿별 디폴트 값 설정
+      let initialData = template.defaultData || {};
+
+      // 개인정보 동의서
+      if (template.id === 'PRIVACY_CONSENT') {
+        const today = new Date();
+        const dateStr = today.toISOString().split('T')[0];
+
+        initialData = {
+          ...initialData,
+          consent_date: dateStr,
+        };
+
+        if (loginJson && loginJson.BASE_NAME) {
+          initialData.consent_name = loginJson.BASE_NAME;
+        }
+      }
+
+      // IT 자산 인수 확인서
+      if (template.id === 'IT_ASSET_TAKEOVER') {
+        if (loginJson) {
+          if (loginJson.BASE_NAME) {
+            initialData.user_name = loginJson.BASE_NAME;
+          }
+          if (loginJson.DEPARTMENT_NAME) {
+            initialData.department = loginJson.DEPARTMENT_NAME;
+          }
+          if (loginJson.LEVEL_NAME) {
+            initialData.position = loginJson.LEVEL_NAME;
+          }
+        }
+      }
+
       setSelectedTemplate(template);
-      setFormData(template.defaultData || {});
+      setFormData(initialData);
       setView('create');
       setMessage('');
     },
-    [showMessage]
+    [showMessage, loginJson]
   );
 
   const handleFormDataChange = useCallback((newFormData) => {

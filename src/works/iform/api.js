@@ -204,13 +204,7 @@ export const sampleTemplate = {
             autoLoad: true,
           },
         },
-        {
-          id: 'asset_mgmt_no',
-          label: '자산관리번호',
-          type: 'text',
-          required: true,
-          col: 6,
-        },
+        { id: 'position', label: '직위', type: 'text', col: 6, readOnly: true },
         {
           id: 'department',
           label: '부서명',
@@ -219,7 +213,13 @@ export const sampleTemplate = {
           col: 6,
           readOnly: true,
         },
-        { id: 'position', label: '직위', type: 'text', col: 6, readOnly: true },
+        {
+          id: 'asset_mgmt_no',
+          label: '자산관리번호',
+          type: 'text',
+          required: true,
+          col: 6,
+        },
       ],
     },
     {
