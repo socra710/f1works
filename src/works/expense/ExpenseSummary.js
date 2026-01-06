@@ -12,6 +12,7 @@ import {
   getExpenseAggregationByUser,
   getMonthlyWorkStatistics,
   getLatestApprovedExpenseId,
+  requestAiExpenseAnalysis,
   // getSpecialItems,
 } from './expenseAPI';
 import AnalysisBanner from './components/AnalysisBanner';
@@ -66,6 +67,9 @@ export default function ExpenseSummary() {
   const [userMonthlyData, setUserMonthlyData] = useState({});
   const [monthlyWorkStats, setMonthlyWorkStats] = useState({});
   const [analysisComment, setAnalysisComment] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiRequested, setAiRequested] = useState(false);
+  const aiPayloadRef = useRef(null);
   const [isAnalysisExpanded, setIsAnalysisExpanded] = useState(true);
   // const [specialItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -372,15 +376,19 @@ export default function ExpenseSummary() {
 
       setMonthlyWorkStats(workStatsMap);
 
-      // AI 분석 코멘트 생성 (모든 데이터 수집 후)
-      const comment = generateAnalysisComment(
-        transformedData,
-        prevTransformedData,
-        workStatsMap,
-        userAggregated,
-        year
-      );
-      setAnalysisComment(comment);
+      // AI 호출에 사용할 데이터 저장 (클릭 시 요청)
+      aiPayloadRef.current = {
+        factoryCode,
+        year,
+        userId: decodeUserId(currentUserId),
+        currentData: transformedData,
+        prevData: prevTransformedData,
+        workStats: workStatsMap,
+        userData: userAggregated,
+      };
+
+      setAiRequested(false);
+      setAnalysisComment('');
 
       // 특별 항목 조회 (현재 월)
       // const now = new Date();
@@ -404,6 +412,97 @@ export default function ExpenseSummary() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const runAiAnalysis = async () => {
+    if (!aiPayloadRef.current) {
+      setAnalysisComment(
+        'AI 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.'
+      );
+      setAiRequested(true);
+      setAiLoading(false);
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const rawComment = await requestAiExpenseAnalysis(aiPayloadRef.current);
+      const cleanComment = stripCodeFence(rawComment);
+      if (rawComment && !cleanComment) {
+        // 코드펜스 제거 후 공백만 남은 경우 대비
+        const safe = rawComment.replace(/```[a-zA-Z0-9]*\s*|```/g, '').trim();
+        if (safe) {
+          setAnalysisComment(safe);
+          return;
+        }
+      }
+      if (cleanComment) {
+        setAnalysisComment(cleanComment);
+      } else {
+        const {
+          currentData,
+          prevData,
+          workStats,
+          userData,
+          year: aiYear,
+        } = aiPayloadRef.current;
+        const fallback = generateAnalysisComment(
+          currentData,
+          prevData,
+          workStats,
+          userData,
+          aiYear,
+          true
+        );
+        setAnalysisComment(
+          fallback || 'AI 분석 결과가 없어 로컬 요약도 생성되지 않았습니다.'
+        );
+      }
+    } catch (aiError) {
+      console.warn('AI 분석 호출 실패, 로컬 분석으로 전환합니다.', aiError);
+      const {
+        currentData,
+        prevData,
+        workStats,
+        userData,
+        year: aiYear,
+      } = aiPayloadRef.current;
+      const fallback = generateAnalysisComment(
+        currentData,
+        prevData,
+        workStats,
+        userData,
+        aiYear,
+        true // force local analysis even for 2024 이전
+      );
+      setAnalysisComment(
+        fallback || 'AI 호출 실패로 로컬 요약을 생성하지 못했습니다.'
+      );
+    } finally {
+      setAiRequested(true);
+      setAiLoading(false);
+    }
+  };
+
+  const handleAnalysisExpand = () => {
+    if (aiRequested || aiLoading) return;
+    runAiAnalysis();
+  };
+
+  const stripCodeFence = (value) => {
+    if (!value) return '';
+    let out = value;
+    if (out.startsWith('```')) {
+      const m = out.match(/^```[a-zA-Z0-9]*\s*\n/);
+      if (m) {
+        out = out.slice(m[0].length);
+      } else {
+        out = out.replace(/^```/, '');
+      }
+    }
+    if (out.trim().endsWith('```')) {
+      out = out.replace(/```\s*$/, '');
+    }
+    return out.trim();
   };
 
   // 부서별 합계 계산
@@ -515,7 +614,11 @@ export default function ExpenseSummary() {
             </div>
           </header>
 
-          <AnalysisBanner comment={analysisComment} isLoading={isLoading} />
+          <AnalysisBanner
+            comment={analysisComment}
+            isLoading={isLoading || aiLoading}
+            onExpand={handleAnalysisExpand}
+          />
 
           {closingData.length === 0 && !isLoading ? (
             <EmptyState year={year} />

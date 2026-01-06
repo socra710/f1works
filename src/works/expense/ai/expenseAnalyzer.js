@@ -657,6 +657,7 @@ const generateDailyExpenseAnomalyAnalysis = (workStats, esc) => {
  * @param {Object} workStats - 근무 통계 데이터
  * @param {Object} userData - 사용자별 집계 데이터
  * @param {string} year - 분석 연도
+ * @param {boolean} [force] - 연도 게이트를 무시하고 항상 생성할지 여부 (기본 false)
  * @returns {string} HTML 형식의 분석 코멘트
  */
 export const generateAnalysisComment = (
@@ -664,13 +665,14 @@ export const generateAnalysisComment = (
   prevData,
   workStats,
   userData,
-  year
+  year,
+  force = false
 ) => {
   if (!currentData || currentData.length === 0) return '';
 
   // 2025년 12월부터 분석 제공 (서비스 오픈 시점)
   const currentYear = parseInt(year);
-  if (currentYear < 2025) {
+  if (!force && currentYear < 2025) {
     return '';
   }
 

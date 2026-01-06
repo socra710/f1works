@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-export default function AnalysisBanner({ comment, isLoading }) {
+export default function AnalysisBanner({ comment, isLoading, onExpand }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [hasFinished, setHasFinished] = useState(false);
@@ -102,9 +102,17 @@ export default function AnalysisBanner({ comment, isLoading }) {
     if (!isExpanded) return;
     if (hasFinished || isStreaming) return;
 
+    // 내용이 없으면 바로 종료 처리해서 스피너가 멈추도록 함
+    if (totalCharsAll === 0) {
+      setHasFinished(true);
+      setIsStreaming(false);
+      setDisplayedChars(0);
+      return;
+    }
+
     setIsStreaming(true);
-    // 랜덤 로딩 지연(초 단위): 1.0s ~ 5.0s
-    const startDelay = Math.floor(1000 + Math.random() * 4000); // ms
+    // 로컬/폴백 텍스트일 땐 바로 시작, 실제 AI 로딩 중엔 약간 대기
+    const startDelay = comment ? 150 : Math.floor(800 + Math.random() * 3200); // ms
     const tickMs = 24; // 프레임 간격
     const charsPerTick = 2; // 틱당 출력 문자 수
 
@@ -132,7 +140,8 @@ export default function AnalysisBanner({ comment, isLoading }) {
   // 언마운트/접힘 시 타이머 정리
   useEffect(() => () => stopTimer(), []);
 
-  if (!comment && !isLoading) return null;
+  // onExpand가 있으면 클릭용 카드가 필요하므로 코멘트가 없어도 노출
+  if (!comment && !isLoading && !onExpand) return null;
 
   return (
     <div
@@ -152,7 +161,11 @@ export default function AnalysisBanner({ comment, isLoading }) {
       }}
     >
       <div
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={() => {
+          const next = !isExpanded;
+          setIsExpanded(next);
+          if (next && typeof onExpand === 'function') onExpand();
+        }}
         style={{
           padding: '16px 24px',
           cursor: 'pointer',
@@ -219,9 +232,7 @@ export default function AnalysisBanner({ comment, isLoading }) {
             color: '#5b4b8a',
           }}
         >
-          {(isLoading ||
-            (totalCharsAll === 0 && isStreaming) ||
-            displayedChars === 0) && (
+          {(isLoading || (isStreaming && displayedChars === 0)) && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div
                 aria-label="AI 분석 로딩"
