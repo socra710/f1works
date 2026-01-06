@@ -13,15 +13,14 @@ export default function UserDocumentView() {
   const navigate = useNavigate();
   const { docId } = useParams();
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState('');
   const [hasAccess, setHasAccess] = useState(false);
   const hasShownToastRef = useRef(false);
   const isNavigatingRef = useRef(false);
   const [document, setDocument] = useState(null);
   const [template, setTemplate] = useState(null);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState('success');
   const [formData, setFormData] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
@@ -59,7 +58,7 @@ export default function UserDocumentView() {
             showToast('로그인이 필요한 서비스입니다.', 'warning');
             setTimeout(() => navigate('/works'), 300);
           }
-          setLoading(false);
+          setInitialLoading(false);
           return;
         }
 
@@ -80,7 +79,7 @@ export default function UserDocumentView() {
         }
       } finally {
         if (isMounted) {
-          setLoading(false);
+          setInitialLoading(false);
         }
       }
     })();
@@ -123,7 +122,6 @@ export default function UserDocumentView() {
       if (!document) return;
 
       setSaveLoading(true);
-      setMessage('');
 
       try {
         const cleanedData = Object.entries(data).reduce((acc, [key, value]) => {
@@ -153,13 +151,11 @@ export default function UserDocumentView() {
 
         await createDocument(updatedDoc);
 
-        setMessage('문서가 성공적으로 수정되었습니다.', 'success');
         setIsEditing(false);
         await loadDocument();
         showToast('문서가 수정되었습니다.', 'success');
       } catch (err) {
         console.error('문서 수정 실패:', err);
-        setMessage('문서 수정에 실패했습니다.', 'error');
         showToast('문서 수정에 실패했습니다.', 'error');
       } finally {
         setSaveLoading(false);
@@ -191,7 +187,6 @@ export default function UserDocumentView() {
       }
 
       setSaveLoading(true);
-      setMessage('');
 
       try {
         const cleanedData = Object.entries(data).reduce((acc, [key, value]) => {
@@ -217,13 +212,11 @@ export default function UserDocumentView() {
 
         await createDocument(updatedDoc);
 
-        setMessage('문서가 성공적으로 제출되었습니다.', 'success');
         setIsEditing(false);
         await loadDocument();
         showToast('문서가 제출되었습니다.', 'success');
       } catch (err) {
         console.error('문서 제출 실패:', err);
-        setMessage('문서 제출에 실패했습니다.', 'error');
         showToast('문서 제출에 실패했습니다.', 'error');
       } finally {
         setSaveLoading(false);
@@ -241,6 +234,28 @@ export default function UserDocumentView() {
     document && (document.status === 'DRAFT' || document.status === 'MODIFY');
 
   console.log('문서 상태:', document?.status, 'isEditable:', isEditable);
+
+  // 로딩 중일 때는 로딩 화면만 표시
+  if (initialLoading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loadingWrapper}>
+          <div
+            className={styles.loadingBar}
+            role="status"
+            aria-label="데이터 로딩 중"
+          >
+            <div className={styles.loadingBarIndicator} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 접근 권한이 없으면 아무것도 표시하지 않음
+  if (!hasAccess) {
+    return null;
+  }
 
   return (
     <div className={styles.container}>
@@ -267,27 +282,7 @@ export default function UserDocumentView() {
         </div>
       </div>
 
-      {message && (
-        <div
-          className={`${styles.message} ${
-            messageType === 'error' ? styles.messageError : ''
-          }`}
-          role="alert"
-          aria-live="polite"
-        >
-          {message}
-        </div>
-      )}
-
-      {loading ? (
-        <div
-          className={styles.loadingBar}
-          role="status"
-          aria-label="데이터 로딩 중"
-        >
-          <div className={styles.loadingBarIndicator} />
-        </div>
-      ) : !hasAccess ? null : document && template ? (
+      {document && template ? (
         <div className={styles.formView}>
           <div className={styles.formHeader}>
             <div className={styles.formHeaderText}>
