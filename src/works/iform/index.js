@@ -322,6 +322,52 @@ export default function IFormPage() {
     }
   };
 
+  const handleApproveDocument = async () => {
+    if (!activeDoc?.docId && !activeDoc?.id) {
+      showToast('문서 정보가 없습니다', 'warning');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      '이 문서를 완료 처리하시겠습니까?\n완료 처리된 문서는 상태가 "완료 처리"로 변경됩니다.'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const docId = activeDoc.docId || activeDoc.id;
+    const success = await updateDocumentStatus(docId, 'COMPLETED', showToast);
+
+    if (success) {
+      await loadDocuments();
+      setActiveDoc(null);
+    }
+  };
+
+  const handleRejectDocument = async () => {
+    if (!activeDoc?.docId && !activeDoc?.id) {
+      showToast('문서 정보가 없습니다', 'warning');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      '이 문서를 반려하시겠습니까?\n반려된 문서는 상태가 "반려됨"으로 변경됩니다.'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const docId = activeDoc.docId || activeDoc.id;
+    const success = await updateDocumentStatus(docId, 'REJECTED', showToast);
+
+    if (success) {
+      await loadDocuments();
+      setActiveDoc(null);
+    }
+  };
+
   const openDocument = async (doc) => {
     setActiveDoc(doc);
     setViewSchema(null);
@@ -719,13 +765,93 @@ export default function IFormPage() {
                         </span>
                       </div>
                     </div>
-                    <button
-                      className={styles.ghostButton}
-                      onClick={() => setActiveDoc(null)}
-                      aria-label="닫기"
-                    >
-                      닫기
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {activeDoc.status === 'SUBMITTED' && (
+                        <>
+                          <button
+                            className={styles.ghostButton}
+                            onClick={handleApproveDocument}
+                            style={{
+                              color: '#fff',
+                              backgroundColor: '#66bb6a',
+                              border: 'none',
+                              padding: '8px 16px',
+                              borderRadius: '6px',
+                              fontWeight: '500',
+                              transition: 'all 0.2s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = '#4caf50';
+                              e.target.style.transform = 'translateY(-1px)';
+                              e.target.style.boxShadow =
+                                '0 4px 8px rgba(102, 187, 106, 0.3)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = '#66bb6a';
+                              e.target.style.transform = 'translateY(0)';
+                              e.target.style.boxShadow = 'none';
+                            }}
+                            aria-label="확인"
+                          >
+                            ✓ 확인
+                          </button>
+                          <button
+                            className={styles.ghostButton}
+                            onClick={handleRejectDocument}
+                            style={{
+                              color: '#fff',
+                              backgroundColor: '#ef5350',
+                              border: 'none',
+                              padding: '8px 16px',
+                              borderRadius: '6px',
+                              fontWeight: '500',
+                              transition: 'all 0.2s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = '#e53935';
+                              e.target.style.transform = 'translateY(-1px)';
+                              e.target.style.boxShadow =
+                                '0 4px 8px rgba(239, 83, 80, 0.3)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = '#ef5350';
+                              e.target.style.transform = 'translateY(0)';
+                              e.target.style.boxShadow = 'none';
+                            }}
+                            aria-label="반려"
+                          >
+                            ✕ 반려
+                          </button>
+                        </>
+                      )}
+                      <button
+                        className={styles.ghostButton}
+                        onClick={() => setActiveDoc(null)}
+                        style={{
+                          color: '#666',
+                          backgroundColor: '#f5f5f5',
+                          border: 'none',
+                          padding: '8px 16px',
+                          borderRadius: '6px',
+                          fontWeight: '500',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#e0e0e0';
+                          e.target.style.transform = 'translateY(-1px)';
+                          e.target.style.boxShadow =
+                            '0 4px 8px rgba(0, 0, 0, 0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = '#f5f5f5';
+                          e.target.style.transform = 'translateY(0)';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                        aria-label="닫기"
+                      >
+                        닫기
+                      </button>
+                    </div>
                   </div>
                   <div className={styles.metaGrid}>
                     <div>
