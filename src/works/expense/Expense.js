@@ -1414,8 +1414,15 @@ export default function Expense() {
           return true;
         }
       } else if (row.type === 'corporate') {
-        // 법인카드: 카드 종류, 항목, 날짜 필수
-        if (!row.corporateCard || !row.category || !row.date) {
+        // 법인카드: 카드 종류, 항목, 날짜, 이용가맹점, 금액 필수
+        const corpAmount = unformatToInt(row.amount);
+        if (
+          !row.corporateCard ||
+          !row.category ||
+          !row.date ||
+          corpAmount === 0 ||
+          !String(row.merchant || '').trim()
+        ) {
           return true;
         }
       } else {
@@ -2143,6 +2150,10 @@ export default function Expense() {
                 <br />
                 <strong>유류비:</strong> 항목, 날짜, 비고, 유류종류, (거리 -
                 유류종류가 '없음'이 아닐 때)
+                <br />
+                <strong>법인카드:</strong> 카드, 항목, 날짜, 이용가맹점, 금액
+                <br />
+                제출없음을 선택하면 위 필수 입력 검증은 적용되지 않습니다.
               </p>
             </div>
           )}
@@ -2679,6 +2690,7 @@ export default function Expense() {
                             width: '14%',
                             minWidth: '130px',
                           }}
+                          className="required-field"
                         >
                           이용가맹점
                         </th>
@@ -2762,7 +2774,11 @@ export default function Expense() {
                                           e.target.value
                                         )
                                       }
-                                      className="select-field"
+                                      className={`select-field ${
+                                        !row.corporateCard
+                                          ? 'required-input'
+                                          : ''
+                                      }`}
                                       disabled={
                                         !isManagerMode || isInputDisabled()
                                       }
@@ -2788,7 +2804,9 @@ export default function Expense() {
                                           e.target.value
                                         )
                                       }
-                                      className="select-field"
+                                      className={`select-field ${
+                                        !row.category ? 'required-input' : ''
+                                      }`}
                                       disabled={
                                         !isManagerMode || isInputDisabled()
                                       }
@@ -2812,7 +2830,9 @@ export default function Expense() {
                                           e.target.value
                                         )
                                       }
-                                      className="input-field"
+                                      className={`input-field ${
+                                        !row.date ? 'required-input' : ''
+                                      }`}
                                       disabled={
                                         !isManagerMode || isInputDisabled()
                                       }
@@ -2829,7 +2849,11 @@ export default function Expense() {
                                           e.target.value
                                         )
                                       }
-                                      className="input-field"
+                                      className={`input-field ${
+                                        !String(row.merchant || '').trim()
+                                          ? 'required-input'
+                                          : ''
+                                      }`}
                                       placeholder="가맹점명"
                                       disabled={
                                         !isManagerMode || isInputDisabled()
@@ -2867,7 +2891,11 @@ export default function Expense() {
                                       onBlur={() =>
                                         handleMoneyBlur(originalIdx, 'amount')
                                       }
-                                      className="input-field text-right"
+                                      className={`input-field text-right ${
+                                        unformatToInt(row.amount) === 0
+                                          ? 'required-input'
+                                          : ''
+                                      }`}
                                       placeholder="0"
                                       disabled={
                                         !isManagerMode || isInputDisabled()
@@ -3013,8 +3041,9 @@ export default function Expense() {
                                       width: '12%',
                                       minWidth: '100px',
                                     }}
+                                    className="required-field"
                                   >
-                                    항목 *
+                                    항목
                                   </th>
                                   <th
                                     style={{
@@ -3022,8 +3051,9 @@ export default function Expense() {
                                       width: '12%',
                                       minWidth: '130px',
                                     }}
+                                    className="required-field"
                                   >
-                                    날짜 *
+                                    날짜
                                   </th>
                                   <th
                                     style={{
@@ -3031,6 +3061,7 @@ export default function Expense() {
                                       width: '16%',
                                       minWidth: '150px',
                                     }}
+                                    className="required-field"
                                   >
                                     이용가맹점
                                   </th>
@@ -3049,6 +3080,7 @@ export default function Expense() {
                                       width: '12%',
                                       minWidth: '110px',
                                     }}
+                                    className="required-field"
                                   >
                                     금액
                                   </th>
@@ -3096,7 +3128,11 @@ export default function Expense() {
                                                   e.target.value
                                                 )
                                               }
-                                              className="select-field"
+                                              className={`select-field ${
+                                                !row.category
+                                                  ? 'required-input'
+                                                  : ''
+                                              }`}
                                               disabled={isInputDisabled()}
                                             >
                                               <option value="">선택</option>
@@ -3121,7 +3157,11 @@ export default function Expense() {
                                                   e.target.value
                                                 )
                                               }
-                                              className="input-field"
+                                              className={`input-field ${
+                                                !row.date
+                                                  ? 'required-input'
+                                                  : ''
+                                              }`}
                                               disabled={isInputDisabled()}
                                             />
                                           </td>
