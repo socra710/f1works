@@ -403,6 +403,12 @@ export default function Works() {
 
   const updates = [
     {
+      date: '2026.01.02',
+      title: '통합 문서 작성(베타) 기능 출시',
+      description:
+        '통합 문서(동적 양식) 템플릿을 선택하고 작성할 수 있는 기능이 추가되었습니다.',
+    },
+    {
       date: '2025.12.22',
       title: 'H/W 관리대장 기능 출시',
       description:
@@ -437,11 +443,11 @@ export default function Works() {
       title: '메인 페이지 개편',
       description: '모든 기능을 한눈에 볼 수 있는 대시보드 형태로 개선했습니다',
     },
-    {
-      date: '2025.12.01',
-      title: '차량 정보 업데이트',
-      description: '배차 시스템의 차량 정보가 최신화되었습니다',
-    },
+    // {
+    //   date: '2025.12.01',
+    //   title: '차량 정보 업데이트',
+    //   description: '배차 시스템의 차량 정보가 최신화되었습니다',
+    // },
     // {
     //   date: '2025.01.01',
     //   title: '모니터 신청 화면 추가',
@@ -466,7 +472,7 @@ export default function Works() {
         '12월분 경비청구는 기존 방식과 온라인 경비청구를 병행하여 작성해 주세요.\n' +
         '베타 테스트를 거쳐 2026년 1월부터는 온라인 경비청구로만 진행될 예정입니다.\n\n' +
         '📍 온라인 경비청구 이용 방법\n' +
-        '1. F1Works 확장 프로그램 다운로드\n' +
+        '1. F1Works 확장 프로그램 다운로드(클릭)\n' +
         '2. 확장 프로그램에서 로그인\n' +
         '3. 통합 포털 아이콘 클릭 후 경비청구 메뉴 이동\n\n' +
         '⚠️ 사용자 정보 확인이 필수이므로 F1Works 로그인 상태에서만 이용 가능합니다.\n' +
@@ -480,18 +486,18 @@ export default function Works() {
       content:
         '포털 및 콘텐츠 영역에 카카오 광고가 게재됩니다.\n현재는 운영자 개인 실험용으로 진행 중이며, 수익은 거의 없습니다.\n\n이용에 불편을 드려 죄송하며, 요청 시 광고 수익 현황은 투명하게 공개 가능합니다.\n(커피값도 안 나와요 😅) 🙏🏻',
     },
-    {
-      date: '2025.12.11',
-      title: 'F1Works 확장 프로그램 다운로드',
-      content: 'F1Works 확장 프로그램을 설치하여 더 편리하게 사용하세요',
-      link: 'https://chromewebstore.google.com/detail/f1works-extensions/ljpcdbbmboicadbkkkobjpnfgdaickjj?authuser=0&hl=ko',
-      isLink: true,
-    },
-    {
-      date: '2025.12.01',
-      title: '주유 카드 위치 안내',
-      content: '주유 카드는 중앙 팔걸이 보관함 비닐 케이스에 있습니다',
-    },
+    // {
+    //   date: '2025.12.11',
+    //   title: 'F1Works 확장 프로그램 다운로드',
+    //   content: 'F1Works 확장 프로그램을 설치하여 더 편리하게 사용하세요',
+    //   link: 'https://chromewebstore.google.com/detail/f1works-extensions/ljpcdbbmboicadbkkkobjpnfgdaickjj?authuser=0&hl=ko',
+    //   isLink: true,
+    // },
+    // {
+    //   date: '2025.12.01',
+    //   title: '주유 카드 위치 안내',
+    //   content: '주유 카드는 중앙 팔걸이 보관함 비닐 케이스에 있습니다',
+    // },
   ];
 
   // 상단 알림 배너 설정
