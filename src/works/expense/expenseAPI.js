@@ -524,6 +524,37 @@ export const getMonthlyWorkStatistics = async (factoryCode, year, userId) => {
 };
 
 /**
+ * AI 요약 요청 (OpenAI GPT Mini 백엔드 경유)
+ * @param {Object} payload - { factoryCode, year, userId, currentData, prevData, workStats, userData }
+ * @returns {Promise<string>} HTML 포맷 코멘트
+ */
+export const requestAiExpenseAnalysis = async (payload) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/jvWorksAnalyzeExpenseAI`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`AI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (data.success === false) {
+      throw new Error(data.message || 'AI 분석 요청에 실패했습니다.');
+    }
+
+    return data.comment || '';
+  } catch (error) {
+    console.error('requestAiExpenseAnalysis Error:', error);
+    throw error;
+  }
+};
+
+/**
  * 사용자의 최근 승인된 경비 청구 ID 조회
  * @param {string} factoryCode - 공장 코드
  * @param {string} userId - 사용자 ID (직원번호)
