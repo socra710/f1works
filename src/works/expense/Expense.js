@@ -4,6 +4,8 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import './Expense.css';
 import {
   waitForExtensionLogin,
+  waitForExtensionLoginJson,
+  getUserIdFromExtension,
   decodeUserId,
 } from '../../common/extensionLogin';
 import { useToast, useDialog } from '../../common/Toast';
@@ -122,19 +124,24 @@ export default function Expense() {
     authCheckRef.current = true;
 
     (async () => {
-      const sessionUser = await waitForExtensionLogin({
+      const sessionUserJson = await waitForExtensionLoginJson({
         minWait: 500,
         maxWait: 2000,
       });
-      if (!sessionUser) {
+      if (!sessionUserJson || !sessionUserJson.USR_ID) {
         showToast('로그인이 필요한 서비스입니다.', 'warning');
         navigate('/works');
         return;
       }
 
+      // 기본 사용자명 설정 (조회나 대리신청이 아닌 경우)
+      if (!isIdBasedQuery && !isManagerMode) {
+        setUserName(sessionUserJson.USR_NM || '사용자');
+      }
+
       if (isManagerMode) {
         try {
-          const decodedUserId = decodeUserId(sessionUser).trim();
+          const decodedUserId = sessionUserJson.USR_ID.trim();
           const isAdmin = await checkAdminStatus(decodedUserId);
           if (!isAdmin) {
             showToast(
@@ -152,7 +159,7 @@ export default function Expense() {
         }
       }
 
-      initializeExpense(sessionUser);
+      initializeExpense(sessionUserJson);
       setAuthChecked(true);
     })();
     // eslint-disable-next-line
@@ -341,7 +348,7 @@ export default function Expense() {
   };
 
   // 경비청구 초기화
-  const initializeExpense = async (user) => {
+  const initializeExpense = async (userJson) => {
     // 법인카드 목록 로드
     try {
       const factoryCode =
@@ -352,11 +359,15 @@ export default function Expense() {
       console.error('법인카드 로드 오류:', error);
     }
 
+    // 사용자 정보 추출
+    const userIdEncoded = btoa(userJson.USR_ID);
+    const userNameDefault = userJson.USR_NM || '사용자';
+
     // expenseId가 있으면 ID 기준, 없으면 월 기준 조회
     if (isIdBasedQuery) {
-      // ID 기준 조회: expenseId로 조회
-      setUserId(user);
-      fetchExpenseData(null, user, expenseId);
+      // ID 기준 조회: expenseId로 조회 (사용자명은 서버에서 가져옴)
+      setUserId(userIdEncoded);
+      fetchExpenseData(null, userIdEncoded, expenseId);
     } else {
       // 월 기준 조회: 이전 월을 기본값으로 설정 (경비는 지난달 기준)
       const now = new Date();
@@ -370,12 +381,30 @@ export default function Expense() {
       )}`;
 
       setMonth(formattedMonth);
-      setUserId(user);
+      setUserId(userIdEncoded);
+
+      // 조회가 아닌 경우에만 기본 사용자명 설정
+      if (!isManagerMode) {
+        setUserName(userNameDefault);
+      }
 
       // 유류비 설정 불러오기
-      fetchFuelSettings(formattedMonth, user);
+      fetchFuelSettings(formattedMonth, userIdEncoded);
 
-      fetchExpenseData(formattedMonth, user, null);
+      fetchExpenseData(formattedMonth, userIdEncoded, null, userNameDefault);
+    }
+  };
+
+  // 날짜에서 요일 가져오기 유틸
+  const getWeekday = (dateStr) => {
+    if (!dateStr) return '';
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return '';
+      const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+      return weekdays[date.getDay()];
+    } catch (e) {
+      return '';
     }
   };
 
@@ -745,8 +774,13 @@ export default function Expense() {
           return; // 서버 데이터가 있으면 임시 저장 데이터 체크 안 함
         }
 
-        // 기본 사용자 정보 설정 (서버에서 받아야 함)
-        setUserName(data?.userName || presetUserName || '사용자');
+        // 기본 사용자 정보 설정
+        // 서버에서 userName이 있으면 사용, 없으면 presetUserName 사용
+        if (data?.userName) {
+          setUserName(data.userName);
+        } else if (presetUserName) {
+          setUserName(presetUserName);
+        }
         setStatus(data?.status || 'DRAFT');
         setManagerChecked(!!data?.managerChecked);
       }
@@ -2337,17 +2371,41 @@ export default function Expense() {
                               )}
                             </td>
                             <td>
-                              <input
-                                type="date"
-                                value={row.date}
-                                onChange={(e) =>
-                                  updateRow(originalIdx, 'date', e.target.value)
-                                }
-                                className={`input-field ${
-                                  !row.date ? 'required-input' : ''
-                                }`}
-                                disabled={isInputDisabled()}
-                              />
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.5rem',
+                                }}
+                              >
+                                <input
+                                  type="date"
+                                  value={row.date}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      originalIdx,
+                                      'date',
+                                      e.target.value
+                                    )
+                                  }
+                                  className={`input-field ${
+                                    !row.date ? 'required-input' : ''
+                                  }`}
+                                  disabled={isInputDisabled()}
+                                />
+                                {row.date && (
+                                  <span
+                                    style={{
+                                      fontSize: '0.9rem',
+                                      color: '#6b7280',
+                                      fontWeight: '700',
+                                      minWidth: '1.5rem',
+                                    }}
+                                  >
+                                    ({getWeekday(row.date)})
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td>
                               <input
@@ -2820,23 +2878,43 @@ export default function Expense() {
                                     </select>
                                   </td>
                                   <td>
-                                    <input
-                                      type="date"
-                                      value={row.date}
-                                      onChange={(e) =>
-                                        updateRow(
-                                          originalIdx,
-                                          'date',
-                                          e.target.value
-                                        )
-                                      }
-                                      className={`input-field ${
-                                        !row.date ? 'required-input' : ''
-                                      }`}
-                                      disabled={
-                                        !isManagerMode || isInputDisabled()
-                                      }
-                                    />
+                                    <div
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                      }}
+                                    >
+                                      <input
+                                        type="date"
+                                        value={row.date}
+                                        onChange={(e) =>
+                                          updateRow(
+                                            originalIdx,
+                                            'date',
+                                            e.target.value
+                                          )
+                                        }
+                                        className={`input-field ${
+                                          !row.date ? 'required-input' : ''
+                                        }`}
+                                        disabled={
+                                          !isManagerMode || isInputDisabled()
+                                        }
+                                      />
+                                      {row.date && (
+                                        <span
+                                          style={{
+                                            fontSize: '0.9rem',
+                                            color: '#6b7280',
+                                            fontWeight: '700',
+                                            minWidth: '1.5rem',
+                                          }}
+                                        >
+                                          ({getWeekday(row.date)})
+                                        </span>
+                                      )}
+                                    </div>
                                   </td>
                                   <td>
                                     <input
@@ -3147,23 +3225,43 @@ export default function Expense() {
                                             </select>
                                           </td>
                                           <td>
-                                            <input
-                                              type="date"
-                                              value={row.date}
-                                              onChange={(e) =>
-                                                updateRow(
-                                                  originalIdx,
-                                                  'date',
-                                                  e.target.value
-                                                )
-                                              }
-                                              className={`input-field ${
-                                                !row.date
-                                                  ? 'required-input'
-                                                  : ''
-                                              }`}
-                                              disabled={isInputDisabled()}
-                                            />
+                                            <div
+                                              style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem',
+                                              }}
+                                            >
+                                              <input
+                                                type="date"
+                                                value={row.date}
+                                                onChange={(e) =>
+                                                  updateRow(
+                                                    originalIdx,
+                                                    'date',
+                                                    e.target.value
+                                                  )
+                                                }
+                                                className={`input-field ${
+                                                  !row.date
+                                                    ? 'required-input'
+                                                    : ''
+                                                }`}
+                                                disabled={isInputDisabled()}
+                                              />
+                                              {row.date && (
+                                                <span
+                                                  style={{
+                                                    fontSize: '0.9rem',
+                                                    color: '#6b7280',
+                                                    fontWeight: '700',
+                                                    minWidth: '1.5rem',
+                                                  }}
+                                                >
+                                                  ({getWeekday(row.date)})
+                                                </span>
+                                              )}
+                                            </div>
                                           </td>
                                           <td>{row.merchant || '-'}</td>
                                           <td>
