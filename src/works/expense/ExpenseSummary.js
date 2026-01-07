@@ -425,6 +425,20 @@ export default function ExpenseSummary() {
     }
     setAiLoading(true);
     try {
+      // AI 요청 전 데이터 검증 로그
+      const payload = aiPayloadRef.current;
+      if (payload.currentData && Array.isArray(payload.currentData)) {
+        const totalAmount = payload.currentData.reduce(
+          (sum, item) => sum + (item.totalAmount || 0),
+          0
+        );
+        // console.log(
+        //   '[AI Analysis] 전송 데이터 - 항목 수:',
+        //   payload.currentData.length,
+        //   '총액:',
+        //   totalAmount.toLocaleString() + '원'
+        // );
+      }
       const rawComment = await requestAiExpenseAnalysis(aiPayloadRef.current);
       const cleanComment = stripCodeFence(rawComment);
       if (rawComment && !cleanComment) {
