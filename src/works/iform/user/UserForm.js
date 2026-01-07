@@ -145,6 +145,9 @@ export default function UserForm() {
 
       // IT 자산 인수 확인서
       if (template.id === 'IT_ASSET_TAKEOVER') {
+        const today = new Date();
+        const dateStr = today.toISOString().split('T')[0];
+
         if (loginJson) {
           if (loginJson.BASE_NAME) {
             initialData.user_name = loginJson.BASE_NAME;
@@ -156,6 +159,9 @@ export default function UserForm() {
             initialData.position = loginJson.LEVEL_NAME;
           }
         }
+
+        // 지급일을 오늘 날짜로 설정
+        initialData.issue_date = dateStr;
       }
 
       setSelectedTemplate(template);
