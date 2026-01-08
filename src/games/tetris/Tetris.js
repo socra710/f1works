@@ -274,6 +274,11 @@ const Tetris = () => {
                     </p>
                   </>
                 )}
+                {!gameOver && (
+                  <div className="controls-guide">
+                    <p>← → 이동 · ↑ 회전 · SPACE 하드드롭</p>
+                  </div>
+                )}
                 <button onClick={startGame}>게임 시작</button>
               </div>
             )}

@@ -158,6 +158,22 @@
   font-size: 0.95rem;
 }
 
+.msg .controls-guide {
+  margin: 8px 0;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  width: 100%;
+}
+
+.msg .controls-guide p {
+  font-size: 0.9rem;
+  margin: 0;
+  color: var(--accent-light);
+  letter-spacing: 0.5px;
+}
+
 .msg button {
   color: var(--accent);
   background-color: #000;
