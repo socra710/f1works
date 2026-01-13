@@ -68,6 +68,7 @@ export const printTransactionSheets = (rows) => {
       .party-value { flex: 1; padding: 3px 5px; font-size: 9px; }
       .party-row-split { display: flex; }
       .party-row-split > div { flex: 1; display: flex; }
+      .party-box { position: relative; }
       table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
       th, td { padding: 3px 4px; text-align: center; font-size: 9px; }
       th { font-weight: bold; }
@@ -78,6 +79,7 @@ export const printTransactionSheets = (rows) => {
       .footer-item { text-align: center; }
       .footer-label { font-size: 9px; margin-bottom: 3px; }
       .footer-space { width: 100px; height: 25px; }
+      .seal-image { position: absolute; right: 15px; top: 15px; width: 60px; height: 60px; opacity: 0.8; }
       
       /* 파란색 테마 */
       .blue .transaction-header { color: #0066cc; }
@@ -155,6 +157,7 @@ export const printTransactionSheets = (rows) => {
     // 공급자 (오른쪽)
     html += `
       <div class="party-box">
+        <img src="/sign.png" class="seal-image" alt="법인도장" />
         <div class="party-title">공급자</div>
         <div class="party-row">
           <div class="party-label">등록번호</div>
