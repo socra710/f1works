@@ -530,13 +530,16 @@ export const getMonthlyWorkStatistics = async (factoryCode, year, userId) => {
  */
 export const requestAiExpenseAnalysis = async (payload) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/jvWorksAnalyzeExpenseAI`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/ipluserp_f1soft/jvWorksAnalyzeExpenseAI`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`AI API error: ${response.status}`);
