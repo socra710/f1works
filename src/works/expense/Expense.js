@@ -1169,9 +1169,44 @@ export default function Expense() {
     removeRow();
   };
 
+  /** 날짜 입력 가능 범위 계산 (청구월 기준) */
+  const getDateRange = () => {
+    if (!month) {
+      // 청구월이 없으면 빈 범위 반환
+      return { minDate: '', maxDate: '' };
+    }
+
+    const [yearStr, monthStr] = month.split('-');
+    const year = parseInt(yearStr);
+    const monthNum = parseInt(monthStr);
+
+    // 청구월의 1일
+    const minDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
+
+    // 청구월의 마지막 일
+    const lastDay = new Date(year, monthNum, 0).getDate();
+    const maxDate = `${year}-${String(monthNum).padStart(2, '0')}-${String(
+      lastDay
+    ).padStart(2, '0')}`;
+
+    return { minDate, maxDate };
+  };
+
   /** 항목 변경 */
   const updateRow = (idx, key, value) => {
     const updated = [...rows];
+
+    // 날짜 입력 시 청구월과 일치 여부 검증
+    if (key === 'date' && value && month) {
+      const [inputYear, inputMonth] = value.split('-').map(Number);
+      const [targetYear, targetMonth] = month.split('-').map(Number);
+
+      if (inputYear !== targetYear || inputMonth !== targetMonth) {
+        showToast('청구월과 동일한 월의 날짜만 입력 가능합니다.', 'warning');
+        return;
+      }
+    }
+
     // 금액/통행료 입력은 천단위 콤마 포맷 유지
     if (key === 'amount' || key === 'tollFee') {
       updated[idx][key] = formatWithCommas(value);
@@ -1437,6 +1472,31 @@ export default function Expense() {
       return;
     }
 
+    // 제출 가능한 월 검증 (전달만 제출 가능)
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // 1-12
+    const [yearStr, monthStr] = month.split('-');
+    const targetYear = parseInt(yearStr);
+    const targetMonth = parseInt(monthStr);
+
+    // 현재월과 전달의 연월 계산
+    const currentYearMonth = currentYear * 12 + currentMonth;
+    const targetYearMonth = targetYear * 12 + targetMonth;
+    const lastMonthYearMonth = currentYear * 12 + currentMonth - 1;
+
+    // 현재월은 제출 불가
+    if (targetYearMonth >= currentYearMonth) {
+      showToast('현재월은 아직 제출기간이 아닙니다.', 'warning');
+      return;
+    }
+
+    // 전달보다 이전 월도 제출 불가
+    if (targetYearMonth < lastMonthYearMonth) {
+      showToast('전달분만 제출 가능합니다.', 'warning');
+      return;
+    }
+
     const hasEmptyRow = rows.some((row) => {
       if (row.type === 'fuel') {
         // 유류비: 비고, 유류타입, 날짜 필수 (거리는 '없음'이 아닐 때만 필수, 통행료는 0원 가능)
@@ -1477,6 +1537,21 @@ export default function Expense() {
 
     if (hasEmptyRow) {
       showToast('필수 항목을 모두 입력해주세요.', 'warning');
+      return;
+    }
+
+    // 각 행의 날짜가 청구월과 일치하는지 검증
+    const invalidDateRow = rows.find((row) => {
+      if (!row.date) return false;
+
+      const [rowYear, rowMonth] = row.date.split('-').map(Number);
+
+      // 청구월과 다른 날짜는 제출 불가
+      return rowYear !== targetYear || rowMonth !== targetMonth;
+    });
+
+    if (invalidDateRow) {
+      showToast('청구월과 동일한 월의 날짜만 제출 가능합니다.', 'warning');
       return;
     }
 
@@ -2381,6 +2456,8 @@ export default function Expense() {
                                 <input
                                   type="date"
                                   value={row.date}
+                                  min={getDateRange().minDate}
+                                  max={getDateRange().maxDate}
                                   onChange={(e) =>
                                     updateRow(
                                       originalIdx,
@@ -2888,6 +2965,8 @@ export default function Expense() {
                                       <input
                                         type="date"
                                         value={row.date}
+                                        min={getDateRange().minDate}
+                                        max={getDateRange().maxDate}
                                         onChange={(e) =>
                                           updateRow(
                                             originalIdx,
@@ -3235,6 +3314,8 @@ export default function Expense() {
                                               <input
                                                 type="date"
                                                 value={row.date}
+                                                min={getDateRange().minDate}
+                                                max={getDateRange().maxDate}
                                                 onChange={(e) =>
                                                   updateRow(
                                                     originalIdx,
