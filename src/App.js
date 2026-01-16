@@ -15,6 +15,7 @@ import SpecialItems from './works/expense/SpecialItems';
 import ExpenseSummary from './works/expense/ExpenseSummary';
 import AdminPage from './works/admin/AdminPage';
 import AssetHW from './works/asset/index';
+import CustomerContact from './works/customer/CustomerContact';
 import Wordle from './games/wordle/Wordle';
 import Tetris from './games/tetris/Tetris';
 import Runner from './games/runner/Runner';
@@ -57,6 +58,10 @@ function App() {
             element={<ExpenseSummary />}
           ></Route>
           <Route path="/works/asset/hw" element={<AssetHW />}></Route>
+          <Route
+            path="/works/customer/contact"
+            element={<CustomerContact />}
+          ></Route>
           <Route path="/works/iform" element={<IFormPage />}></Route>
           <Route path="/works/iform/user" element={<UserForm />}></Route>
           <Route

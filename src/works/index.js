@@ -270,6 +270,15 @@ export default function Works() {
         inNew: '2026-01-02', // 신규 출시 날짜
       },
       {
+        title: '고객 컨택 관리',
+        description:
+          '고객사 방문·통화 이력을 관리하고 장기간 이상 미컨택 고객을 알림받으세요',
+        icon: '👥',
+        path: '/works/customer/contact',
+        category: '업무',
+        inNew: '2026-01-16', // 신규 출시 날짜
+      },
+      {
         title: '경비 청구 관리',
         description: '직원들의 경비 청구 내역을 확인하고 승인하세요',
         icon: '📊',
@@ -402,6 +411,12 @@ export default function Works() {
   }, [checked, categoriesWithItems, selectedTab, userMenuKeys]);
 
   const updates = [
+    {
+      date: '2026.01.02',
+      title: '고객 컨택 관리 기능 출시',
+      description:
+        '고객사 방문 및 통화 이력을 기록하고 90일 이상 미컨택 고객을 알림받는 기능이 추가되었습니다.',
+    },
     {
       date: '2026.01.02',
       title: '통합 문서 작성(베타) 기능 출시',
