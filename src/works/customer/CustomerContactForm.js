@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './CustomerContact.module.css';
 import { useToast } from '../../common/Toast';
+import CustomerSearchModal from '../asset/components/CustomerSearchModal';
 import {
   waitForExtensionLogin,
   decodeUserId,
@@ -19,6 +20,7 @@ const CustomerContactForm = ({ contact, onClose, contactList = [] }) => {
     lastCallDate: '',
     notes: '',
   });
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -126,15 +128,25 @@ const CustomerContactForm = ({ contact, onClose, contactList = [] }) => {
               <label htmlFor="customerName">
                 고객사명 <span className={styles.required}>*</span>
               </label>
-              <input
-                type="text"
-                id="customerName"
-                name="customerName"
-                value={formData.customerName}
-                onChange={handleChange}
-                placeholder="고객사명을 입력하세요"
-                required
-              />
+              <div className={styles.inputWithIcon}>
+                <input
+                  type="text"
+                  id="customerName"
+                  name="customerName"
+                  value={formData.customerName}
+                  onChange={handleChange}
+                  placeholder="고객사 선택 또는 직접 입력"
+                  required
+                />
+                <button
+                  type="button"
+                  className={styles.searchButton}
+                  onClick={() => setShowCustomerModal(true)}
+                  aria-label="고객사 찾기"
+                >
+                  🔍
+                </button>
+              </div>
             </div>
 
             <div className={styles.formGroup}>
@@ -200,6 +212,19 @@ const CustomerContactForm = ({ contact, onClose, contactList = [] }) => {
             </button>
           </div>
         </form>
+
+        {showCustomerModal && (
+          <CustomerSearchModal
+            onClose={() => setShowCustomerModal(false)}
+            onSelect={(customer) => {
+              setFormData((prev) => ({
+                ...prev,
+                customerName: customer?.name || '',
+              }));
+              setShowCustomerModal(false);
+            }}
+          />
+        )}
       </div>
     </div>
   );

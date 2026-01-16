@@ -516,6 +516,36 @@
   box-shadow: 0 6px 16px rgba(90, 117, 230, 0.35);
 }
 
+/* Input With Icon */
+.inputWithIcon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputWithIcon input {
+  flex: 1;
+  padding-right: 3rem;
+}
+
+.searchButton {
+  position: absolute;
+  right: 0.5rem;
+  background: #5a75e6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.searchButton:hover {
+  background: #4a65d6;
+  transform: scale(1.05);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .customerHeader {
