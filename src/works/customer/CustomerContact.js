@@ -114,8 +114,8 @@ const CustomerContact = () => {
   return (
     <div className={styles.customerContainer}>
       <Helmet>
-        <title>고객 컨택 관리</title>
-        <meta property="og:title" content="고객 컨택 관리" />
+        <title>고객과의 연결고리</title>
+        <meta property="og:title" content="고객과의 연결고리" />
         <meta
           property="og:description"
           content="고객사의 방문, 통화 이력을 관리하고 장기간 컨택이 없는 고객을 자동으로 알림합니다."
@@ -137,7 +137,7 @@ const CustomerContact = () => {
         )}
         <div className={styles.customerHeader}>
           <div className={styles.customerHeaderText}>
-            <h1>고객 컨택 관리</h1>
+            <h1>고객과의 연결고리</h1>
             <p className={styles['hero-sub']}>
               고객사의 방문, 통화 이력을 관리하고 장기간 컨택이 없는 고객을
               자동으로 알림합니다.

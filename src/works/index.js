@@ -246,7 +246,7 @@ export default function Works() {
         category: '업무',
       },
       {
-        title: '경비 청구(베타)',
+        title: '경비 청구',
         description: '월별 경비를 청구하고 승인 현황을 확인하세요',
         icon: '💰',
         path: '/works/expense',
@@ -270,7 +270,7 @@ export default function Works() {
         inNew: '2026-01-02', // 신규 출시 날짜
       },
       {
-        title: '고객 컨택 관리',
+        title: '고객과의 연결고리',
         description:
           '고객사 방문·통화 이력을 관리하고 장기간 이상 미컨택 고객을 알림받으세요',
         icon: '👥',
@@ -413,7 +413,7 @@ export default function Works() {
   const updates = [
     {
       date: '2026.01.16',
-      title: '고객 컨택 관리 기능 출시',
+      title: '고객과의 연결고리 기능 출시',
       description:
         '고객사 방문 및 통화 이력을 기록하고 90일 이상 미컨택 고객을 알림받는 기능이 추가되었습니다.',
     },
@@ -449,7 +449,7 @@ export default function Works() {
     },
     {
       date: '2025.12.04',
-      title: '경비 청구(베타) 기능 출시',
+      title: '경비 청구 기능 출시',
       description:
         '월별 경비 청구 및 승인 현황을 확인할 수 있는 기능이 추가되었습니다',
     },
