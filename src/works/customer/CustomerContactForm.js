@@ -188,15 +188,15 @@ const CustomerContactForm = ({ contact, onClose, contactList = [] }) => {
           </div>
 
           <div className={styles.formActions}>
+            <button type="submit" className={styles.submitButton}>
+              저장
+            </button>
             <button
               type="button"
               className={styles.cancelButton}
               onClick={onClose}
             >
               취소
-            </button>
-            <button type="submit" className={styles.submitButton}>
-              저장
             </button>
           </div>
         </form>
