@@ -75,7 +75,7 @@
   border-bottom: 2px solid #f0f0f0;
 }
 .header-left h1 {
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 700;
   color: #2c3e50;
   margin: 0;
@@ -96,7 +96,7 @@
   padding: 10px 14px;
   border: 2px solid #e0e0e0;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 16px;
   width: 120px;
   background-color: white;
   cursor: pointer;
@@ -136,7 +136,7 @@
   border: none;
   padding: 10px 20px;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.3s;
@@ -151,7 +151,7 @@
   /* display: flex !important; */
 }
 .section-title {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 600;
   color: #2c3e50;
   margin-bottom: 1rem;
@@ -196,7 +196,7 @@
 .expenseSummary-table th {
   padding: 0.6rem 0.5rem;
   text-align: left;
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 600;
   color: white;
   border: none;
@@ -212,7 +212,7 @@
   border-bottom: 1px solid #e9ecef;
   vertical-align: middle;
   box-sizing: border-box;
-  font-size: 0.85rem;
+  font-size: 1rem;
 }
 .skeleton-row td {
   padding: 0.75rem;
@@ -504,7 +504,7 @@
   border-right: 1px solid #ddd;
   font-weight: 600;
   color: #555;
-  font-size: 12px;
+  font-size: 14px;
   white-space: nowrap;
 }
 .closing-table th:last-child {
@@ -514,7 +514,7 @@
 .closing-table td {
   padding: 8px 8px;
   border-bottom: 1px solid #eee;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .closing-table tbody tr {
@@ -621,7 +621,7 @@
   border-right: 1px solid #ddd;
   font-weight: 600;
   color: #555;
-  font-size: 13px;
+  font-size: 15px;
 }
 .summary-table th:last-child {
   border-right: none;
@@ -630,7 +630,7 @@
 .summary-table td {
   padding: 12px 15px;
   border-bottom: 1px solid #eee;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .summary-table tbody tr:hover {
@@ -886,7 +886,7 @@
 .yearly-summary-table th {
   padding: 1rem 0.75rem;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: white;
   border: none;
@@ -913,7 +913,7 @@
   /* border-bottom: 1px solid #e9ecef; */
   border-right: 1px solid #e9ecef;
   text-align: right;
-  font-size: 12px;
+  font-size: 14px;
   color: #333;
 }
 
@@ -1010,7 +1010,7 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 15px;
   border-top: none;
   border-bottom: none;
 }
