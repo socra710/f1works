@@ -412,7 +412,7 @@ export default function Works() {
 
   const updates = [
     {
-      date: '2026.01.02',
+      date: '2026.01.16',
       title: '고객 컨택 관리 기능 출시',
       description:
         '고객사 방문 및 통화 이력을 기록하고 90일 이상 미컨택 고객을 알림받는 기능이 추가되었습니다.',
