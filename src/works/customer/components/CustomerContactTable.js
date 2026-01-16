@@ -65,7 +65,7 @@ const CustomerContactTable = ({ contactList, onEdit, onDelete, loading }) => {
 
             return (
               <tr key={contact.contactId} className={rowClass}>
-                <td>{contactList.length - index}</td>
+                <td>{index + 1}</td>
                 <td className={styles.customerName}>{contact.customerName}</td>
                 <td>{contact.managerName}</td>
                 <td>{formatDate(contact.lastVisitDate)}</td>
