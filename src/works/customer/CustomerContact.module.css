@@ -294,12 +294,14 @@
 
 .customerTable tbody td.notes {
   text-align: left;
-  max-width: 200px;
+  max-width: 400px;
+  min-width: 200px;
   white-space: pre-wrap;
   word-break: break-word;
   font-size: 0.9rem;
   line-height: 1.4;
   position: relative;
+  padding-left: 1rem;
 }
 
 /* Status Badge */
