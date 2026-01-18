@@ -15,7 +15,7 @@ const isWithinOneMonth = (dateString) => {
     const oneMonthAgo = new Date(
       now.getFullYear(),
       now.getMonth() - 1,
-      now.getDate()
+      now.getDate(),
     );
     return targetDate >= oneMonthAgo && targetDate <= now;
   } catch (err) {
@@ -177,7 +177,7 @@ export default function Works() {
             const menuKeys = Array.isArray(roleAll?.menuKeys)
               ? roleAll.menuKeys
                   .map((k) =>
-                    typeof k === 'string' ? k.trim().toUpperCase() : ''
+                    typeof k === 'string' ? k.trim().toUpperCase() : '',
                   )
                   .filter((k) => k !== '')
               : [];
@@ -217,7 +217,7 @@ export default function Works() {
 
   const categoryOrder = useMemo(
     () => ['업무', '관리', '게임', '메뉴', '뉴스'],
-    []
+    [],
   );
 
   const allFeatures = useMemo(
@@ -357,13 +357,13 @@ export default function Works() {
         inUpdate: '2025-12-16', // 업데이트 날짜
       },
     ],
-    []
+    [],
   );
 
   // 관리자 권한이 필요 없는 메뉴 (즉시 표시)
   const publicFeatures = useMemo(
     () => allFeatures.filter((feature) => !feature.requiresAdmin),
-    [allFeatures]
+    [allFeatures],
   );
 
   // 관리자 권한이 필요한 메뉴 (권한 체크 후 표시)
@@ -373,15 +373,15 @@ export default function Works() {
         (feature) =>
           feature.requiresAdmin &&
           (!feature.requiredMenuKey ||
-            userMenuKeys.includes(feature.requiredMenuKey))
+            userMenuKeys.includes(feature.requiredMenuKey)),
       ),
-    [allFeatures, userMenuKeys]
+    [allFeatures, userMenuKeys],
   );
 
   // 전체 메뉴 (일반 + 관리)
   const filteredFeatures = useMemo(
     () => [...publicFeatures, ...adminFeatures],
-    [publicFeatures, adminFeatures]
+    [publicFeatures, adminFeatures],
   );
 
   const categoriesWithItems = useMemo(
@@ -393,14 +393,14 @@ export default function Works() {
           isAdminCategory: cat === '관리',
         }))
         .filter((g) => g.items.length > 0),
-    [categoryOrder, filteredFeatures]
+    [categoryOrder, filteredFeatures],
   );
 
   useEffect(() => {
     if (!checked || !categoriesWithItems.length) return;
 
     const hasSelected = categoriesWithItems.some(
-      (cat) => cat.category === selectedTab
+      (cat) => cat.category === selectedTab,
     );
 
     if (!hasSelected) {
@@ -441,23 +441,23 @@ export default function Works() {
       description:
         '테트리스와 러너 게임이 새롭게 추가되어 짧은 휴식을 즐기실 수 있습니다.',
     },
-    {
-      date: '2025.12.11',
-      title: '재미로 보는 인사이트',
-      description:
-        '직원들의 근태·배차 데이터를 바탕으로 실시간 랭킹을 보여드립니다.',
-    },
-    {
-      date: '2025.12.04',
-      title: '경비 청구 기능 출시',
-      description:
-        '월별 경비 청구 및 승인 현황을 확인할 수 있는 기능이 추가되었습니다',
-    },
-    {
-      date: '2025.12.03',
-      title: '메인 페이지 개편',
-      description: '모든 기능을 한눈에 볼 수 있는 대시보드 형태로 개선했습니다',
-    },
+    // {
+    //   date: '2025.12.11',
+    //   title: '재미로 보는 인사이트',
+    //   description:
+    //     '직원들의 근태·배차 데이터를 바탕으로 실시간 랭킹을 보여드립니다.',
+    // },
+    // {
+    //   date: '2025.12.04',
+    //   title: '경비 청구 기능 출시',
+    //   description:
+    //     '월별 경비 청구 및 승인 현황을 확인할 수 있는 기능이 추가되었습니다',
+    // },
+    // {
+    //   date: '2025.12.03',
+    //   title: '메인 페이지 개편',
+    //   description: '모든 기능을 한눈에 볼 수 있는 대시보드 형태로 개선했습니다',
+    // },
     // {
     //   date: '2025.12.01',
     //   title: '차량 정보 업데이트',
@@ -479,35 +479,35 @@ export default function Works() {
       link: 'https://flow.team/Invitation/SDD7_0y6gY',
       isLink: true,
     },
-    {
-      date: '2025.12.17',
-      title: '경비 청구 안내 (12월 베타 운영)',
-      content:
-        '📢 12월은 온라인 경비청구 베타 기간입니다.\n' +
-        '12월분 경비청구는 기존 방식과 온라인 경비청구를 병행하여 작성해 주세요.\n' +
-        '베타 테스트를 거쳐 2026년 1월부터는 온라인 경비청구로만 진행될 예정입니다.\n\n' +
-        '📍 온라인 경비청구 이용 방법\n' +
-        '1. F1Works 확장 프로그램 다운로드(클릭)\n' +
-        '2. 확장 프로그램에서 로그인\n' +
-        '3. 통합 포털 아이콘 클릭 후 경비청구 메뉴 이동\n\n' +
-        '⚠️ 사용자 정보 확인이 필수이므로 F1Works 로그인 상태에서만 이용 가능합니다.\n' +
-        '⚠️ 베타 기간 중 일부 기능이 불안정할 수 있으니, 오류 발생 시 기존 방식으로도 함께 작성해 주세요.',
-      link: 'https://chromewebstore.google.com/detail/f1works-extensions/ljpcdbbmboicadbkkkobjpnfgdaickjj?authuser=0&hl=ko',
-      isLink: true,
-    },
+    // {
+    //   date: '2025.12.17',
+    //   title: '경비 청구 안내 (12월 베타 운영)',
+    //   content:
+    //     '📢 12월은 온라인 경비청구 베타 기간입니다.\n' +
+    //     '12월분 경비청구는 기존 방식과 온라인 경비청구를 병행하여 작성해 주세요.\n' +
+    //     '베타 테스트를 거쳐 2026년 1월부터는 온라인 경비청구로만 진행될 예정입니다.\n\n' +
+    //     '📍 온라인 경비청구 이용 방법\n' +
+    //     '1. F1Works 확장 프로그램 다운로드(클릭)\n' +
+    //     '2. 확장 프로그램에서 로그인\n' +
+    //     '3. 통합 포털 아이콘 클릭 후 경비청구 메뉴 이동\n\n' +
+    //     '⚠️ 사용자 정보 확인이 필수이므로 F1Works 로그인 상태에서만 이용 가능합니다.\n' +
+    //     '⚠️ 베타 기간 중 일부 기능이 불안정할 수 있으니, 오류 발생 시 기존 방식으로도 함께 작성해 주세요.',
+    //   link: 'https://chromewebstore.google.com/detail/f1works-extensions/ljpcdbbmboicadbkkkobjpnfgdaickjj?authuser=0&hl=ko',
+    //   isLink: true,
+    // },
     {
       date: '2025.12.12',
       title: '카카오 광고 게재 안내',
       content:
         '포털 및 콘텐츠 영역에 카카오 광고가 게재됩니다.\n현재는 운영자 개인 실험용으로 진행 중이며, 수익은 거의 없습니다.\n\n이용에 불편을 드려 죄송하며, 요청 시 광고 수익 현황은 투명하게 공개 가능합니다.\n(커피값도 안 나와요 😅) 🙏🏻',
     },
-    // {
-    //   date: '2025.12.11',
-    //   title: 'F1Works 확장 프로그램 다운로드',
-    //   content: 'F1Works 확장 프로그램을 설치하여 더 편리하게 사용하세요',
-    //   link: 'https://chromewebstore.google.com/detail/f1works-extensions/ljpcdbbmboicadbkkkobjpnfgdaickjj?authuser=0&hl=ko',
-    //   isLink: true,
-    // },
+    {
+      date: '2025.12.11',
+      title: 'F1Works 확장 프로그램 다운로드',
+      content: 'F1Works 확장 프로그램을 설치하여 더 편리하게 사용하세요',
+      link: 'https://chromewebstore.google.com/detail/f1works-extensions/ljpcdbbmboicadbkkkobjpnfgdaickjj?authuser=0&hl=ko',
+      isLink: true,
+    },
     // {
     //   date: '2025.12.01',
     //   title: '주유 카드 위치 안내',
@@ -529,7 +529,7 @@ export default function Works() {
   useEffect(() => {
     if (topNotification && topNotification.id) {
       const dismissedNotifications = JSON.parse(
-        localStorage.getItem('dismissedNotifications') || '[]'
+        localStorage.getItem('dismissedNotifications') || '[]',
       );
       const isDismissed = dismissedNotifications.includes(topNotification.id);
       setNotificationVisible(!isDismissed);
@@ -540,13 +540,13 @@ export default function Works() {
     setNotificationVisible(false);
     if (topNotification && topNotification.id) {
       const dismissedNotifications = JSON.parse(
-        localStorage.getItem('dismissedNotifications') || '[]'
+        localStorage.getItem('dismissedNotifications') || '[]',
       );
       if (!dismissedNotifications.includes(topNotification.id)) {
         dismissedNotifications.push(topNotification.id);
         localStorage.setItem(
           'dismissedNotifications',
-          JSON.stringify(dismissedNotifications)
+          JSON.stringify(dismissedNotifications),
         );
       }
     }
@@ -590,7 +590,7 @@ export default function Works() {
           {categoryOrder.map((catName) => {
             // 일반 카테고리는 publicFeatures에서, 관리 카테고리는 체크 여부나 캐시 여부에 따라 표시
             const catData = categoriesWithItems.find(
-              (c) => c.category === catName
+              (c) => c.category === catName,
             );
             const isAdminCat = catName === '관리';
 
@@ -614,7 +614,7 @@ export default function Works() {
 
             const isActive = catData.category === activeCategory.category;
             const newCount = catData.items.filter((item) =>
-              isWithinOneMonth(item.inNew)
+              isWithinOneMonth(item.inNew),
             ).length;
             return (
               <button
@@ -877,7 +877,7 @@ export default function Works() {
               ) : (
                 <>
                   {insights.attendance.every(
-                    (user) => user.name === '데이터가 존재하지 않습니다'
+                    (user) => user.name === '데이터가 존재하지 않습니다',
                   ) ? (
                     <div className="king-no-data">
                       데이터가 존재하지 않습니다
@@ -961,7 +961,7 @@ export default function Works() {
               ) : (
                 <>
                   {insights.dispatch.every(
-                    (user) => user.name === '데이터가 존재하지 않습니다'
+                    (user) => user.name === '데이터가 존재하지 않습니다',
                   ) ? (
                     <div className="king-no-data">
                       데이터가 존재하지 않습니다
