@@ -4,7 +4,7 @@ import styles from '../CustomerContact.module.css';
 const CustomerContactInfo = ({ contactList }) => {
   const totalCount = contactList.length;
   const warningCount = contactList.filter(
-    (c) => c.status === 'WARNING' || c.daysSinceContact >= 90
+    (c) => c.status === 'WARNING' || c.daysSinceContact >= 30,
   ).length;
   const normalCount = totalCount - warningCount;
 
@@ -21,7 +21,7 @@ const CustomerContactInfo = ({ contactList }) => {
         </div>
       </div>
       <div className={styles.infoCard}>
-        <div className={styles.infoLabel}>관리 필요 (90일 이상)</div>
+        <div className={styles.infoLabel}>관리 필요 (30일 이상)</div>
         <div className={`${styles.infoValue} ${styles.warning}`}>
           {warningCount}
         </div>

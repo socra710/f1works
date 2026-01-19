@@ -10,7 +10,7 @@ const formatDate = (value) => {
 
 const StatusBadge = ({ status, statusText, daysSinceContact }) => {
   const getStatusClass = () => {
-    if (status === 'WARNING' || daysSinceContact >= 90) {
+    if (status === 'WARNING' || daysSinceContact >= 30) {
       return styles.statusWarning;
     }
     return styles.statusNormal;
@@ -60,7 +60,7 @@ const CustomerContactTable = ({ contactList, onEdit, onDelete, loading }) => {
         <tbody>
           {contactList.map((contact, index) => {
             const isWarning =
-              contact.status === 'WARNING' || contact.daysSinceContact >= 90;
+              contact.status === 'WARNING' || contact.daysSinceContact >= 30;
             const rowClass = isWarning ? styles.warningRow : '';
 
             return (

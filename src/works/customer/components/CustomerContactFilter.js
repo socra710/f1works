@@ -4,7 +4,7 @@ import styles from '../CustomerContact.module.css';
 const CustomerContactFilter = ({ filter, setFilter, contactList }) => {
   const totalCount = contactList.length;
   const warningCount = contactList.filter(
-    (c) => c.status === 'WARNING' || c.daysSinceContact >= 90
+    (c) => c.status === 'WARNING' || c.daysSinceContact >= 30,
   ).length;
   const normalCount = totalCount - warningCount;
 
