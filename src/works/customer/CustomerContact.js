@@ -90,7 +90,7 @@ const CustomerContact = () => {
 
   const filteredList = contactList.filter((contact) => {
     const isWarning =
-      contact.status === 'WARNING' || contact.daysSinceContact >= 90;
+      contact.status === 'WARNING' || contact.daysSinceContact >= 30;
     if (filter === 'all') return true;
     if (filter === 'normal') return !isWarning;
     if (filter === 'warning') return isWarning;
