@@ -1,7 +1,8 @@
 /* 기존 Expense.css 패턴에 맞춰 클래스명 및 스타일 통일 */
 .expenseSummary-container {
   min-height: 100vh;
-  background: radial-gradient(
+  background:
+    radial-gradient(
       1200px 600px at 10% 0%,
       rgba(90, 117, 230, 0.06),
       transparent 60%
@@ -70,12 +71,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 1.5rem;
+  /* margin-bottom: 1rem; */
+  padding-bottom: 1rem;
   border-bottom: 2px solid #f0f0f0;
 }
 .header-left h1 {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #2c3e50;
   margin: 0;

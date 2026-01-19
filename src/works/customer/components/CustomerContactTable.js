@@ -25,9 +25,63 @@ const StatusBadge = ({ status, statusText, daysSinceContact }) => {
 
 const CustomerContactTable = ({ contactList, onEdit, onDelete, loading }) => {
   if (loading) {
+    const skeletonRows = Array.from({ length: 5 });
+    const columnsCount = 10; // NO, 고객사명, 담당자, 마지막 방문일, 마지막 통화일, 최종 컨택일, 경과일, 상태/액션, 비고, 관리
+
     return (
       <div className={styles.tableWrapper}>
-        <p className={styles.loadingText}>데이터를 불러오는 중...</p>
+        <table className={styles.customerTable}>
+          <thead>
+            <tr>
+              <th>NO</th>
+              <th>고객사명</th>
+              <th>담당자</th>
+              <th>마지막 방문일</th>
+              <th>마지막 통화일</th>
+              <th>최종 컨택일</th>
+              <th>경과일</th>
+              <th>상태/액션</th>
+              <th>비고</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody>
+            {skeletonRows.map((_, idx) => (
+              <tr key={`skeleton-${idx}`}>
+                <td style={{ textAlign: 'center' }}>
+                  <span className={styles.skeletonCell} />
+                </td>
+                <td className={styles.customerName}>
+                  <span className={styles.skeletonCell} />
+                </td>
+                <td style={{ textAlign: 'center' }}>
+                  <span className={styles.skeletonCell} />
+                </td>
+                <td style={{ textAlign: 'center' }}>
+                  <span className={styles.skeletonCell} />
+                </td>
+                <td style={{ textAlign: 'center' }}>
+                  <span className={styles.skeletonCell} />
+                </td>
+                <td className={styles.emphasize}>
+                  <span className={styles.skeletonCell} />
+                </td>
+                <td className={styles.emphasize}>
+                  <span className={styles.skeletonCell} />
+                </td>
+                <td style={{ textAlign: 'center' }}>
+                  <span className={styles.skeletonCell} />
+                </td>
+                <td className={styles.notes}>
+                  <span className={styles.skeletonCell} />
+                </td>
+                <td style={{ textAlign: 'center' }}>
+                  <span className={styles.skeletonCell} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     );
   }
