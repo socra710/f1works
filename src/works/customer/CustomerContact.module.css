@@ -266,7 +266,7 @@
 }
 
 .customerTable thead th {
-  padding: 0.6rem 0.65rem;
+  padding: 0.4rem 0.65rem;
   text-align: center;
   font-weight: 600;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
@@ -294,10 +294,10 @@
 }
 
 .customerTable tbody td {
-  padding: 0.45rem 0.65rem;
+  /* padding: 0.25rem 0.5rem; */
   text-align: center;
   color: #475569;
-  line-height: 1.25;
+  line-height: 1;
 }
 
 .customerTable tbody td.customerName {
