@@ -13,7 +13,6 @@ export default function UserDocumentView() {
   const navigate = useNavigate();
   const { docId } = useParams();
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState('');
   const [hasAccess, setHasAccess] = useState(false);
@@ -22,7 +21,6 @@ export default function UserDocumentView() {
   const [document, setDocument] = useState(null);
   const [template, setTemplate] = useState(null);
   const [formData, setFormData] = useState({});
-  const [isEditing, setIsEditing] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
 
   // 상태값 한글 변환 함수
@@ -90,7 +88,7 @@ export default function UserDocumentView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docId]);
 
-  const loadDocument = async () => {
+  const loadDocument = useCallback(async () => {
     try {
       const doc = await getDocument(docId);
       if (!doc) {
@@ -111,7 +109,7 @@ export default function UserDocumentView() {
       showToast('문서를 불러오는 데 실패했습니다.', 'error');
       setTimeout(() => navigate('/works/iform/user'), 300);
     }
-  };
+  }, [docId, showToast, navigate]);
 
   const handleFormDataChange = useCallback((newFormData) => {
     setFormData(newFormData);
@@ -151,7 +149,6 @@ export default function UserDocumentView() {
 
         await createDocument(updatedDoc);
 
-        setIsEditing(false);
         await loadDocument();
         showToast('문서가 수정되었습니다.', 'success');
       } catch (err) {
@@ -161,7 +158,7 @@ export default function UserDocumentView() {
         setSaveLoading(false);
       }
     },
-    [document, docId, showToast, currentUserId],
+    [document, showToast, currentUserId, loadDocument],
   );
 
   const handleSubmit = useCallback(
@@ -212,7 +209,6 @@ export default function UserDocumentView() {
 
         await createDocument(updatedDoc);
 
-        setIsEditing(false);
         await loadDocument();
         showToast('문서가 제출되었습니다.', 'success');
       } catch (err) {
@@ -222,7 +218,7 @@ export default function UserDocumentView() {
         setSaveLoading(false);
       }
     },
-    [document, docId, showToast, currentUserId],
+    [document, showToast, currentUserId, loadDocument],
   );
 
   const handleBack = () => {
@@ -267,7 +263,7 @@ export default function UserDocumentView() {
   return (
     <div className={styles.container}>
       <div className={styles.content}>
-        {loading && (
+        {saveLoading && (
           <div
             className={styles.loadingBar}
             role="status"

@@ -3,11 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { listTemplates, createDocument, getDocumentList } from '../api';
 import FormRenderer from '../components/FormRenderer';
-import {
-  waitForExtensionLogin,
-  waitForExtensionLoginJson,
-  decodeUserId,
-} from '../../../common/extensionLogin';
+import { waitForExtensionLoginJson } from '../../../common/extensionLogin';
 import { useToast } from '../../../common/Toast';
 import styles from './UserForm.module.css';
 
