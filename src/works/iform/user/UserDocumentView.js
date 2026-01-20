@@ -161,7 +161,7 @@ export default function UserDocumentView() {
         setSaveLoading(false);
       }
     },
-    [document, docId, showToast, currentUserId]
+    [document, docId, showToast, currentUserId],
   );
 
   const handleSubmit = useCallback(
@@ -176,10 +176,10 @@ export default function UserDocumentView() {
 
       // 서명 필드 검증
       const signatureFields = Object.keys(data).filter(
-        (key) => key.includes('sign') || key.includes('signature')
+        (key) => key.includes('sign') || key.includes('signature'),
       );
       const hasEmptySignature = signatureFields.some(
-        (key) => !data[key] || data[key].trim() === ''
+        (key) => !data[key] || data[key].trim() === '',
       );
       if (hasEmptySignature) {
         showToast('서명을 완료해주세요.', 'error');
@@ -222,7 +222,7 @@ export default function UserDocumentView() {
         setSaveLoading(false);
       }
     },
-    [document, docId, showToast, currentUserId]
+    [document, docId, showToast, currentUserId],
   );
 
   const handleBack = () => {
@@ -235,11 +235,18 @@ export default function UserDocumentView() {
 
   console.log('문서 상태:', document?.status, 'isEditable:', isEditable);
 
-  // 로딩 중일 때는 로딩 화면만 표시
+  // 로딩 중일 때는 원래 배경색만 표시
   if (initialLoading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loadingWrapper}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: 'calc(100vh - 32px)',
+          }}
+        >
           <div
             className={styles.loadingBar}
             role="status"
@@ -259,70 +266,81 @@ export default function UserDocumentView() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.adminHeader}>
-        <div className={styles.adminHeaderText}>
-          <h1>문서 상세보기</h1>
-          <p className={styles.heroSub}>제출된 문서의 내용을 확인합니다.</p>
-        </div>
-        <div className={styles.adminHeaderActions}>
-          <button
-            className={styles.btnHome}
-            onClick={() => navigate('/works')}
-            aria-label="홈으로 이동"
+      <div className={styles.content}>
+        {loading && (
+          <div
+            className={styles.loadingBar}
+            role="status"
+            aria-label="데이터 로딩 중"
           >
-            홈으로
-          </button>
-          <button
-            className={styles.btnBack}
-            onClick={handleBack}
-            aria-label="목록으로 이동"
-          >
-            목록으로
-          </button>
+            <div className={styles.loadingBarIndicator} />
+          </div>
+        )}
+        <div className={styles.adminHeader}>
+          <div className={styles.adminHeaderText}>
+            <h1>문서 상세보기</h1>
+            <p className={styles.heroSub}>제출된 문서의 내용을 확인합니다.</p>
+          </div>
+          <div className={styles.adminHeaderActions}>
+            <button
+              className={styles.btnHome}
+              onClick={handleBack}
+              aria-label="목록으로 이동"
+            >
+              목록으로
+            </button>
+            <button
+              className={styles.btnHome}
+              onClick={() => navigate('/works')}
+              aria-label="홈으로 이동"
+            >
+              홈으로
+            </button>
+          </div>
         </div>
-      </div>
 
-      {document && template ? (
-        <div className={styles.formView}>
-          <div className={styles.formHeader}>
-            <div className={styles.formHeaderText}>
-              <h2>{document.title}</h2>
-              <div className={styles.documentInfo}>
-                <span className={styles['status-' + document.status]}>
-                  {getStatusLabel(document.status)}
-                </span>
-                <span className={styles.documentMeta}>
-                  작성일:{' '}
-                  {document.createdAt
-                    ? new Date(document.createdAt).toLocaleString('ko-KR')
-                    : '-'}
-                </span>
-                {document.updatedAt && (
-                  <span className={styles.documentMeta}>
-                    수정일:{' '}
-                    {new Date(document.updatedAt).toLocaleString('ko-KR')}
+        {document && template ? (
+          <div className={styles.formView}>
+            <div className={styles.formHeader}>
+              <div className={styles.formHeaderText}>
+                <h2>{document.title}</h2>
+                <div className={styles.documentInfo}>
+                  <span className={styles['status-' + document.status]}>
+                    {getStatusLabel(document.status)}
                   </span>
-                )}
+                  <span className={styles.documentMeta}>
+                    작성일:{' '}
+                    {document.createdAt
+                      ? new Date(document.createdAt).toLocaleString('ko-KR')
+                      : '-'}
+                  </span>
+                  {document.updatedAt && (
+                    <span className={styles.documentMeta}>
+                      수정일:{' '}
+                      {new Date(document.updatedAt).toLocaleString('ko-KR')}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
+            <FormRenderer
+              schema={template.schema}
+              uiSchema={template.uiSchema}
+              formData={formData}
+              disabled={saveLoading}
+              readonly={!isEditable}
+              readOnly={!isEditable}
+              onSubmit={isEditable ? handleSubmit : undefined}
+              onSaveDraft={isEditable ? handleSave : undefined}
+              onChange={isEditable ? handleFormDataChange : undefined}
+            />
           </div>
-          <FormRenderer
-            schema={template.schema}
-            uiSchema={template.uiSchema}
-            formData={formData}
-            disabled={saveLoading}
-            readonly={!isEditable}
-            readOnly={!isEditable}
-            onSubmit={isEditable ? handleSubmit : undefined}
-            onSaveDraft={isEditable ? handleSave : undefined}
-            onChange={isEditable ? handleFormDataChange : undefined}
-          />
-        </div>
-      ) : (
-        <div className={styles.emptyMessage}>
-          문서 정보를 불러올 수 없습니다.
-        </div>
-      )}
+        ) : (
+          <div className={styles.emptyMessage}>
+            문서 정보를 불러올 수 없습니다.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
