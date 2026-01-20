@@ -23,7 +23,6 @@ const CustomerContact = () => {
   const [selectedContact, setSelectedContact] = useState(null);
   const [filter, setFilter] = useState('all'); // all, normal, warning
   const [authChecked, setAuthChecked] = useState(false);
-  const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -41,7 +40,6 @@ const CustomerContact = () => {
         return;
       }
 
-      setIsAuthorized(true);
       setAuthChecked(true);
       fetchContactList();
     };
