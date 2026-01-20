@@ -3,11 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { listTemplates, createDocument, getDocumentList } from '../api';
 import FormRenderer from '../components/FormRenderer';
-import {
-  waitForExtensionLogin,
-  waitForExtensionLoginJson,
-  decodeUserId,
-} from '../../../common/extensionLogin';
+import { waitForExtensionLoginJson } from '../../../common/extensionLogin';
 import { useToast } from '../../../common/Toast';
 import styles from './UserForm.module.css';
 
@@ -322,11 +318,18 @@ export default function UserForm() {
     setFormData({});
   }, [loading, formData]);
 
-  // 로딩 중일 때는 로딩 화면만 표시
+  // 로딩 중일 때는 원래 배경색만 표시
   if (initialLoading) {
     return (
       <div className={styles.container}>
-        <div className={styles.content}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: 'calc(100vh - 32px)',
+          }}
+        >
           <div
             className={styles.loadingBar}
             role="status"
