@@ -143,14 +143,19 @@ const CustomerContact = () => {
               자동으로 알림합니다.
             </p>
           </div>
+          <CustomerContactInfo contactList={contactList} />
           <div className={styles.customerHeaderActions}>
+            <button
+              className={styles.btnHome}
+              onClick={() => navigate('/works')}
+            >
+              홈으로
+            </button>
             <button className={styles.btnAdd} onClick={handleAdd}>
               + 추가
             </button>
           </div>
         </div>
-
-        <CustomerContactInfo contactList={contactList} />
 
         <CustomerContactFilter
           filter={filter}
