@@ -262,7 +262,11 @@ export default function Expense() {
   };
 
   // 유류비 설정 불러오기
-  const fetchFuelSettings = async (month, userId) => {
+  const fetchFuelSettings = async (
+    month,
+    userId,
+    serverUserEfficiency = null,
+  ) => {
     if (!month || !userId) return;
 
     try {
@@ -309,6 +313,15 @@ export default function Expense() {
 
         // 유지보수율 업데이트
         setMaintenanceRate(data.maintenanceRate || 1.2);
+
+        // 서버에서 받은 userEfficiency가 있으면 우선 사용
+        if (serverUserEfficiency) {
+          setUserEfficiency(serverUserEfficiency);
+          const calculatedBaseEff =
+            Math.round(serverUserEfficiency * 0.85 * 10) / 10;
+          setBaseEfficiency(calculatedBaseEff);
+          return;
+        }
 
         // 차량연비는 로컬스토리지에서 불러오거나 API 기준연비로부터 계산
         const savedUserEfficiency = localStorage.getItem(
@@ -383,8 +396,8 @@ export default function Expense() {
         setUserName(userNameDefault);
       }
 
-      // 유류비 설정 불러오기
-      fetchFuelSettings(formattedMonth, userIdEncoded);
+      // fetchExpenseData 내부에서 fetchFuelSettings를 호출하므로 여기서는 제거
+      // fetchFuelSettings(formattedMonth, userIdEncoded);
 
       fetchExpenseData(formattedMonth, userIdEncoded, null, userNameDefault);
     }
@@ -712,9 +725,12 @@ export default function Expense() {
         // ID 기준 조회인 경우 또는 month가 설정되지 않았다면 월 정보 설정
         if (data.month && (isIdBasedQuery || !month)) {
           setMonth(data.month);
+        }
 
-          // 유류비 설정 불러오기
-          fetchFuelSettings(data.month, userId);
+        // 유류비 설정 불러오기 (서버 데이터의 userEfficiency 전달, 데이터 유무 관계없이 호출)
+        const monthToUse = data.month || month;
+        if (monthToUse) {
+          await fetchFuelSettings(monthToUse, userId, data.userEfficiency);
         }
 
         // 조회된 데이터가 있으면 (제출된 데이터 또는 임시저장된 서버 데이터)
@@ -724,11 +740,12 @@ export default function Expense() {
           setStatus(data.status || 'DRAFT');
           setManagerChecked(!!data.managerChecked);
 
-          setUserEfficiency(data.userEfficiency || 15);
+          // userEfficiency는 fetchFuelSettings에서 처리됨
+          // setUserEfficiency(data.userEfficiency || 15);
 
-          const calculatedBaseEfficiency =
-            Math.round((data.userEfficiency || 15) * 0.85 * 10) / 10;
-          setBaseEfficiency(calculatedBaseEfficiency);
+          // const calculatedBaseEfficiency =
+          //   Math.round((data.userEfficiency || 15) * 0.85 * 10) / 10;
+          // setBaseEfficiency(calculatedBaseEfficiency);
 
           setRows(
             data.rows.map((row) => ({
