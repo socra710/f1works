@@ -1462,6 +1462,12 @@ export default function Expense() {
 
       if (result.success === 'true') {
         showToast(toastMsg, 'success');
+        // 저장 후 데이터 재조회하여 서버에서 생성된 rowId 동기화
+        if (expenseId) {
+          await fetchExpenseData(null, userId, expenseId);
+        } else {
+          await fetchExpenseData(month, userId, null);
+        }
       } else {
         showToast(result.message || '', 'error');
       }
