@@ -2,12 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import './Expense.css';
-import {
-  waitForExtensionLogin,
-  waitForExtensionLoginJson,
-  getUserIdFromExtension,
-  decodeUserId,
-} from '../../common/extensionLogin';
+import { waitForExtensionLoginJson } from '../../common/extensionLogin';
 import { useToast, useDialog } from '../../common/Toast';
 import {
   checkAdminStatus,
@@ -146,7 +141,7 @@ export default function Expense() {
           if (!isAdmin) {
             showToast(
               '해당 페이지를 이용할 수 없습니다, 관리자 권한이 없습니다.',
-              'warning'
+              'warning',
             );
             navigate('/works');
             return;
@@ -219,8 +214,8 @@ export default function Expense() {
                 row.type && row.type === 'fuel'
                   ? ''
                   : row.amount
-                  ? formatWithCommas(row.amount)
-                  : '',
+                    ? formatWithCommas(row.amount)
+                    : '',
               people: row.people || 1,
               fuelType: row.fuelType || '휘발유',
               distance: row.distance || '',
@@ -255,7 +250,7 @@ export default function Expense() {
                 fileName: '',
                 managerConfirmed: false,
               },
-            ]
+            ],
           );
           return true; // 임시 데이터 로드됨
         }
@@ -317,7 +312,7 @@ export default function Expense() {
 
         // 차량연비는 로컬스토리지에서 불러오거나 API 기준연비로부터 계산
         const savedUserEfficiency = localStorage.getItem(
-          `user_efficiency_${userId}`
+          `user_efficiency_${userId}`,
         );
 
         if (savedUserEfficiency) {
@@ -335,7 +330,7 @@ export default function Expense() {
           setUserEfficiency(calculatedUserEff);
           localStorage.setItem(
             `user_efficiency_${userId}`,
-            calculatedUserEff.toString()
+            calculatedUserEff.toString(),
           );
         }
       } else {
@@ -377,7 +372,7 @@ export default function Expense() {
       const targetMonth = `${year}${monthValue}`;
       const formattedMonth = `${targetMonth.slice(0, 4)}-${targetMonth.slice(
         4,
-        6
+        6,
       )}`;
 
       setMonth(formattedMonth);
@@ -512,19 +507,19 @@ export default function Expense() {
       const rawList = Array.isArray(data)
         ? data
         : Array.isArray(data?.list)
-        ? data.list
-        : Array.isArray(data?.users)
-        ? data.users
-        : Array.isArray(data?.data)
-        ? data.data
-        : [];
+          ? data.list
+          : Array.isArray(data?.users)
+            ? data.users
+            : Array.isArray(data?.data)
+              ? data.data
+              : [];
 
       // 중복 제거 및 필드 매핑
       const seen = new Set();
       const users = [];
       rawList.forEach((item) => {
         const id = String(
-          item.userId ?? item.id ?? item.empNo ?? item.employeeId ?? ''
+          item.userId ?? item.id ?? item.empNo ?? item.employeeId ?? '',
         ).trim();
         const name = String(item.userName ?? item.name ?? '').trim();
         if (!id) return;
@@ -646,7 +641,7 @@ export default function Expense() {
     month,
     userId,
     expenseId,
-    presetUserName = null
+    presetUserName = null,
   ) => {
     if (!userId) return;
 
@@ -660,7 +655,7 @@ export default function Expense() {
       if (expenseId) {
         // ID 기준 조회
         url = `${API_BASE_URL}/jvWorksGetExpense?factoryCode=000001&expenseId=${expenseId}&userId=${atob(
-          userId
+          userId,
         )}`;
         // 관리자 모드인 경우 manager 파라미터 추가
         if (isManagerMode) {
@@ -670,7 +665,7 @@ export default function Expense() {
         // 월 기준 조회
         if (!month) return;
         url = `${API_BASE_URL}/jvWorksGetExpense?factoryCode=000001&month=${month}&userId=${atob(
-          userId
+          userId,
         )}`;
         // 관리자 모드인 경우 manager 파라미터 추가
         if (isManagerMode) {
@@ -750,8 +745,8 @@ export default function Expense() {
                 row.type && row.type === 'fuel'
                   ? ''
                   : row.amount
-                  ? formatWithCommas(row.amount)
-                  : '',
+                    ? formatWithCommas(row.amount)
+                    : '',
               people: row.people || 1,
               fuelType: row.fuelType || '휘발유',
               distance: row.distance || '',
@@ -766,7 +761,7 @@ export default function Expense() {
               file: null,
               fileName: row.fileName || '',
               managerConfirmed: row.managerConfirmed || false,
-            }))
+            })),
           );
 
           serverDataLoaded = true;
@@ -902,7 +897,7 @@ export default function Expense() {
       // 지난달 데이터 조회 (월 기준)
       const url =
         `${API_BASE_URL}/jvWorksGetExpense?factoryCode=000001&month=${prevMonth}&userId=${atob(
-          userId
+          userId,
         )}` + (isManagerMode ? '&manager=true' : '');
       const response = await fetch(url);
       if (!response.ok) {
@@ -1020,7 +1015,7 @@ export default function Expense() {
             selectedMonth ===
             `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
               2,
-              '0'
+              '0',
             )}`;
           const todayIsSaturday = today.getDay() === 6;
           const todayIsSunday = today.getDay() === 0;
@@ -1186,7 +1181,7 @@ export default function Expense() {
     // 청구월의 마지막 일
     const lastDay = new Date(year, monthNum, 0).getDate();
     const maxDate = `${year}-${String(monthNum).padStart(2, '0')}-${String(
-      lastDay
+      lastDay,
     ).padStart(2, '0')}`;
 
     return { minDate, maxDate };
@@ -1276,7 +1271,7 @@ export default function Expense() {
     };
     localStorage.setItem(
       `expense_temp_${month}_${userId}`,
-      JSON.stringify(tempData)
+      JSON.stringify(tempData),
     );
 
     // 백엔드 API 호출
@@ -1321,7 +1316,7 @@ export default function Expense() {
 
       formData.append(
         `rows[${idx}].pay`,
-        `${calcPay(row).toLocaleString()}` || 0
+        `${calcPay(row).toLocaleString()}` || 0,
       );
 
       if (row.file) {
@@ -1330,7 +1325,7 @@ export default function Expense() {
       // managerConfirmed 값도 전송
       formData.append(
         `rows[${idx}].managerConfirmed`,
-        row.managerConfirmed ? 'Y' : 'N'
+        row.managerConfirmed ? 'Y' : 'N',
       );
     });
 
@@ -1382,7 +1377,7 @@ export default function Expense() {
     };
     localStorage.setItem(
       `expense_temp_${month}_${userId}`,
-      JSON.stringify(tempData)
+      JSON.stringify(tempData),
     );
 
     // 백엔드 API 호출
@@ -1427,7 +1422,7 @@ export default function Expense() {
 
       formData.append(
         `rows[${idx}].pay`,
-        `${calcPay(row).toLocaleString()}` || 0
+        `${calcPay(row).toLocaleString()}` || 0,
       );
 
       if (row.file) {
@@ -1436,7 +1431,7 @@ export default function Expense() {
       // managerConfirmed 값도 전송
       formData.append(
         `rows[${idx}].managerConfirmed`,
-        row.managerConfirmed ? 'Y' : 'N'
+        row.managerConfirmed ? 'Y' : 'N',
       );
     });
 
@@ -1608,7 +1603,7 @@ export default function Expense() {
 
       formData.append(
         `rows[${idx}].pay`,
-        `${calcPay(row).toLocaleString()}` || 0
+        `${calcPay(row).toLocaleString()}` || 0,
       );
 
       if (row.file) {
@@ -1757,7 +1752,7 @@ export default function Expense() {
         {
           method: 'POST',
           body: formData,
-        }
+        },
       );
 
       const result = await response.json();
@@ -1767,7 +1762,7 @@ export default function Expense() {
           `경비 청구가 ${
             newStatus === 'APPROVED' ? '승인' : '반려'
           }되었습니다.`,
-          'success'
+          'success',
         );
         setTimeout(() => {
           if (window.history.length > 1) {
@@ -1789,7 +1784,7 @@ export default function Expense() {
     const checked = event.target.checked;
     setAllChecked(checked);
     setRows((prevRows) =>
-      prevRows.map((row) => ({ ...row, managerConfirmed: checked }))
+      prevRows.map((row) => ({ ...row, managerConfirmed: checked })),
     );
   };
 
@@ -2194,7 +2189,7 @@ export default function Expense() {
                                   closeUserSelectModal();
                                   handleProxySelect(
                                     String(u.userId),
-                                    String(u.userName || '')
+                                    String(u.userName || ''),
                                   );
                                 }}
                               >
@@ -2400,7 +2395,7 @@ export default function Expense() {
               <tbody>
                 {isLoading
                   ? renderSkeletonRows(
-                      isManagerMode && status === 'SUBMITTED' ? 10 : 9
+                      isManagerMode && status === 'SUBMITTED' ? 10 : 9,
                     )
                   : rows
                       .filter((row) => row.gbn === 'EXPENSE' || !row.gbn)
@@ -2428,7 +2423,7 @@ export default function Expense() {
                                     updateRow(
                                       originalIdx,
                                       'category',
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className={`select-field ${
@@ -2437,11 +2432,13 @@ export default function Expense() {
                                   disabled={isInputDisabled()}
                                 >
                                   <option value="">선택</option>
-                                  {categories.map((cat) => (
-                                    <option key={cat.code} value={cat.code}>
-                                      {cat.name}
-                                    </option>
-                                  ))}
+                                  {categories
+                                    .filter((cat) => cat.code !== 'FUEL')
+                                    .map((cat) => (
+                                      <option key={cat.code} value={cat.code}>
+                                        {cat.name}
+                                      </option>
+                                    ))}
                                 </select>
                               )}
                             </td>
@@ -2462,7 +2459,7 @@ export default function Expense() {
                                     updateRow(
                                       originalIdx,
                                       'date',
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className={`input-field ${
@@ -2492,7 +2489,7 @@ export default function Expense() {
                                   updateRow(
                                     originalIdx,
                                     'description',
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 className={`input-field ${
@@ -2517,7 +2514,7 @@ export default function Expense() {
                                     updateRow(
                                       originalIdx,
                                       'fuelType',
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="select-field"
@@ -2549,7 +2546,7 @@ export default function Expense() {
                                     updateRow(
                                       originalIdx,
                                       'distance',
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className={`input-field text-right ${
@@ -2569,7 +2566,7 @@ export default function Expense() {
                                     updateRow(
                                       originalIdx,
                                       'people',
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className={`input-field text-right ${
@@ -2591,7 +2588,7 @@ export default function Expense() {
                                     handleMoneyChange(
                                       originalIdx,
                                       'tollFee',
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   onBlur={() =>
@@ -2630,7 +2627,7 @@ export default function Expense() {
                                     handleMoneyChange(
                                       originalIdx,
                                       'amount',
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   onBlur={() =>
@@ -2672,7 +2669,7 @@ export default function Expense() {
                                     setRows(updated);
                                     // 모든 행의 체크 상태 확인
                                     setAllChecked(
-                                      updated.every((r) => r.managerConfirmed)
+                                      updated.every((r) => r.managerConfirmed),
                                     );
                                   }}
                                   disabled={status === 'COMPLETED'}
@@ -2882,7 +2879,7 @@ export default function Expense() {
                     <tbody>
                       {isLoading
                         ? renderSkeletonRows(
-                            isManagerMode && status === 'SUBMITTED' ? 10 : 9
+                            isManagerMode && status === 'SUBMITTED' ? 10 : 9,
                           )
                         : rows
                             .filter((row) => row.gbn === 'CORPORATE')
@@ -2906,7 +2903,7 @@ export default function Expense() {
                                         updateRow(
                                           originalIdx,
                                           'corporateCard',
-                                          e.target.value
+                                          e.target.value,
                                         )
                                       }
                                       className={`select-field ${
@@ -2936,7 +2933,7 @@ export default function Expense() {
                                         updateRow(
                                           originalIdx,
                                           'category',
-                                          e.target.value
+                                          e.target.value,
                                         )
                                       }
                                       className={`select-field ${
@@ -2947,11 +2944,16 @@ export default function Expense() {
                                       }
                                     >
                                       <option value="">선택</option>
-                                      {categories.map((cat) => (
-                                        <option key={cat.code} value={cat.code}>
-                                          {cat.name}
-                                        </option>
-                                      ))}
+                                      {categories
+                                        .filter((cat) => cat.code !== 'FUEL')
+                                        .map((cat) => (
+                                          <option
+                                            key={cat.code}
+                                            value={cat.code}
+                                          >
+                                            {cat.name}
+                                          </option>
+                                        ))}
                                     </select>
                                   </td>
                                   <td>
@@ -2971,7 +2973,7 @@ export default function Expense() {
                                           updateRow(
                                             originalIdx,
                                             'date',
-                                            e.target.value
+                                            e.target.value,
                                           )
                                         }
                                         className={`input-field ${
@@ -3003,7 +3005,7 @@ export default function Expense() {
                                         updateRow(
                                           originalIdx,
                                           'merchant',
-                                          e.target.value
+                                          e.target.value,
                                         )
                                       }
                                       className={`input-field ${
@@ -3025,7 +3027,7 @@ export default function Expense() {
                                         updateRow(
                                           originalIdx,
                                           'description',
-                                          e.target.value
+                                          e.target.value,
                                         )
                                       }
                                       className="input-field"
@@ -3042,7 +3044,7 @@ export default function Expense() {
                                         handleMoneyChange(
                                           originalIdx,
                                           'amount',
-                                          e.target.value
+                                          e.target.value,
                                         )
                                       }
                                       onBlur={() =>
@@ -3067,7 +3069,7 @@ export default function Expense() {
                                     }}
                                   >
                                     {unformatToInt(
-                                      row.amount || 0
+                                      row.amount || 0,
                                     ).toLocaleString()}
                                   </td>
                                   {isManagerMode && status === 'SUBMITTED' && (
@@ -3084,7 +3086,7 @@ export default function Expense() {
                                           updateRow(
                                             originalIdx,
                                             'managerConfirmed',
-                                            e.target.checked
+                                            e.target.checked,
                                           )
                                         }
                                         disabled={status === 'COMPLETED'}
@@ -3148,7 +3150,7 @@ export default function Expense() {
                 {(() => {
                   // 법인카드별로 그룹화
                   const corporateRows = rows.filter(
-                    (row) => row.gbn === 'CORPORATE'
+                    (row) => row.gbn === 'CORPORATE',
                   );
                   const groupedByCard = {};
 
@@ -3163,7 +3165,7 @@ export default function Expense() {
                   return Object.entries(groupedByCard).map(
                     ([cardId, cardRows]) => {
                       const cardInfo = corporateCards.find(
-                        (c) => c.cardId === cardId
+                        (c) => c.cardId === cardId,
                       );
                       const cardName = cardInfo
                         ? cardInfo.cardName
@@ -3257,12 +3259,6 @@ export default function Expense() {
                                   ? renderSkeletonRows(7)
                                   : cardRows.map((row) => {
                                       const originalIdx = rows.indexOf(row);
-                                      const categoryInfo = categories.find(
-                                        (cat) => cat.code === row.category
-                                      );
-                                      const categoryName = categoryInfo
-                                        ? categoryInfo.name
-                                        : row.category || '';
 
                                       return (
                                         <tr key={originalIdx}>
@@ -3282,7 +3278,7 @@ export default function Expense() {
                                                 updateRow(
                                                   originalIdx,
                                                   'category',
-                                                  e.target.value
+                                                  e.target.value,
                                                 )
                                               }
                                               className={`select-field ${
@@ -3293,14 +3289,18 @@ export default function Expense() {
                                               disabled={isInputDisabled()}
                                             >
                                               <option value="">선택</option>
-                                              {categories.map((cat) => (
-                                                <option
-                                                  key={cat.code}
-                                                  value={cat.code}
-                                                >
-                                                  {cat.name}
-                                                </option>
-                                              ))}
+                                              {categories
+                                                .filter(
+                                                  (cat) => cat.code !== 'FUEL',
+                                                )
+                                                .map((cat) => (
+                                                  <option
+                                                    key={cat.code}
+                                                    value={cat.code}
+                                                  >
+                                                    {cat.name}
+                                                  </option>
+                                                ))}
                                             </select>
                                           </td>
                                           <td>
@@ -3320,7 +3320,7 @@ export default function Expense() {
                                                   updateRow(
                                                     originalIdx,
                                                     'date',
-                                                    e.target.value
+                                                    e.target.value,
                                                   )
                                                 }
                                                 className={`input-field ${
@@ -3353,7 +3353,7 @@ export default function Expense() {
                                                 updateRow(
                                                   originalIdx,
                                                   'description',
-                                                  e.target.value
+                                                  e.target.value,
                                                 )
                                               }
                                               className="input-field"
@@ -3368,7 +3368,7 @@ export default function Expense() {
                                             }}
                                           >
                                             {unformatToInt(
-                                              row.amount || 0
+                                              row.amount || 0,
                                             ).toLocaleString()}
                                           </td>
                                           <td
@@ -3379,7 +3379,7 @@ export default function Expense() {
                                             }}
                                           >
                                             {unformatToInt(
-                                              row.amount || 0
+                                              row.amount || 0,
                                             ).toLocaleString()}
                                           </td>
                                         </tr>
@@ -3390,7 +3390,7 @@ export default function Expense() {
                           </div>
                         </section>
                       );
-                    }
+                    },
                   );
                 })()}
               </>
