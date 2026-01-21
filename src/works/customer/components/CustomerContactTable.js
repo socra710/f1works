@@ -140,7 +140,9 @@ const CustomerContactTable = ({ contactList, onEdit, onDelete, loading }) => {
                     daysSinceContact={contact.daysSinceContact}
                   />
                 </td>
-                <td className={styles.notes}>{contact.notes || '-'}</td>
+                <td className={styles.notes} title={contact.notes || '-'}>
+                  <div className={styles.notesText}>{contact.notes || '-'}</div>
+                </td>
                 <td>
                   <div className={styles.actionButtons}>
                     <button
