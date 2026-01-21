@@ -26,7 +26,6 @@ const StatusBadge = ({ status, statusText, daysSinceContact }) => {
 const CustomerContactTable = ({ contactList, onEdit, onDelete, loading }) => {
   if (loading) {
     const skeletonRows = Array.from({ length: 5 });
-    const columnsCount = 10; // NO, 고객사명, 담당자, 마지막 방문일, 마지막 통화일, 최종 컨택일, 경과일, 상태/액션, 비고, 관리
 
     return (
       <div className={styles.tableWrapper}>

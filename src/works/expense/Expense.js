@@ -2,12 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import './Expense.css';
-import {
-  waitForExtensionLogin,
-  waitForExtensionLoginJson,
-  getUserIdFromExtension,
-  decodeUserId,
-} from '../../common/extensionLogin';
+import { waitForExtensionLoginJson } from '../../common/extensionLogin';
 import { useToast, useDialog } from '../../common/Toast';
 import {
   checkAdminStatus,
@@ -3264,12 +3259,6 @@ export default function Expense() {
                                   ? renderSkeletonRows(7)
                                   : cardRows.map((row) => {
                                       const originalIdx = rows.indexOf(row);
-                                      const categoryInfo = categories.find(
-                                        (cat) => cat.code === row.category,
-                                      );
-                                      const categoryName = categoryInfo
-                                        ? categoryInfo.name
-                                        : row.category || '';
 
                                       return (
                                         <tr key={originalIdx}>
