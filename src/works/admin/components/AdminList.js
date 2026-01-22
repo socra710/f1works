@@ -1,12 +1,18 @@
 import React from 'react';
 import { getInitials } from '../utils';
+import { menuOptions } from '../constants';
 import styles from '../AdminPage.module.css';
 
 export default function AdminList({
   admins,
   onRemove,
+  onToggleNotification,
   title = '등록된 관리자',
 }) {
+  const getMenuLabel = (menuKey) => {
+    const menu = menuOptions.find((m) => m.key === menuKey);
+    return menu ? menu.label : menuKey;
+  };
   return (
     <div className={styles.list}>
       <div className={styles.listHead}>{title}</div>
@@ -30,7 +36,7 @@ export default function AdminList({
                   {admin.scopeType === 'MENU' ? (
                     <>
                       <span className={`${styles.badge} ${styles.neutral}`}>
-                        {admin.menuName || admin.menuKey}
+                        {getMenuLabel(admin.menuKey)}
                       </span>
                       <span className={styles.badge}>MENU</span>
                     </>
@@ -43,6 +49,27 @@ export default function AdminList({
               </div>
             </div>
             <div className={styles.rowActions}>
+              {onToggleNotification && (
+                <button
+                  className={styles.toggleButton}
+                  onClick={() =>
+                    onToggleNotification({
+                      userId: admin.userId,
+                      scopeType:
+                        admin.scopeType || (admin.menuKey ? 'MENU' : 'GLOBAL'),
+                      menuKey: admin.menuKey || 'GLOBAL',
+                      currentNotificationEnabled: admin.notificationEnabled,
+                    })
+                  }
+                  title={
+                    admin.notificationEnabled === 'Y'
+                      ? '알림 비활성화'
+                      : '알림 활성화'
+                  }
+                >
+                  {admin.notificationEnabled === 'Y' ? '🔔' : '🔕'}
+                </button>
+              )}
               <button
                 className={styles.dangerButton}
                 onClick={() =>

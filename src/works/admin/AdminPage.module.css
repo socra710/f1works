@@ -1,7 +1,8 @@
 /* Layout inspired by Hardware asset page */
 .adminContainer {
   min-height: 100vh;
-  background: radial-gradient(
+  background:
+    radial-gradient(
       1200px 600px at 10% 0%,
       rgba(90, 117, 230, 0.06),
       transparent 60%
@@ -216,7 +217,9 @@
   font-size: 14px;
   background: #fff;
   color: #0f172a;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
@@ -246,7 +249,9 @@
   font-weight: 700;
   color: #fff;
   box-shadow: 0 6px 18px rgba(102, 126, 234, 0.25);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
   font-size: 14px;
 }
 
@@ -438,6 +443,24 @@
 .rowActions button:hover,
 .dangerButton:hover {
   background: #fee2e2;
+  transform: translateY(-1px);
+}
+
+.toggleButton {
+  padding: 0.45rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 14px;
+  transition: all 0.15s ease;
+  margin-right: 0.5rem;
+}
+
+.toggleButton:hover {
+  background: #f9fafb;
   transform: translateY(-1px);
 }
 
