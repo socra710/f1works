@@ -13,7 +13,7 @@ const parseJsonSafe = async (response, fallbackMessage) => {
     const preview = text ? text.slice(0, 120) : 'no-body';
     throw new Error(
       fallbackMessage ||
-        `JSON 응답이 아닙니다. status=${response.status}, body=${preview}`
+        `JSON 응답이 아닙니다. status=${response.status}, body=${preview}`,
     );
   }
   return response.json();
@@ -39,12 +39,12 @@ export const fetchAdminList = async ({ userId, scopeType, menuKey } = {}) => {
       headers: {
         'Content-Type': 'application/json',
       },
-    }
+    },
   );
 
   const data = await parseJsonSafe(
     response,
-    '관리자 목록 조회에 실패했습니다.'
+    '관리자 목록 조회에 실패했습니다.',
   );
   assertSuccess(response, data, '관리자 목록 조회에 실패했습니다.');
   return data.list || [];
@@ -58,6 +58,7 @@ export const addAdmin = async ({
   menuKey = 'GLOBAL',
   menuName,
   role = 'ADMIN',
+  notificationEnabled = 'N',
 }) => {
   ensureBaseUrl();
   const payload = {
@@ -68,6 +69,7 @@ export const addAdmin = async ({
     menuKey,
     menuName,
     role,
+    notificationEnabled,
   };
 
   const response = await fetch(`${API_BASE_URL}/jvWorksAdmin`, {
@@ -123,12 +125,12 @@ export const checkAdminRole = async ({ userId, menuKey }) => {
       headers: {
         'Content-Type': 'application/json',
       },
-    }
+    },
   );
 
   const data = await parseJsonSafe(
     response,
-    '관리자 권한 조회에 실패했습니다.'
+    '관리자 권한 조회에 실패했습니다.',
   );
   assertSuccess(response, data, '관리자 권한 조회에 실패했습니다.');
   return data;
@@ -147,4 +149,36 @@ export const searchUsers = async ({ factoryCode = '000001', query = '' }) => {
   const data = await parseJsonSafe(response, '사용자 검색에 실패했습니다.');
   assertSuccess(response, data, '사용자 검색에 실패했습니다.');
   return data.data || data.list || [];
+};
+
+export const updateAdminNotification = async ({
+  userId,
+  targetUserId,
+  scopeType = 'GLOBAL',
+  menuKey = 'GLOBAL',
+  notificationEnabled,
+}) => {
+  ensureBaseUrl();
+  const payload = {
+    userId,
+    targetUserId,
+    scopeType,
+    menuKey,
+    notificationEnabled,
+  };
+
+  const response = await fetch(`${API_BASE_URL}/jvWorksAdmin`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await parseJsonSafe(
+    response,
+    '알림 설정 업데이트에 실패했습니다.',
+  );
+  assertSuccess(response, data, '알림 설정 업데이트에 실패했습니다.');
+  return data;
 };

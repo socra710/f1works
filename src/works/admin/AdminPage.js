@@ -14,6 +14,7 @@ import {
   removeAdmin,
   searchUsers,
   checkAdminRole,
+  updateAdminNotification,
 } from './adminAPI';
 import { menuOptions } from './constants';
 import MenuAdminForm from './components/MenuAdminForm';
@@ -44,7 +45,7 @@ export default function AdminPage() {
   const selectedMenu = useMemo(
     () =>
       menuOptions.find((opt) => opt.key === selectedMenuKey) || menuOptions[0],
-    [selectedMenuKey]
+    [selectedMenuKey],
   );
 
   // getInitials moved to ./utils and used in child components
@@ -75,7 +76,7 @@ export default function AdminPage() {
       console.error('[AdminPage] loadGlobalAdmins error', err);
       showToast(
         err.message || '전체 관리자 목록을 불러오지 못했습니다.',
-        'error'
+        'error',
       );
     }
   };
@@ -191,7 +192,7 @@ export default function AdminPage() {
       }
       showToast(
         `${selectedMenuUsers.length}명 메뉴 관리자로 등록되었습니다.`,
-        'success'
+        'success',
       );
       setSelectedMenuUsers([]);
       setMenuSearchResults([]);
@@ -235,7 +236,7 @@ export default function AdminPage() {
       }
       showToast(
         `${selectedGlobalUsers.length}명 전체 관리자로 등록되었습니다.`,
-        'success'
+        'success',
       );
       setSelectedGlobalUsers([]);
       setGlobalSearchResults([]);
@@ -263,6 +264,37 @@ export default function AdminPage() {
       ]);
     } catch (err) {
       console.error('[AdminPage] remove error', err);
+      showToast(err.message, 'error');
+    }
+  };
+
+  const handleToggleNotification = async ({
+    userId,
+    scopeType,
+    menuKey,
+    currentNotificationEnabled,
+  }) => {
+    const newValue = currentNotificationEnabled === 'Y' ? 'N' : 'Y';
+    try {
+      await updateAdminNotification({
+        userId: currentUserId,
+        targetUserId: userId,
+        scopeType,
+        menuKey,
+        notificationEnabled: newValue,
+      });
+      showToast(
+        newValue === 'Y'
+          ? '알림이 활성화되었습니다.'
+          : '알림이 비활성화되었습니다.',
+        'success',
+      );
+      await Promise.all([
+        loadMenuAdmins(currentUserId, selectedMenuKey),
+        loadGlobalAdmins(currentUserId),
+      ]);
+    } catch (err) {
+      console.error('[AdminPage] toggle notification error', err);
       showToast(err.message, 'error');
     }
   };
@@ -346,7 +378,7 @@ export default function AdminPage() {
                 toggleSelectUser(
                   selectedGlobalUsers,
                   setSelectedGlobalUsers,
-                  user
+                  user,
                 )
               }
             />
@@ -379,6 +411,7 @@ export default function AdminPage() {
             <AdminList
               admins={menuAdmins.map((a) => ({ ...a, scopeType: 'MENU' }))}
               onRemove={handleRemove}
+              onToggleNotification={handleToggleNotification}
               title="등록된 메뉴별 관리자"
             />
           </div>
