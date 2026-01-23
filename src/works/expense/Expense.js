@@ -206,7 +206,10 @@ export default function Expense() {
               rowId: row.rowId || null,
               gbn: row.gbn || 'EXPENSE',
               type:
-                row.type || (row.category === '유류비' ? 'fuel' : 'expense'),
+                row.gbn === 'CORPORATE'
+                  ? 'corporate'
+                  : row.type ||
+                    (row.category === '유류비' ? 'fuel' : 'expense'),
               category: row.category === '유류비' ? 'FUEL' : row.category || '',
               date: row.date || '',
               description: row.description || '',
@@ -753,7 +756,10 @@ export default function Expense() {
               rowId: row.rowId || null,
               gbn: row.gbn || 'EXPENSE',
               type:
-                row.type || (row.category === '유류비' ? 'fuel' : 'expense'),
+                row.gbn === 'CORPORATE'
+                  ? 'corporate'
+                  : row.type ||
+                    (row.category === '유류비' ? 'fuel' : 'expense'),
               category: row.category === '유류비' ? 'FUEL' : row.category || '',
               date: row.date || '',
               description: row.description || '',
