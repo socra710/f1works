@@ -74,7 +74,19 @@ export default function ExpenseSummary() {
   // const [isManagerMode] = useState(searchParams.get('mode') === 'manager');
   const [factoryCode] = useState('000001'); // 예시, 실제로는 로그인 정보에서 가져옴
   const [userId, setUserId] = useState('');
-  const [excludeCorporateCard, setExcludeCorporateCard] = useState(false);
+  const [excludeCorporateCard, setExcludeCorporateCard] = useState(() => {
+    // 로컬스토리지에서 저장된 설정 복원
+    const saved = window.localStorage.getItem('excludeCorporateCard');
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  // 법인카드 제외 토글 변경시 로컬스토리지에 저장
+  useEffect(() => {
+    window.localStorage.setItem(
+      'excludeCorporateCard',
+      JSON.stringify(excludeCorporateCard),
+    );
+  }, [excludeCorporateCard]);
 
   // 상단 로딩바 표시
   useEffect(() => {
