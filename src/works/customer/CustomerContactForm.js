@@ -70,6 +70,11 @@ const CustomerContactForm = ({ contact, onClose, contactList = [] }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const getTodayString = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -79,6 +84,18 @@ const CustomerContactForm = ({ contact, onClose, contactList = [] }) => {
     }
     if (!formData.managerName.trim()) {
       showToast('담당자를 입력해주세요.', 'warning');
+      return;
+    }
+
+    // 방문일 미래 날짜 검증
+    if (formData.lastVisitDate && formData.lastVisitDate > getTodayString()) {
+      showToast('방문일은 미래 날짜를 입력할 수 없습니다.', 'warning');
+      return;
+    }
+
+    // 통화일 미래 날짜 검증
+    if (formData.lastCallDate && formData.lastCallDate > getTodayString()) {
+      showToast('통화일은 미래 날짜를 입력할 수 없습니다.', 'warning');
       return;
     }
 
@@ -97,7 +114,7 @@ const CustomerContactForm = ({ contact, onClose, contactList = [] }) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(payload),
-        }
+        },
       );
 
       const result = await response.json();
@@ -172,6 +189,7 @@ const CustomerContactForm = ({ contact, onClose, contactList = [] }) => {
                 name="lastVisitDate"
                 value={formData.lastVisitDate}
                 onChange={handleChange}
+                max={getTodayString()}
               />
             </div>
 
@@ -183,6 +201,7 @@ const CustomerContactForm = ({ contact, onClose, contactList = [] }) => {
                 name="lastCallDate"
                 value={formData.lastCallDate}
                 onChange={handleChange}
+                max={getTodayString()}
               />
             </div>
 
