@@ -9,6 +9,7 @@ export const categoryMapping = {
   점심: { main: '식비', sub: '점심' },
   저녁: { main: '식비', sub: '저녁' },
   여비: { main: '비식비', sub: '여비' },
+  TRAVEL: { main: '비식비', sub: '여비' },
   PARTY: { main: '비식비', sub: '회식비' },
   회식비: { main: '비식비', sub: '회식비' },
   MEETING: { main: '비식비', sub: '회의비' },
@@ -44,6 +45,10 @@ export const getMonthlyByCategoryData = (closingData) => {
       '회식비',
       'ETC',
       '기타',
+      'UTILITY',
+      '공공요금',
+      'TRAVEL',
+      '여비',
     ];
 
     if (nonFoodCategories.includes(itemCategory)) {
@@ -143,6 +148,7 @@ export const getCategoryMonthlyTotals = (closingData) => {
 export const getExpenseDepositTotal = (closingData) => {
   const monthlyTotal = {};
 
+  // 비식비 카테고리 (영문/국문 코드 모두 포함)
   const nonFoodCategories = [
     'FUEL',
     '유류비',
@@ -152,8 +158,29 @@ export const getExpenseDepositTotal = (closingData) => {
     '회식비',
     'ETC',
     '기타',
+    'UTILITY',
+    '공공요금',
+    'TRAVEL',
+    '여비',
   ];
-  const depositCategories = new Set(['LUNCH', 'DINNER', ...nonFoodCategories]);
+
+  // 식비 카테고리(점심/저녁의 모든 변형 포함)
+  const mealCategories = [
+    'LUNCH',
+    'DINNER',
+    'LUNCH_SODAM',
+    'DINNER_SODAM',
+    'LUNCH_SEJONG',
+    'DINNER_SEJONG',
+    '점심',
+    '저녁',
+    '점심(소담)',
+    '저녁(소담)',
+    '점심(세종)',
+    '저녁(세종)',
+  ];
+
+  const depositCategories = new Set([...mealCategories, ...nonFoodCategories]);
 
   closingData.forEach((item) => {
     const itemCategory = item.category || '기타';
