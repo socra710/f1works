@@ -1536,9 +1536,12 @@ export default function Expense() {
         if (!row.category || !row.date || !row.description || !row.fuelType) {
           return true;
         }
-        // '없음'이 아닐 때만 거리 필수
-        if (row.fuelType !== '없음' && !row.distance) {
-          return true;
+        // '없음'이 아닐 때만 거리 필수 (빈 문자열이거나 0 이하인 경우 필수 입력)
+        if (row.fuelType !== '없음') {
+          const distanceValue = parseFloat(row.distance) || 0;
+          if (!row.distance || distanceValue <= 0) {
+            return true;
+          }
         }
       } else if (row.type === 'corporate') {
         // 법인카드: 카드 종류, 항목, 날짜, 이용가맹점, 금액 필수
@@ -2555,7 +2558,9 @@ export default function Expense() {
                                       e.target.value,
                                     )
                                   }
-                                  className="select-field"
+                                  className={`select-field ${
+                                    !row.fuelType ? 'required-input' : ''
+                                  }`}
                                   style={{ fontSize: '0.85rem' }}
                                   disabled={isInputDisabled()}
                                 >
@@ -2588,7 +2593,9 @@ export default function Expense() {
                                     )
                                   }
                                   className={`input-field text-right ${
-                                    row.fuelType !== '없음' && !row.distance
+                                    row.fuelType !== '없음' &&
+                                    (!row.distance ||
+                                      parseFloat(row.distance) <= 0)
                                       ? 'required-input'
                                       : ''
                                   }`}

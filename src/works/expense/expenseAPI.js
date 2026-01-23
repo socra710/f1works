@@ -498,12 +498,19 @@ export const deleteExpenseRow = async ({
  * 월별 근무 통계 데이터 조회
  * @param {string} factoryCode - 공장 코드
  * @param {string} year - 조회 년도 (YYYY)
+ * @param {string} userId - 사용자 ID
+ * @param {boolean} excludeCorporateCard - 법인카드 제외 여부
  * @returns {Promise<Array>} 월별 근무 통계 데이터
  */
-export const getMonthlyWorkStatistics = async (factoryCode, year, userId) => {
+export const getMonthlyWorkStatistics = async (
+  factoryCode,
+  year,
+  userId,
+  excludeCorporateCard = false,
+) => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/jvWorksGetExpenseAggregation?factoryCode=${factoryCode}&year=${year}&type=workstats&userId=${userId}`,
+      `${API_BASE_URL}/jvWorksGetExpenseAggregation?factoryCode=${factoryCode}&year=${year}&type=workstats&userId=${userId}&excludeCard=${excludeCorporateCard}`,
       {
         method: 'POST',
         headers: {

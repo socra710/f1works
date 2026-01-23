@@ -322,6 +322,7 @@ export default function ExpenseSummary() {
         factoryCode,
         year,
         decodeUserId(currentUserId),
+        excludeCorporateCard,
       );
 
       // 숫자 변환 유틸
