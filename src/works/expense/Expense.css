@@ -2,7 +2,8 @@
 
 .expense-container {
   min-height: 100vh;
-  background: radial-gradient(
+  background:
+    radial-gradient(
       1200px 600px at 10% 0%,
       rgba(90, 117, 230, 0.06),
       transparent 60%
@@ -67,7 +68,8 @@
 
 /* 인증 대기 화면 (공통) */
 .auth-wait-screen {
-  background: radial-gradient(
+  background:
+    radial-gradient(
       1200px 600px at 10% 0%,
       rgba(90, 117, 230, 0.06),
       transparent 60%
@@ -414,6 +416,18 @@
 
 .expense-table tbody tr:last-child td:last-child {
   border-bottom-right-radius: 8px;
+}
+
+/* 경비/법인카드 소계 행 */
+.expense-subtotal {
+  background-color: #f9f9f9;
+  font-weight: 600;
+}
+
+.expense-subtotal td {
+  border-top: 2px solid #ddd;
+  border-bottom: 2px solid #ddd;
+  padding: 0.75rem;
 }
 
 .skeleton-row td {

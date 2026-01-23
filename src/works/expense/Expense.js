@@ -2766,18 +2766,32 @@ export default function Expense() {
                           </tr>
                         );
                       })}
+                {/* 경비 합계 */}
+                {calculateExpensePay() > 0 && (
+                  <tr className="expense-subtotal">
+                    <td
+                      colSpan={
+                        isManagerMode && status === 'SUBMITTED' ? '8' : '7'
+                      }
+                      style={{ textAlign: 'right', fontWeight: 600 }}
+                    >
+                      소계
+                    </td>
+                    <td
+                      style={{
+                        textAlign: 'right',
+                        fontWeight: 700,
+                        color: '#10b981',
+                      }}
+                    >
+                      {calculateExpensePay().toLocaleString()}
+                    </td>
+                    <td></td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
-          {/* 경비 합계 */}
-          {calculateExpensePay() > 0 && (
-            <div className="total-section" style={{ padding: '0.5rem 1rem' }}>
-              <span className="total-label">경비 합계</span>
-              <span className="total-amount">
-                {calculateExpensePay().toLocaleString()} 원
-              </span>
-            </div>
-          )}
           {(status === 'DRAFT' ||
             status === 'REJECTED' ||
             (isManagerMode && status === 'SUBMITTED')) &&
@@ -3177,22 +3191,34 @@ export default function Expense() {
                                 </tr>
                               );
                             })}
+                      {/* 법인카드 합계 */}
+                      {calculateCorporatePay() > 0 && (
+                        <tr className="expense-subtotal">
+                          <td
+                            colSpan={
+                              isManagerMode && status === 'SUBMITTED'
+                                ? '8'
+                                : '7'
+                            }
+                            style={{ textAlign: 'right', fontWeight: 600 }}
+                          >
+                            소계
+                          </td>
+                          <td
+                            style={{
+                              textAlign: 'right',
+                              fontWeight: 700,
+                              color: '#10b981',
+                            }}
+                          >
+                            {calculateCorporatePay().toLocaleString()}
+                          </td>
+                          <td></td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
-
-                {/* 법인카드 합계 */}
-                {calculateCorporatePay() > 0 && (
-                  <div
-                    className="total-section"
-                    style={{ padding: '0.5rem 1rem' }}
-                  >
-                    <span className="total-label">법인카드 합계</span>
-                    <span className="total-amount">
-                      {calculateCorporatePay().toLocaleString()} 원
-                    </span>
-                  </div>
-                )}
 
                 {isManagerMode &&
                   (status === 'DRAFT' ||
