@@ -88,17 +88,19 @@ export const getDispatchRanking = async (factoryCode, monthYm = null) => {
 export const getExpenseAggregationByYear = async (
   factoryCode,
   year,
-  userId
+  userId,
+  options = {},
 ) => {
   try {
+    const excludeCard = options.excludeCorporateCard ? '&excludeCard=true' : '';
     const response = await fetch(
-      `${API_BASE_URL}/jvWorksGetExpenseAggregation?factoryCode=${factoryCode}&year=${year}&type=year&userId=${userId}`,
+      `${API_BASE_URL}/jvWorksGetExpenseAggregation?factoryCode=${factoryCode}&year=${year}&type=year&userId=${userId}${excludeCard}`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -127,17 +129,19 @@ export const getExpenseAggregationByYear = async (
 export const getExpenseAggregationByMonth = async (
   factoryCode,
   monthYm,
-  userId
+  userId,
+  options = {},
 ) => {
   try {
+    const excludeCard = options.excludeCorporateCard ? '&excludeCard=true' : '';
     const response = await fetch(
-      `${API_BASE_URL}/jvWorksGetExpenseAggregation?factoryCode=${factoryCode}&monthYm=${monthYm}&type=month&userId=${userId}`,
+      `${API_BASE_URL}/jvWorksGetExpenseAggregation?factoryCode=${factoryCode}&monthYm=${monthYm}&type=month&userId=${userId}${excludeCard}`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -166,17 +170,19 @@ export const getExpenseAggregationByMonth = async (
 export const getExpenseAggregationByUser = async (
   factoryCode,
   monthYm,
-  userId
+  userId,
+  options = {},
 ) => {
   try {
+    const excludeCard = options.excludeCorporateCard ? '&excludeCard=true' : '';
     const response = await fetch(
-      `${API_BASE_URL}/jvWorksGetExpenseAggregation?factoryCode=${factoryCode}&monthYm=${monthYm}&type=user&userId=${userId}`,
+      `${API_BASE_URL}/jvWorksGetExpenseAggregation?factoryCode=${factoryCode}&monthYm=${monthYm}&type=user&userId=${userId}${excludeCard}`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -187,7 +193,7 @@ export const getExpenseAggregationByUser = async (
 
     if (data.success === 'false' || data.success === false) {
       throw new Error(
-        data.message || '사용자별 경비 집계 조회에 실패했습니다.'
+        data.message || '사용자별 경비 집계 조회에 실패했습니다.',
       );
     }
 
@@ -213,7 +219,7 @@ export const getDetailedAggregation = async (factoryCode, year) => {
         headers: {
           'Content-Type': 'application/json',
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -421,7 +427,7 @@ export const checkAdminStatus = async (userId) => {
         headers: {
           'Content-Type': 'application/json',
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -503,7 +509,7 @@ export const getMonthlyWorkStatistics = async (factoryCode, year, userId) => {
         headers: {
           'Content-Type': 'application/json',
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -564,14 +570,14 @@ export const getLatestApprovedExpenseId = async (factoryCode, userId) => {
   try {
     const response = await fetch(
       `${API_BASE_URL}/jvWorksGetLatestApprovedExpense?factoryCode=${factoryCode}&userId=${encodeURIComponent(
-        userId
+        userId,
       )}`,
       {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-      }
+      },
     );
 
     if (!response.ok) {

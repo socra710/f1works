@@ -25,8 +25,6 @@ import { parseYearFromUrl, createShareLink } from './utils/linkUtils';
 import {
   getMonthlyByCategoryData,
   getCategoryMonthlyTotals,
-  getExpenseDepositTotal,
-  categoryMapping,
 } from './utils/dataCalculations';
 
 /**
@@ -70,13 +68,13 @@ export default function ExpenseSummary() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiRequested, setAiRequested] = useState(false);
   const aiPayloadRef = useRef(null);
-  const [isAnalysisExpanded, setIsAnalysisExpanded] = useState(true);
   // const [specialItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
   // const [isManagerMode] = useState(searchParams.get('mode') === 'manager');
   const [factoryCode] = useState('000001'); // 예시, 실제로는 로그인 정보에서 가져옴
   const [userId, setUserId] = useState('');
+  const [excludeCorporateCard, setExcludeCorporateCard] = useState(false);
 
   // 상단 로딩바 표시
   useEffect(() => {
@@ -115,7 +113,7 @@ export default function ExpenseSummary() {
       setIsLoading(true);
       const expenseId = await getLatestApprovedExpenseId(
         factoryCode,
-        userObj.userId
+        userObj.userId,
       );
       if (expenseId) {
         // 경비 상세 페이지로 이동 (ID 기준 조회)
@@ -183,6 +181,15 @@ export default function ExpenseSummary() {
     // eslint-disable-next-line
   }, [year]);
 
+  // 법인카드 제외 토글 변경 시 데이터 다시 로드
+  useEffect(() => {
+    if (!didFetch.current || !userId) {
+      return;
+    }
+    loadSummaryData(userId);
+    // eslint-disable-next-line
+  }, [excludeCorporateCard]);
+
   const loadSummaryData = async (userIdParam) => {
     const currentUserId = userIdParam || userId;
     if (!currentUserId) {
@@ -194,7 +201,8 @@ export default function ExpenseSummary() {
       const aggregationData = await getExpenseAggregationByYear(
         factoryCode,
         year,
-        decodeUserId(currentUserId)
+        decodeUserId(currentUserId),
+        { excludeCorporateCard },
       );
 
       // 집계 데이터를 closingData 형식으로 변환
@@ -215,7 +223,8 @@ export default function ExpenseSummary() {
         const prevAggregationData = await getExpenseAggregationByYear(
           factoryCode,
           prevYear,
-          decodeUserId(currentUserId)
+          decodeUserId(currentUserId),
+          { excludeCorporateCard },
         );
         prevTransformedData = prevAggregationData.map((item) => ({
           monthYm: item.monthYm,
@@ -229,16 +238,17 @@ export default function ExpenseSummary() {
 
       const months = Array.from(
         { length: 12 },
-        (_, idx) => `${year}-${String(idx + 1).padStart(2, '0')}`
+        (_, idx) => `${year}-${String(idx + 1).padStart(2, '0')}`,
       );
       const userAggResults = await Promise.all(
         months.map((m) =>
           getExpenseAggregationByUser(
             factoryCode,
             m,
-            decodeUserId(currentUserId)
-          )
-        )
+            decodeUserId(currentUserId),
+            { excludeCorporateCard },
+          ),
+        ),
       );
 
       // 사용자별 합산: { [userName]: { status, monthly: {1: 금액}, total, avg, userId } }
@@ -286,7 +296,7 @@ export default function ExpenseSummary() {
       // total, avg 계산 (avg는 값이 있는 월수 기준)
       Object.values(userAggregated).forEach((entry) => {
         const monthsWithValue = Object.values(entry.monthly).filter(
-          (v) => v && v !== 0
+          (v) => v && v !== 0,
         );
         entry.total = monthsWithValue.reduce((s, v) => s + v, 0);
         const divisor = monthsWithValue.length || 1;
@@ -299,7 +309,7 @@ export default function ExpenseSummary() {
       const workStatsData = await getMonthlyWorkStatistics(
         factoryCode,
         year,
-        decodeUserId(currentUserId)
+        decodeUserId(currentUserId),
       );
 
       // 숫자 변환 유틸
@@ -407,7 +417,7 @@ export default function ExpenseSummary() {
       console.error('Error:', error);
       showToast(
         error.message || '데이터 조회 중 오류가 발생했습니다.',
-        'error'
+        'error',
       );
     } finally {
       setIsLoading(false);
@@ -417,7 +427,7 @@ export default function ExpenseSummary() {
   const runAiAnalysis = async () => {
     if (!aiPayloadRef.current) {
       setAnalysisComment(
-        'AI 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.'
+        'AI 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.',
       );
       setAiRequested(true);
       setAiLoading(false);
@@ -428,10 +438,10 @@ export default function ExpenseSummary() {
       // AI 요청 전 데이터 검증 로그
       const payload = aiPayloadRef.current;
       if (payload.currentData && Array.isArray(payload.currentData)) {
-        const totalAmount = payload.currentData.reduce(
-          (sum, item) => sum + (item.totalAmount || 0),
-          0
-        );
+        // const totalAmount = payload.currentData.reduce(
+        //   (sum, item) => sum + (item.totalAmount || 0),
+        //   0,
+        // );
         // console.log(
         //   '[AI Analysis] 전송 데이터 - 항목 수:',
         //   payload.currentData.length,
@@ -465,10 +475,10 @@ export default function ExpenseSummary() {
           workStats,
           userData,
           aiYear,
-          true
+          true,
         );
         setAnalysisComment(
-          fallback || 'AI 분석 결과가 없어 로컬 요약도 생성되지 않았습니다.'
+          fallback || 'AI 분석 결과가 없어 로컬 요약도 생성되지 않았습니다.',
         );
       }
     } catch (aiError) {
@@ -486,10 +496,10 @@ export default function ExpenseSummary() {
         workStats,
         userData,
         aiYear,
-        true // force local analysis even for 2024 이전
+        true, // force local analysis even for 2024 이전
       );
       setAnalysisComment(
-        fallback || 'AI 호출 실패로 로컬 요약을 생성하지 못했습니다.'
+        fallback || 'AI 호출 실패로 로컬 요약을 생성하지 못했습니다.',
       );
     } finally {
       setAiRequested(true);
@@ -620,6 +630,20 @@ export default function ExpenseSummary() {
                 onYearChange={setYear}
                 disabled={isSharedLink}
               />
+              <label
+                className="corporate-card-toggle"
+                title="법인카드 항목 제외 여부"
+              >
+                <input
+                  type="checkbox"
+                  checked={excludeCorporateCard}
+                  onChange={(e) => setExcludeCorporateCard(e.target.checked)}
+                  disabled={isLoading}
+                  aria-label="법인카드 제외"
+                />
+                <span className="toggle-slider" />
+                <span className="toggle-label">법인카드 제외</span>
+              </label>
               <HeaderActions
                 isSharedLink={isSharedLink}
                 year={year}
@@ -705,7 +729,7 @@ export default function ExpenseSummary() {
                           Object.entries(categories)
                             .sort(
                               ([catA], [catB]) =>
-                                categoryOrder[catA] - categoryOrder[catB]
+                                categoryOrder[catA] - categoryOrder[catB],
                             )
                             .forEach(([category, subcategories]) => {
                               const subItems = Object.entries(subcategories);
@@ -747,7 +771,7 @@ export default function ExpenseSummary() {
                                     <td
                                       style={{ backgroundColor: '#f9f9f9' }}
                                     />
-                                  </tr>
+                                  </tr>,
                                 );
                               });
 
@@ -772,17 +796,28 @@ export default function ExpenseSummary() {
                                           ] || 0
                                         ).toLocaleString()}
                                       </td>
-                                    )
+                                    ),
                                   )}
                                   <td style={{ backgroundColor: '#f9f9f9' }} />
                                   <td style={{ backgroundColor: '#f9f9f9' }} />
-                                </tr>
+                                </tr>,
                               );
                             });
 
                           // 합계(경비입금) 행
-                          const expenseDepositTotal =
-                            getExpenseDepositTotal(closingData);
+                          // 상단 합계(경비입금)는 사용자별 월합계와 정확히 일치해야 함
+                          // closingData(연도 집계)는 특별항목 포함 가능성이 있어 차이가 날 수 있으므로
+                          // 사용자별 집계(userMonthlyData)에서 월별 총합을 직접 산출하여 사용
+                          const expenseDepositTotal = (() => {
+                            const totals = {};
+                            for (let m = 1; m <= 12; m++) totals[m] = 0;
+                            Object.values(userMonthlyData).forEach((data) => {
+                              for (let m = 1; m <= 12; m++) {
+                                totals[m] += data.monthly[m] || 0;
+                              }
+                            });
+                            return totals;
+                          })();
                           allRows.push(
                             <tr
                               key="expense-deposit"
@@ -810,11 +845,11 @@ export default function ExpenseSummary() {
                                       expenseDepositTotal[month] || 0
                                     ).toLocaleString()}
                                   </td>
-                                )
+                                ),
                               )}
                               <td style={{ backgroundColor: '#FCE4D6' }} />
                               <td style={{ backgroundColor: '#FCE4D6' }} />
-                            </tr>
+                            </tr>,
                           );
 
                           // 전체 합계 행
@@ -833,11 +868,11 @@ export default function ExpenseSummary() {
                                       monthlyGrandTotal[month] || 0
                                     ).toLocaleString()}
                                   </td>
-                                )
+                                ),
                               )}
                               <td style={{ backgroundColor: '#f9f9f9' }} />
                               <td style={{ backgroundColor: '#f9f9f9' }} />
-                            </tr>
+                            </tr>,
                           );
 
                           // 섹션 구분 빈 행
@@ -847,7 +882,7 @@ export default function ExpenseSummary() {
                                 colSpan="16"
                                 style={{ backgroundColor: '#e0e0e0' }}
                               />
-                            </tr>
+                            </tr>,
                           );
 
                           // 사용자별 집계 헤더
@@ -1025,7 +1060,7 @@ export default function ExpenseSummary() {
                               >
                                 월 평균
                               </td>
-                            </tr>
+                            </tr>,
                           );
 
                           // ========== 2. 사용자별 집계 섹션 ==========
@@ -1038,7 +1073,7 @@ export default function ExpenseSummary() {
                                 statusOrder(bData.status);
                               if (diff !== 0) return diff;
                               return aName.localeCompare(bName);
-                            }
+                            },
                           );
 
                           const monthlyTotals = {};
@@ -1050,7 +1085,7 @@ export default function ExpenseSummary() {
                                 monthlyTotals[m] =
                                   (monthlyTotals[m] || 0) +
                                   (data.monthly[m] || 0);
-                              }
+                              },
                             );
                           });
 
@@ -1061,7 +1096,7 @@ export default function ExpenseSummary() {
                               acc[key] = (acc[key] || 0) + 1;
                               return acc;
                             },
-                            {}
+                            {},
                           );
 
                           let renderedStatusCount = {};
@@ -1102,7 +1137,7 @@ export default function ExpenseSummary() {
                                         data.monthly[month] || 0
                                       ).toLocaleString()}
                                     </td>
-                                  )
+                                  ),
                                 )}
                                 <td
                                   className="category-total-amount"
@@ -1116,7 +1151,7 @@ export default function ExpenseSummary() {
                                 >
                                   {Math.round(data.avg).toLocaleString()}
                                 </td>
-                              </tr>
+                              </tr>,
                             );
                           });
 
@@ -1138,7 +1173,7 @@ export default function ExpenseSummary() {
                                       monthlyTotals[month] || 0
                                     ).toLocaleString()}
                                   </td>
-                                )
+                                ),
                               )}
                               <td className="category-total-amount">
                                 {overallTotal.toLocaleString()}
@@ -1146,7 +1181,7 @@ export default function ExpenseSummary() {
                               <td className="category-total-amount">
                                 {Math.round(overallTotal / 12).toLocaleString()}
                               </td>
-                            </tr>
+                            </tr>,
                           );
 
                           // 섹션 구분 빈 행
@@ -1156,7 +1191,7 @@ export default function ExpenseSummary() {
                                 colSpan="16"
                                 style={{ backgroundColor: '#e0e0e0' }}
                               />
-                            </tr>
+                            </tr>,
                           );
 
                           // 근무 통계 헤더
@@ -1326,7 +1361,7 @@ export default function ExpenseSummary() {
                                 전체 평균
                               </td>
                               <td></td>
-                            </tr>
+                            </tr>,
                           );
 
                           // ========== 3. 근무 통계 섹션 ==========
@@ -1348,7 +1383,7 @@ export default function ExpenseSummary() {
                                       monthlyWorkStats[month]?.count ||
                                       '-'}
                                   </td>
-                                )
+                                ),
                               )}
                               <td
                                 className="category-total-amount"
@@ -1365,18 +1400,18 @@ export default function ExpenseSummary() {
                                       (m) =>
                                         monthlyWorkStats[m]?.employeeCount ||
                                         monthlyWorkStats[m]?.count ||
-                                        0
+                                        0,
                                     )
                                     .filter((c) => c && c !== 0);
                                   return counts.length > 0
                                     ? Math.round(
                                         counts.reduce((a, b) => a + b, 0) /
-                                          counts.length
+                                          counts.length,
                                       )
                                     : '-';
                                 })()}
                               </td>
-                            </tr>
+                            </tr>,
                           );
 
                           // 총 출근일수 행
@@ -1396,7 +1431,7 @@ export default function ExpenseSummary() {
                                       monthlyWorkStats[month]?.workdays ||
                                       '-'}
                                   </td>
-                                )
+                                ),
                               )}
                               <td
                                 className="category-total-amount"
@@ -1413,18 +1448,18 @@ export default function ExpenseSummary() {
                                       (m) =>
                                         monthlyWorkStats[m]?.totalWorkdays ||
                                         monthlyWorkStats[m]?.workdays ||
-                                        0
+                                        0,
                                     )
                                     .filter((w) => w && w !== 0);
                                   return workdays.length > 0
                                     ? Math.round(
                                         workdays.reduce((a, b) => a + b, 0) /
-                                          workdays.length
+                                          workdays.length,
                                       )
                                     : '-';
                                 })()}
                               </td>
-                            </tr>
+                            </tr>,
                           );
 
                           // 총경비 - 일평균단가
@@ -1448,7 +1483,7 @@ export default function ExpenseSummary() {
                                         ].expenseDailyRate.toLocaleString()
                                       : '-'}
                                   </td>
-                                )
+                                ),
                               )}
                               <td
                                 className="category-total-amount"
@@ -1464,18 +1499,18 @@ export default function ExpenseSummary() {
                                     .map(
                                       (m) =>
                                         monthlyWorkStats[m]?.expenseDailyRate ||
-                                        0
+                                        0,
                                     )
                                     .filter((r) => r && r !== 0);
                                   return rates.length > 0
                                     ? Math.round(
                                         rates.reduce((a, b) => a + b, 0) /
-                                          rates.length
+                                          rates.length,
                                       ).toLocaleString()
                                     : '-';
                                 })()}
                               </td>
-                            </tr>
+                            </tr>,
                           );
 
                           // 총경비 - %
@@ -1508,7 +1543,7 @@ export default function ExpenseSummary() {
                                       {percentage || '-'}
                                     </td>
                                   );
-                                }
+                                },
                               )}
                               <td className="category-total-amount">
                                 {(() => {
@@ -1529,8 +1564,8 @@ export default function ExpenseSummary() {
                                       ? Math.round(
                                           percentages.reduce(
                                             (a, b) => a + b,
-                                            0
-                                          ) / percentages.length
+                                            0,
+                                          ) / percentages.length,
                                         )
                                       : 0;
                                   return (
@@ -1550,7 +1585,7 @@ export default function ExpenseSummary() {
                                   );
                                 })()}
                               </td>
-                            </tr>
+                            </tr>,
                           );
 
                           // 총식사비 - 일평균단가
@@ -1574,7 +1609,7 @@ export default function ExpenseSummary() {
                                         ].mealDailyRate.toLocaleString()
                                       : '-'}
                                   </td>
-                                )
+                                ),
                               )}
                               <td
                                 className="category-total-amount"
@@ -1589,18 +1624,18 @@ export default function ExpenseSummary() {
                                   ]
                                     .map(
                                       (m) =>
-                                        monthlyWorkStats[m]?.mealDailyRate || 0
+                                        monthlyWorkStats[m]?.mealDailyRate || 0,
                                     )
                                     .filter((r) => r && r !== 0);
                                   return rates.length > 0
                                     ? Math.round(
                                         rates.reduce((a, b) => a + b, 0) /
-                                          rates.length
+                                          rates.length,
                                       ).toLocaleString()
                                     : '-';
                                 })()}
                               </td>
-                            </tr>
+                            </tr>,
                           );
 
                           // 총식사비 - %
@@ -1633,7 +1668,7 @@ export default function ExpenseSummary() {
                                       {percentage || '-'}
                                     </td>
                                   );
-                                }
+                                },
                               )}
                               <td className="category-total-amount">
                                 {(() => {
@@ -1654,8 +1689,8 @@ export default function ExpenseSummary() {
                                       ? Math.round(
                                           percentages.reduce(
                                             (a, b) => a + b,
-                                            0
-                                          ) / percentages.length
+                                            0,
+                                          ) / percentages.length,
                                         )
                                       : 0;
                                   return (
@@ -1675,7 +1710,7 @@ export default function ExpenseSummary() {
                                   );
                                 })()}
                               </td>
-                            </tr>
+                            </tr>,
                           );
                           return allRows;
                         })()

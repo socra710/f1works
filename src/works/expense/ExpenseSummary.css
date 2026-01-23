@@ -86,6 +86,74 @@
   gap: 0.75rem;
   align-items: center;
 }
+
+/* Corporate Card Toggle Switch */
+.corporate-card-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  user-select: none;
+  height: 44px;
+  box-sizing: border-box;
+}
+
+.corporate-card-toggle:hover {
+  border-color: #f88c6b;
+  box-shadow: 0 2px 8px rgba(248, 140, 107, 0.15);
+}
+
+.corporate-card-toggle input[type='checkbox'] {
+  display: none;
+}
+
+.corporate-card-toggle input[type='checkbox']:disabled + .toggle-slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.corporate-card-toggle .toggle-slider {
+  width: 36px;
+  height: 20px;
+  background: #ccc;
+  border-radius: 10px;
+  display: inline-block;
+  position: relative;
+  transition: all 0.3s ease;
+  order: -1;
+}
+
+.corporate-card-toggle .toggle-slider::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: all 0.3s ease;
+}
+
+.corporate-card-toggle input[type='checkbox']:checked + .toggle-slider {
+  background: #f88c6b;
+}
+
+.corporate-card-toggle input[type='checkbox']:checked + .toggle-slider::after {
+  left: 18px;
+}
+
+.corporate-card-toggle .toggle-label {
+  font-weight: 500;
+  font-size: 13px;
+  color: #2c3e50;
+  white-space: nowrap;
+}
 .month-selector,
 .year-selector {
   display: flex;
@@ -94,16 +162,18 @@
 }
 .year-selector input,
 .year-selector select {
-  padding: 10px 14px;
+  padding: 8px 14px;
   border: 2px solid #e0e0e0;
   border-radius: 6px;
   font-size: 16px;
   width: 120px;
+  height: 44px;
   background-color: white;
   cursor: pointer;
   transition: all 0.3s ease;
   font-weight: 500;
   color: #2c3e50;
+  box-sizing: border-box;
 }
 .year-selector select {
   appearance: none;
