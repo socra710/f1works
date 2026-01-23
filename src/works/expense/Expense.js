@@ -22,6 +22,7 @@ const categories = [
   { code: 'MEETING', name: '회의비' },
   { code: 'UTILITY', name: '공공요금' },
   { code: 'FUEL', name: '유류비' },
+  { code: 'TRAVEL', name: '여비' },
   { code: 'ETC', name: '기타' },
 ];
 
