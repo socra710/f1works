@@ -1000,6 +1000,20 @@ export default function Expense() {
     return rows.reduce((sum, row) => sum + calcPay(row), 0);
   };
 
+  // 경비 합계 (법인카드 제외)
+  const calculateExpensePay = () => {
+    return rows
+      .filter((row) => row.type !== 'corporate')
+      .reduce((sum, row) => sum + calcPay(row), 0);
+  };
+
+  // 법인카드 합계
+  const calculateCorporatePay = () => {
+    return rows
+      .filter((row) => row.type === 'corporate')
+      .reduce((sum, row) => sum + calcPay(row), 0);
+  };
+
   // 경비 항목 추가
   const addExpenseRow = () => {
     // 기본값: 해당 월 1일
@@ -2748,6 +2762,15 @@ export default function Expense() {
               </tbody>
             </table>
           </div>
+          {/* 경비 합계 */}
+          {calculateExpensePay() > 0 && (
+            <div className="total-section" style={{ padding: '0.5rem 1rem' }}>
+              <span className="total-label">경비 합계</span>
+              <span className="total-amount">
+                {calculateExpensePay().toLocaleString()} 원
+              </span>
+            </div>
+          )}
           {(status === 'DRAFT' ||
             status === 'REJECTED' ||
             (isManagerMode && status === 'SUBMITTED')) &&
@@ -3151,6 +3174,19 @@ export default function Expense() {
                   </table>
                 </div>
 
+                {/* 법인카드 합계 */}
+                {calculateCorporatePay() > 0 && (
+                  <div
+                    className="total-section"
+                    style={{ padding: '0.5rem 1rem' }}
+                  >
+                    <span className="total-label">법인카드 합계</span>
+                    <span className="total-amount">
+                      {calculateCorporatePay().toLocaleString()} 원
+                    </span>
+                  </div>
+                )}
+
                 {isManagerMode &&
                   (status === 'DRAFT' ||
                     status === 'REJECTED' ||
@@ -3421,7 +3457,7 @@ export default function Expense() {
             )}
           </>
         )}
-        {/* 합계 */}
+        {/* 총 지급액 합계 */}
         <section className="expense-section">
           <div className="total-section">
             <span className="total-label">총 지급액 합계</span>
