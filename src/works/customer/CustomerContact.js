@@ -22,6 +22,7 @@ const CustomerContact = () => {
   const [showForm, setShowForm] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
   const [filter, setFilter] = useState('all'); // all, normal, warning
+  const [managerFilter, setManagerFilter] = useState('all'); // all or specific manager name
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
@@ -89,11 +90,25 @@ const CustomerContact = () => {
   const filteredList = contactList.filter((contact) => {
     const isWarning =
       contact.status === 'WARNING' || contact.daysSinceContact >= 30;
-    if (filter === 'all') return true;
-    if (filter === 'normal') return !isWarning;
-    if (filter === 'warning') return isWarning;
-    return true;
+
+    // 상태 필터
+    let passStatusFilter = true;
+    if (filter === 'normal') passStatusFilter = !isWarning;
+    if (filter === 'warning') passStatusFilter = isWarning;
+
+    // 담당자 필터
+    let passManagerFilter = true;
+    if (managerFilter !== 'all') {
+      passManagerFilter = contact.managerName === managerFilter;
+    }
+
+    return passStatusFilter && passManagerFilter;
   });
+
+  // 담당자 목록 추출
+  const managerList = [
+    ...new Set(contactList.map((c) => c.managerName).filter(Boolean)),
+  ].sort();
 
   if (!authChecked) {
     return (
@@ -159,6 +174,9 @@ const CustomerContact = () => {
           filter={filter}
           setFilter={setFilter}
           contactList={contactList}
+          managerFilter={managerFilter}
+          setManagerFilter={setManagerFilter}
+          managerList={managerList}
         />
 
         <CustomerContactTable
