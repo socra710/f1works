@@ -1,7 +1,14 @@
 import React from 'react';
 import styles from '../CustomerContact.module.css';
 
-const CustomerContactFilter = ({ filter, setFilter, contactList }) => {
+const CustomerContactFilter = ({
+  filter,
+  setFilter,
+  contactList,
+  managerFilter,
+  setManagerFilter,
+  managerList,
+}) => {
   const totalCount = contactList.length;
   const warningCount = contactList.filter(
     (c) => c.status === 'WARNING' || c.daysSinceContact >= 30,
@@ -36,6 +43,27 @@ const CustomerContactFilter = ({ filter, setFilter, contactList }) => {
           ⚠️ 관리 필요 ({warningCount})
         </button>
       </div>
+
+      {managerList && managerList.length > 0 && (
+        <div className={styles.managerFilterContainer}>
+          <label htmlFor="managerFilter" className={styles.managerFilterLabel}>
+            담당자:
+          </label>
+          <select
+            id="managerFilter"
+            className={styles.managerFilterSelect}
+            value={managerFilter}
+            onChange={(e) => setManagerFilter(e.target.value)}
+          >
+            <option value="all">전체</option>
+            {managerList.map((manager) => (
+              <option key={manager} value={manager}>
+                {manager}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
     </div>
   );
 };

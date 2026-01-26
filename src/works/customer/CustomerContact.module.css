@@ -208,12 +208,51 @@
 /* Filter */
 .filterContainer {
   margin-bottom: 0.35rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .filterButtons {
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
+}
+
+.managerFilterContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.managerFilterLabel {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.managerFilterSelect {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  color: #374151;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.managerFilterSelect:hover {
+  border-color: #9ca3af;
+}
+
+.managerFilterSelect:focus {
+  outline: none;
+  border-color: #5a75e6;
+  box-shadow: 0 0 0 3px rgba(90, 117, 230, 0.1);
 }
 
 .filterButton {
