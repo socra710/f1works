@@ -65,6 +65,17 @@ const CustomerContactForm = ({ contact, onClose, contactList = [] }) => {
     }
   }, [contact]);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        if (typeof onClose === 'function') onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
+  }, [onClose]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -120,7 +131,8 @@ const CustomerContactForm = ({ contact, onClose, contactList = [] }) => {
       const result = await response.json();
       if (result.success) {
         showToast('저장되었습니다.', 'success');
-        onClose(true);
+        // 저장 성공 시 모달을 닫음
+        if (typeof onClose === 'function') onClose(true);
       } else {
         showToast(result.message || '저장에 실패했습니다.', 'error');
       }
@@ -131,7 +143,7 @@ const CustomerContactForm = ({ contact, onClose, contactList = [] }) => {
   };
 
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
+    <div className={styles.modalOverlay}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2>{contact ? '고객 정보 수정' : '고객 정보 등록'}</h2>
