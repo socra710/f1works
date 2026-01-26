@@ -47,21 +47,24 @@ const CustomerContactFilter = ({
       {managerList && managerList.length > 0 && (
         <div className={styles.managerFilterContainer}>
           <label htmlFor="managerFilter" className={styles.managerFilterLabel}>
-            담당자:
+            👤 담당자
           </label>
-          <select
-            id="managerFilter"
-            className={styles.managerFilterSelect}
-            value={managerFilter}
-            onChange={(e) => setManagerFilter(e.target.value)}
-          >
-            <option value="all">전체</option>
-            {managerList.map((manager) => (
-              <option key={manager} value={manager}>
-                {manager}
-              </option>
-            ))}
-          </select>
+          <div className={styles.selectWrapper}>
+            <select
+              id="managerFilter"
+              className={styles.managerFilterSelect}
+              value={managerFilter}
+              onChange={(e) => setManagerFilter(e.target.value)}
+            >
+              <option value="all">전체 담당자</option>
+              {managerList.map((manager) => (
+                <option key={manager} value={manager}>
+                  {manager}
+                </option>
+              ))}
+            </select>
+            <span className={styles.selectIcon}>▼</span>
+          </div>
         </div>
       )}
     </div>
