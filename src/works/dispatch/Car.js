@@ -13,10 +13,8 @@ export default function Car() {
   const navigate = useNavigate();
   const { showToast } = useToast();
 
-  const [isMobile, setIsMobile] = useState(false);
   const [authUser, setAuthUser] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
   const [carStatus, setCarStatus] = useState('운행 가능');
   const [carStatusDesc, setCarStatusDesc] =
     useState('배차 요청 후 담당자 확인');
@@ -26,7 +24,6 @@ export default function Car() {
     const run = async () => {
       const uaMobile = isMobileUA();
       if (!mounted) return;
-      setIsMobile(uaMobile);
 
       if (uaMobile) {
         setAuthUser('m');
@@ -158,7 +155,7 @@ export default function Car() {
               showToast(
                 '시스템 내부 문제가 발생했습니다. 상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요. 상세내용 >> ' +
                   e.message,
-                'error'
+                'error',
               );
               return;
             }
@@ -225,7 +222,7 @@ export default function Car() {
               showToast(
                 '시스템 내부 문제가 발생했습니다. 상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요. 상세내용 >> ' +
                   e.message,
-                'error'
+                'error',
               );
               return;
             }
@@ -294,7 +291,7 @@ export default function Car() {
                 showToast(
                   '시스템 내부 문제가 발생했습니다. 상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요. 상세내용 >> ' +
                     e.message,
-                  'error'
+                  'error',
                 );
                 return;
               }
@@ -331,22 +328,13 @@ export default function Car() {
       modifyDispatch?.removeEventListener('click', handleModify);
       deleteDispatch?.removeEventListener('click', handleDelete);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authUser, API_BASE_URL]);
 
   // 출발일/복귀일 기반 상태 계산 함수
   const calculateCarStatus = (useDateFrom, useDateTo) => {
     const today = getStringToDate();
     const now = new Date();
-    const currentDateTime =
-      now.getFullYear() +
-      '-' +
-      ('00' + (now.getMonth() + 1).toString()).slice(-2) +
-      '-' +
-      ('00' + now.getDate().toString()).slice(-2) +
-      ' ' +
-      ('00' + now.getHours().toString()).slice(-2) +
-      ':' +
-      ('00' + now.getMinutes().toString()).slice(-2);
 
     if (!useDateFrom || !useDateTo) {
       return { status: '운행 가능', desc: '배차 요청 후 담당자 확인' };
@@ -358,20 +346,28 @@ export default function Car() {
     } else if (today >= useDateFrom && today <= useDateTo) {
       // 같은 날짜인 경우 시간 비교
       if (today === useDateTo) {
-        // useDateTo가 "YYYY-MM-DD HH:mm" 형식일 때
-        const arrivalDateTime = useDateTo;
-        if (currentDateTime >= arrivalDateTime) {
-          // 현재 시간이 도착 시간 이후
-          return { status: '운행 완료', desc: useDateTo + ' 반납 완료' };
-        } else {
-          // 현재 시간이 도착 시간 이전
-          return { status: '운행 중', desc: useDateTo + ' 까지 운행' };
+        // useDateTo가 "YYYY-MM-DD HH:mm" 형식일 때 - 시간 포함 비교
+        const useToDate = useDateTo.substring(0, 10); // "YYYY-MM-DD"
+        const useToTime = useDateTo.substring(11, 16); // "HH:mm"
+
+        if (useToDate === today && useToTime) {
+          // 날짜가 같고 시간 정보가 있으면 시간까지 비교
+          const currentTime =
+            ('00' + now.getHours().toString()).slice(-2) +
+            ':' +
+            ('00' + now.getMinutes().toString()).slice(-2);
+          if (currentTime >= useToTime) {
+            // 현재 시간이 복귀 시간 이후
+            return { status: '운행 완료', desc: useDateTo + ' 반납 완료' };
+          } else {
+            // 현재 시간이 복귀 시간 이전
+            return { status: '운행 중', desc: useDateTo + ' 까지 운행' };
+          }
         }
-      } else {
-        // 다른 날짜면 운행 중
-        return { status: '운행 중', desc: useDateTo + ' 까지 운행' };
       }
-    } else if (today > useDateTo) {
+      // 다른 날짜이거나 시간 정보가 없으면 운행 중
+      return { status: '운행 중', desc: useDateTo + ' 까지 운행' };
+    } else if (today > useDateTo.substring(0, 10)) {
       // 운행 완료
       return { status: '운행 완료', desc: useDateTo + ' 반납 완료' };
     }
@@ -409,7 +405,6 @@ export default function Car() {
     const allDayCheckbox = document.querySelector('#allDayYn');
     if (allDayCheckbox) {
       allDayCheckbox.checked = false;
-      setAllDayYn('N');
     }
 
     // 시간 필드 초기 상태 복원 (활성/필수 유지)
@@ -446,7 +441,7 @@ export default function Car() {
           showToast(
             '시스템 내부 문제가 발생했습니다. 상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요. 상세내용 >> ' +
               e.message,
-            'error'
+            'error',
           );
           return;
         }
@@ -465,7 +460,7 @@ export default function Car() {
             const firstItem = e.data[0];
             const statusInfo = calculateCarStatus(
               firstItem.USE_DATE_FROM,
-              firstItem.USE_DATE_TO
+              firstItem.USE_DATE_TO,
             );
             setCarStatus(statusInfo.status);
             setCarStatusDesc(statusInfo.desc);
@@ -561,7 +556,7 @@ export default function Car() {
               evt.stopPropagation();
               document.querySelector('#lightbox').style.display = 'block';
               onModifyForm(this);
-            })
+            }),
           );
         }, 0);
       })
@@ -571,6 +566,7 @@ export default function Car() {
       .finally(() => {
         setLoading(false);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authUser, API_BASE_URL]);
 
   const onModifyForm = useCallback(
@@ -596,7 +592,7 @@ export default function Car() {
             showToast(
               '시스템 내부 문제가 발생했습니다. 상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요. 상세내용 >> ' +
                 e.message,
-              'error'
+              'error',
             );
             return;
           }
@@ -647,11 +643,11 @@ export default function Car() {
 
           document.querySelector('#bigo').value = item.BIGO.replaceAll(
             '<br />',
-            '\r\n'
+            '\r\n',
           );
         });
     },
-    [authUser, API_BASE_URL]
+    [authUser, API_BASE_URL, showToast],
   );
 
   const [useDateFrom, setUseDateFrom] = useState('');
@@ -666,11 +662,8 @@ export default function Car() {
     setUseDateTo(newDateTo);
   };
 
-  const [allDayYn, setAllDayYn] = useState('');
-
   const handleAllDayChange = (event) => {
     const isChecked = event.target.checked;
-    setAllDayYn(isChecked ? 'Y' : 'N');
 
     // 종일 체크 시 기본 시간 세팅 09:00 ~ 18:00
     if (isChecked) {
@@ -684,7 +677,6 @@ export default function Car() {
   };
 
   const skeletonRows = Array.from({ length: 5 });
-  const skeletonCols = Array.from({ length: 13 });
 
   // 변경: 로딩 표시
   if (!authUser) {
@@ -1062,10 +1054,10 @@ export default function Car() {
             </div>
           </form>
         </div>
-        <ModalHelp isOpen={isOpen} />
+        <ModalHelp isOpen={false} />
         <div id="snackbar">Some text some message..</div>
         <div id="lightbox">
-          <img id="lightboxImage" />
+          <img id="lightboxImage" alt="" />
         </div>
       </div>
     </>
