@@ -2,7 +2,8 @@
 
 .car-shell {
   min-height: 100vh;
-  background: radial-gradient(
+  background:
+    radial-gradient(
       1200px 600px at 10% 0%,
       rgba(90, 117, 230, 0.06),
       transparent 60%
@@ -465,7 +466,9 @@
   border: 1px solid #dce1e6;
   border-radius: 8px;
   font-size: 0.95rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   font-family: inherit;
   box-sizing: border-box;
 }
@@ -774,10 +777,10 @@
   .toolbar-actions > button {
     flex: 1;
   }
-}
 
-.div-car section div {
-  overflow: auto;
+  .div-car section div {
+    overflow: auto;
+  }
 }
 
 .div-car .btn {
@@ -789,7 +792,10 @@
   border-radius: 10px;
   background: linear-gradient(135deg, #5a75e6 0%, #7a56b5 100%);
   box-shadow: 0 6px 18px rgba(102, 126, 234, 0.3);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.1s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.1s ease;
 }
 
 .div-car .btn-elevated {
@@ -822,7 +828,7 @@
 
 .table-wrapper {
   width: 100%;
-  overflow-x: auto;
+  /* overflow-x: auto; */
   margin-top: 0.5rem;
   background: #fff;
   border: 1px solid #e9ecef;
@@ -831,7 +837,13 @@
 }
 
 .table-wrapper table {
-  min-width: 1100px;
+  width: 100%;
+}
+
+@media screen and (max-width: 767px) {
+  .table-wrapper table {
+    min-width: 900px;
+  }
 }
 
 .tableSkeleton {
@@ -1005,7 +1017,9 @@
   margin: 1rem;
   padding: 1.5rem;
   width: var(--width-card);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .div-car section aside:hover {
@@ -1015,7 +1029,6 @@
 
 .div-car table {
   width: 100%;
-  min-width: 1000px;
   border-collapse: separate;
   border-spacing: 0;
   background: #fff;
@@ -1023,6 +1036,12 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+}
+
+@media screen and (max-width: 767px) {
+  .div-car table {
+    min-width: 900px;
+  }
 }
 
 .div-car table thead {
@@ -1050,6 +1069,14 @@
   border-bottom: 1px solid #e9ecef;
   vertical-align: middle;
   white-space: nowrap;
+}
+
+.cell-truncate {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: help;
 }
 
 .div-car table tbody tr:hover {
