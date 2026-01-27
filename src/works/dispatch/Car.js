@@ -513,7 +513,9 @@ export default function Car() {
 
             td = document.createElement('td');
             td.setAttribute('style', 'text-align:left;');
+            td.className = styles['cell-truncate'];
             td.innerHTML = item.LOCATION_NAME;
+            td.title = item.LOCATION_NAME;
             tr.append(td);
 
             td = document.createElement('td');
@@ -539,12 +541,16 @@ export default function Car() {
 
             td = document.createElement('td');
             td.setAttribute('style', 'text-align:left;');
+            td.className = styles['cell-truncate'];
             td.innerHTML = item.PARKING_AREA;
+            td.title = item.PARKING_AREA;
             tr.append(td);
 
             td = document.createElement('td');
             td.setAttribute('style', 'text-align:left;');
+            td.className = styles['cell-truncate'];
             td.innerHTML = item.BIGO;
+            td.title = item.BIGO.replaceAll('<br />', '\n');
             tr.append(td);
 
             ele.append(tr);
@@ -807,7 +813,7 @@ export default function Car() {
                     <th>주유여부(경유)</th>
                     <th>운전자</th>
                     <th>주차구역</th>
-                    <th>정비이력 등 특이사항</th>
+                    <th>비고</th>
                   </tr>
                 </thead>
                 <tbody id="tbDispatch">
