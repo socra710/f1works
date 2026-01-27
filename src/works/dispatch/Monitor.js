@@ -1,4 +1,4 @@
-﻿import styles from './Monitor.module.css';
+import styles from './Monitor.module.css';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -12,20 +12,17 @@ export default function Monitor() {
   const navigate = useNavigate();
   const { showToast } = useToast();
 
-  const [isMobile, setIsMobile] = useState(false);
   const [authUser, setAuthUser] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [useDateFrom, setUseDateFrom] = useState('');
   const [useDateTo, setUseDateTo] = useState('');
-  const [allDayYn, setAllDayYn] = useState('');
 
   useEffect(() => {
     let mounted = true;
     const run = async () => {
       const uaMobile = isMobileUA();
       if (!mounted) return;
-      setIsMobile(uaMobile);
 
       if (uaMobile) {
         setAuthUser('m');
@@ -85,7 +82,6 @@ export default function Monitor() {
   };
 
   const skeletonRows = Array.from({ length: 5 });
-  const skeletonCols = Array.from({ length: 9 });
 
   const onSetDefault = useCallback(() => {
     document.querySelector('#appDate').value = getStringToDate();
@@ -101,7 +97,6 @@ export default function Monitor() {
     const allDayCheckbox = document.querySelector('#allDayYn');
     if (allDayCheckbox) {
       allDayCheckbox.checked = false;
-      setAllDayYn('N');
     }
     const from = document.querySelector('#useTimeFrom');
     const to = document.querySelector('#useTimeTo');
@@ -134,7 +129,7 @@ export default function Monitor() {
             showToast(
               '시스템 내부 문제가 발생했습니다. 상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요. 상세내용 >> ' +
                 e.message,
-              'error'
+              'error',
             );
             return;
           }
@@ -188,11 +183,11 @@ export default function Monitor() {
 
           document.querySelector('#bigo').value = item.BIGO.replaceAll(
             '<br />',
-            '\r\n'
+            '\r\n',
           );
         });
     },
-    [authUser, API_BASE_URL]
+    [authUser, API_BASE_URL, showToast],
   );
 
   const onViewDispatch = useCallback(() => {
@@ -216,7 +211,7 @@ export default function Monitor() {
           showToast(
             '시스템 내부 문제가 발생했습니다. 상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요. 상세내용 >> ' +
               e.message,
-            'error'
+            'error',
           );
           return;
         }
@@ -307,7 +302,7 @@ export default function Monitor() {
               Number(getStringToDateTime()) <= Number(item.USE_DATE_TO_CHECK)
             ) {
               const supNoElement = document.querySelector(
-                `#supNo${item.APP_NO}`
+                `#supNo${item.APP_NO}`,
               );
               if (supNoElement) {
                 supNoElement.setAttribute('style', '');
@@ -320,7 +315,7 @@ export default function Monitor() {
             target.addEventListener('click', function () {
               document.querySelector('#lightbox').style.display = 'block';
               onModifyForm(this);
-            })
+            }),
           );
         }, 0);
       })
@@ -330,7 +325,7 @@ export default function Monitor() {
       .finally(() => {
         // 스켈레톤 제거는 이미 setTimeout 내에서 처리됨
       });
-  }, [authUser, API_BASE_URL, onModifyForm]);
+  }, [authUser, API_BASE_URL, onModifyForm, showToast]);
 
   const changeDateFrom = (event) => {
     const newDateFrom = event.target.value;
@@ -340,7 +335,6 @@ export default function Monitor() {
 
   const handleAllDayChange = (event) => {
     const isChecked = event.target.checked;
-    setAllDayYn(isChecked ? 'Y' : 'N');
     if (isChecked) {
       const from = document.querySelector('#useTimeFrom');
       const to = document.querySelector('#useTimeTo');
@@ -451,7 +445,7 @@ export default function Monitor() {
               showToast(
                 '시스템 내부 문제가 발생했습니다. 상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요. 상세내용 >> ' +
                   e.message,
-                'error'
+                'error',
               );
               return;
             }
@@ -517,7 +511,7 @@ export default function Monitor() {
               showToast(
                 '시스템 내부 문제가 발생했습니다. 상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요. 상세내용 >> ' +
                   e.message,
-                'error'
+                'error',
               );
               return;
             }
@@ -538,7 +532,7 @@ export default function Monitor() {
       event.preventDefault();
 
       const isConfirmed = window.confirm(
-        '모니터 신청 내역을 삭제하시겠습니까?'
+        '모니터 신청 내역을 삭제하시겠습니까?',
       );
       if (isConfirmed) {
         try {
@@ -587,7 +581,7 @@ export default function Monitor() {
                 showToast(
                   '시스템 내부 문제가 발생했습니다. 상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요. 상세내용 >> ' +
                     e.message,
-                  'error'
+                  'error',
                 );
                 return;
               }
@@ -622,7 +616,7 @@ export default function Monitor() {
       modifyDispatch?.removeEventListener('click', handleModify);
       deleteDispatch?.removeEventListener('click', handleDelete);
     };
-  }, [authUser, API_BASE_URL, onSetDefault, onViewDispatch]);
+  }, [authUser, API_BASE_URL, onSetDefault, onViewDispatch, showToast]);
 
   // 변경: 로딩 표시
   if (!authUser) {
@@ -698,7 +692,7 @@ export default function Monitor() {
             </div>
           </section>
 
-          {!isMobile && (
+          {/* {!isMobile && (
             <div className={styles['info-grid']}>
               <div className={styles['info-card']}>
                 <p>
@@ -767,7 +761,7 @@ export default function Monitor() {
                 </ul>
               </div>
             </div>
-          )}
+          )} */}
 
           <div className={styles['ad-row']}>
             <div className={`${styles['ad-card']} ${styles['pc-ad']}`}>
