@@ -25,14 +25,6 @@ const isWithinOneMonth = (dateString) => {
 
 export default function Works() {
   const navigate = useNavigate();
-  const [isAdmin, setIsAdmin] = useState(() => {
-    try {
-      const cached = sessionStorage.getItem('isAdminStatus');
-      return cached === 'true';
-    } catch (err) {
-      return false;
-    }
-  });
   const [checked, setChecked] = useState(() => {
     try {
       const cachedAdmin = sessionStorage.getItem('isAdminStatus');
@@ -170,7 +162,6 @@ export default function Works() {
               !!roleAll?.isSuperAdmin ||
               !!roleAll?.isGlobalAdmin ||
               !!roleAll?.isMenuAdmin;
-            setIsAdmin(headerAdmin);
             persistAdminStatus(headerAdmin);
 
             // 관리 탭 메뉴 권한: menuKeys 배열로 저장
@@ -192,20 +183,17 @@ export default function Works() {
             persistUserMenuKeys(finalMenuKeys);
           } catch (apiError) {
             console.error('[Works] API 호출 실패:', apiError);
-            setIsAdmin(false);
             setUserMenuKeys([]);
             persistAdminStatus(false);
             persistUserMenuKeys([]);
           }
         } else {
-          setIsAdmin(false);
           setUserMenuKeys([]);
           persistAdminStatus(false);
           persistUserMenuKeys([]);
         }
       } catch (error) {
         console.error('[Works] Admin check failed:', error);
-        setIsAdmin(false);
         setUserMenuKeys([]);
         persistAdminStatus(false);
         persistUserMenuKeys([]);
@@ -522,14 +510,17 @@ export default function Works() {
   ];
 
   // 상단 알림 배너 설정
-  const topNotification = {
-    id: 'notification-20251218-expense', // 공지마다 고유 ID (날짜-내용 형식 권장)
-    type: 'info', // 'info', 'warning', 'success', 'error'
-    message:
-      '경비 청구(베타) 기능이 추가되었습니다! 12월은 베타 기간이니 기존 방식과 병행해 주세요.',
-    link: '/works/expense',
-    linkText: '지금 이용하기',
-  };
+  const topNotification = useMemo(
+    () => ({
+      id: 'notification-20251218-expense', // 공지마다 고유 ID (날짜-내용 형식 권장)
+      type: 'info', // 'info', 'warning', 'success', 'error'
+      message:
+        '경비 청구(베타) 기능이 추가되었습니다! 12월은 베타 기간이니 기존 방식과 병행해 주세요.',
+      link: '/works/expense',
+      linkText: '지금 이용하기',
+    }),
+    [],
+  );
 
   // 닫힌 공지 확인 및 알림 표시 여부 설정
   useEffect(() => {
@@ -540,7 +531,7 @@ export default function Works() {
       const isDismissed = dismissedNotifications.includes(topNotification.id);
       setNotificationVisible(!isDismissed);
     }
-  }, []);
+  }, [topNotification]);
 
   const handleDismissNotification = () => {
     setNotificationVisible(false);
