@@ -216,7 +216,7 @@ export default function Works() {
   }, []);
 
   const categoryOrder = useMemo(
-    () => ['업무', '관리', '게임', '메뉴', '뉴스'],
+    () => ['업무', '게임', '메뉴', '뉴스', '관리'],
     [],
   );
 
