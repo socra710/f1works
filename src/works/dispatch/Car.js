@@ -333,46 +333,62 @@ export default function Car() {
 
   // 출발일/복귀일 기반 상태 계산 함수
   const calculateCarStatus = (useDateFrom, useDateTo) => {
-    const today = getStringToDate();
     const now = new Date();
 
     if (!useDateFrom || !useDateTo) {
       return { status: '운행 가능', desc: '배차 요청 후 담당자 확인' };
     }
 
-    if (today < useDateFrom) {
-      // 아직 시작 안함 - 예정 중
-      return { status: '예정 중', desc: useDateFrom + ' 예정' };
-    } else if (today >= useDateFrom && today <= useDateTo) {
-      // 같은 날짜인 경우 시간 비교
-      if (today === useDateTo) {
-        // useDateTo가 "YYYY-MM-DD HH:mm" 형식일 때 - 시간 포함 비교
-        const useToDate = useDateTo.substring(0, 10); // "YYYY-MM-DD"
-        const useToTime = useDateTo.substring(11, 16); // "HH:mm"
+    // "YYYY-MM-DD (HH:mm)" 형식에서 날짜와 시간 추출
+    const extractDateTime = (dateTimeStr) => {
+      // "2026-01-28 (10:00)" 형식
+      const dateMatch = dateTimeStr.match(/(\d{4}-\d{2}-\d{2})/);
+      const timeMatch = dateTimeStr.match(/\((\d{2}:\d{2})\)/);
 
-        if (useToDate === today && useToTime) {
-          // 날짜가 같고 시간 정보가 있으면 시간까지 비교
-          const currentTime =
-            ('00' + now.getHours().toString()).slice(-2) +
-            ':' +
-            ('00' + now.getMinutes().toString()).slice(-2);
-          if (currentTime >= useToTime) {
-            // 현재 시간이 복귀 시간 이후
-            return { status: '운행 완료', desc: useDateTo + ' 반납 완료' };
-          } else {
-            // 현재 시간이 복귀 시간 이전
-            return { status: '운행 중', desc: useDateTo + ' 까지 운행' };
-          }
-        }
-      }
-      // 다른 날짜이거나 시간 정보가 없으면 운행 중
-      return { status: '운행 중', desc: useDateTo + ' 까지 운행' };
-    } else if (today > useDateTo.substring(0, 10)) {
-      // 운행 완료
+      const dateStr = dateMatch ? dateMatch[1] : null;
+      const timeStr = timeMatch ? timeMatch[1] : null;
+
+      return { dateStr, timeStr };
+    };
+
+    const fromInfo = extractDateTime(useDateFrom);
+    const toInfo = extractDateTime(useDateTo);
+
+    if (!fromInfo.dateStr || !toInfo.dateStr) {
+      return { status: '운행 가능', desc: '배차 요청 후 담당자 확인' };
+    }
+
+    // 현재 날짜/시간 문자열
+    const currentDateStr =
+      now.getFullYear() +
+      '-' +
+      ('00' + (now.getMonth() + 1)).slice(-2) +
+      '-' +
+      ('00' + now.getDate()).slice(-2);
+    const currentTimeStr =
+      ('00' + now.getHours()).slice(-2) +
+      ':' +
+      ('00' + now.getMinutes()).slice(-2);
+
+    // 시작 전
+    if (currentDateStr < fromInfo.dateStr) {
+      return { status: '예정 중', desc: useDateFrom + ' 예정' };
+    }
+
+    // 종료 후
+    if (currentDateStr > toInfo.dateStr) {
       return { status: '운행 완료', desc: useDateTo + ' 반납 완료' };
     }
 
-    return { status: '운행 가능', desc: '배차 요청 후 담당자 확인' };
+    // 같은 날짜인 경우 시간까지 비교
+    if (currentDateStr === toInfo.dateStr && toInfo.timeStr) {
+      if (currentTimeStr >= toInfo.timeStr) {
+        return { status: '운행 완료', desc: useDateTo + ' 반납 완료' };
+      }
+    }
+
+    // 운행 중
+    return { status: '운행 중', desc: useDateTo + ' 까지 운행' };
   };
 
   const getStringToDate = () => {
@@ -458,10 +474,11 @@ export default function Car() {
           // 첫번째 배차 데이터로 상태 업데이트
           if (e.data.length > 0) {
             const firstItem = e.data[0];
-            const statusInfo = calculateCarStatus(
-              firstItem.USE_DATE_FROM,
-              firstItem.USE_DATE_TO,
-            );
+            const useDateFrom =
+              firstItem.USE_DATE_FROM + ' (' + firstItem.USE_TIME_FROM + ')';
+            const useDateTo =
+              firstItem.USE_DATE_TO + ' (' + firstItem.USE_TIME_TO + ')';
+            const statusInfo = calculateCarStatus(useDateFrom, useDateTo);
             setCarStatus(statusInfo.status);
             setCarStatusDesc(statusInfo.desc);
           }
