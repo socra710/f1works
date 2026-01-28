@@ -763,7 +763,7 @@ export default function Monitor() {
             </div>
           )} */}
 
-          <div className={styles['ad-row']}>
+          {/* <div className={styles['ad-row']}>
             <div className={`${styles['ad-card']} ${styles['pc-ad']}`}>
               <ins
                 className="kakao_ad_area"
@@ -780,7 +780,7 @@ export default function Monitor() {
                 data-ad-height="50"
               ></ins>
             </div>
-          </div>
+          </div> */}
 
           <div className={styles['dispatch-toolbar']}>
             <i className={styles['infoI']}>
