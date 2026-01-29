@@ -25,6 +25,7 @@ import NotFound from './NotFound';
 import IFormPage from './works/iform';
 import UserForm from './works/iform/user/UserForm';
 import UserDocumentView from './works/iform/user/UserDocumentView';
+import ManagerDocumentView from './works/iform/manager/ManagerDocumentView';
 
 function App() {
   return (
@@ -67,6 +68,10 @@ function App() {
           <Route
             path="/works/iform/user/:docId"
             element={<UserDocumentView />}
+          ></Route>
+          <Route
+            path="/works/iform/manager/:docId"
+            element={<ManagerDocumentView />}
           ></Route>
           {/* <Route path="/works/dispatch/:id" element={<Dispatch />}></Route> */}
           <Route path="/games/wordle" element={<Wordle />}></Route>

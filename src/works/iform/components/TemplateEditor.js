@@ -3,6 +3,7 @@ import { sampleTemplate } from '../api';
 import styles from './TemplateEditor.module.css';
 
 export default function TemplateEditor({ onSave, templates = [] }) {
+  const STORAGE_KEY = 'iform.editor.selectedTemplateId';
   const [templateText, setTemplateText] = useState('');
   const [error, setError] = useState('');
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
@@ -15,14 +16,22 @@ export default function TemplateEditor({ onSave, templates = [] }) {
       setSelectedTemplateId('');
       setTemplateText(JSON.stringify(sampleTemplate, null, 2));
       setIsDirty(false);
+      sessionStorage.removeItem(STORAGE_KEY);
       return;
     }
 
     setSelectedTemplateId((prev) => {
+      const saved = sessionStorage.getItem(STORAGE_KEY);
+      if (saved && templates.some((tpl) => tpl.id === saved)) return saved;
       if (prev && templates.some((tpl) => tpl.id === prev)) return prev;
       return templates[0].id;
     });
   }, [templates]);
+
+  useEffect(() => {
+    if (!selectedTemplateId) return;
+    sessionStorage.setItem(STORAGE_KEY, selectedTemplateId);
+  }, [selectedTemplateId]);
 
   useEffect(() => {
     if (!templates.length || !selectedTemplateId) return;
@@ -39,13 +48,13 @@ export default function TemplateEditor({ onSave, templates = [] }) {
     return templates.filter(
       (t) =>
         t.name?.toLowerCase().includes(keyword) ||
-        t.id?.toLowerCase().includes(keyword)
+        t.id?.toLowerCase().includes(keyword),
     );
   }, [templates, search]);
 
   const selectedTemplate = useMemo(
     () => templates.find((t) => t.id === selectedTemplateId),
-    [templates, selectedTemplateId]
+    [templates, selectedTemplateId],
   );
 
   const handleSave = () => {

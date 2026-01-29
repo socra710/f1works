@@ -2,10 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getDocument, getTemplate, createDocument } from '../api';
 import FormRenderer from '../components/FormRenderer';
-import {
-  waitForExtensionLogin,
-  decodeUserId,
-} from '../../../common/extensionLogin';
+import { waitForExtensionLoginJson } from '../../../common/extensionLogin';
 import { useToast } from '../../../common/Toast';
 import styles from './UserForm.module.css';
 
@@ -15,6 +12,7 @@ export default function UserDocumentView() {
   const { showToast } = useToast();
   const [initialLoading, setInitialLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState('');
+  const [currentUserName, setCurrentUserName] = useState('');
   const [hasAccess, setHasAccess] = useState(false);
   const hasShownToastRef = useRef(false);
   const isNavigatingRef = useRef(false);
@@ -42,14 +40,14 @@ export default function UserDocumentView() {
 
     (async () => {
       try {
-        const sessionUser = await waitForExtensionLogin({
+        const sessionUser = await waitForExtensionLoginJson({
           minWait: 300,
           maxWait: 1500,
         });
 
         if (!isMounted) return;
 
-        if (!sessionUser) {
+        if (!sessionUser || !sessionUser.USR_ID) {
           if (!hasShownToastRef.current && !isNavigatingRef.current) {
             hasShownToastRef.current = true;
             isNavigatingRef.current = true;
@@ -60,8 +58,9 @@ export default function UserDocumentView() {
           return;
         }
 
-        const decoded = (decodeUserId(sessionUser) || '').trim();
+        const decoded = (sessionUser.USR_ID || '').trim();
         setCurrentUserId(decoded);
+        setCurrentUserName(sessionUser.BASE_NAME || '');
         setHasAccess(true);
 
         await loadDocument();
@@ -141,6 +140,7 @@ export default function UserDocumentView() {
         const updatedDoc = {
           docId: document.docId,
           userId: document.userId || currentUserId,
+          createdByName: currentUserName,
           templateId: document.templateId,
           title: document.title,
           formData: cleanedData,
@@ -158,7 +158,7 @@ export default function UserDocumentView() {
         setSaveLoading(false);
       }
     },
-    [document, showToast, currentUserId, loadDocument],
+    [document, showToast, currentUserId, currentUserName, loadDocument],
   );
 
   const handleSubmit = useCallback(
@@ -201,6 +201,7 @@ export default function UserDocumentView() {
         const updatedDoc = {
           docId: document.docId,
           userId: document.userId || currentUserId,
+          createdByName: currentUserName,
           templateId: document.templateId,
           title: document.title,
           formData: cleanedData,
@@ -218,7 +219,7 @@ export default function UserDocumentView() {
         setSaveLoading(false);
       }
     },
-    [document, showToast, currentUserId, loadDocument],
+    [document, showToast, currentUserId, currentUserName, loadDocument],
   );
 
   const handleBack = () => {

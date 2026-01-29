@@ -761,6 +761,7 @@ export async function createDocument(doc, showToast) {
       formData: JSON.stringify(doc.formData),
       status: doc.status || 'DRAFT',
       createdBy: doc.userId || 'user', // userId를 createdBy로 사용
+      createdByName: doc.createdByName || '',
     };
     const response = await httpPost('/jvWorksSetDocument', payload);
     if (response.success && response.data) {
