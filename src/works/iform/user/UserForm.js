@@ -255,6 +255,7 @@ export default function UserForm() {
 
         const doc = {
           userId: currentUserId,
+          createdByName: loginJson?.BASE_NAME || '',
           templateId: selectedTemplate.id,
           title: selectedTemplate.name,
           formData: cleanedData,
@@ -277,7 +278,7 @@ export default function UserForm() {
         setLoading(false);
       }
     },
-    [selectedTemplate, loadMyDocuments, showToast, currentUserId],
+    [selectedTemplate, loadMyDocuments, showToast, currentUserId, loginJson],
   );
 
   const handleSaveDraft = useCallback(
@@ -305,6 +306,7 @@ export default function UserForm() {
 
         const doc = {
           userId: currentUserId,
+          createdByName: loginJson?.BASE_NAME || '',
           templateId: selectedTemplate.id,
           title: selectedTemplate.name,
           formData: cleanedData,
@@ -329,7 +331,7 @@ export default function UserForm() {
         setLoading(false);
       }
     },
-    [selectedTemplate, loadMyDocuments, showToast, currentUserId],
+    [selectedTemplate, loadMyDocuments, showToast, currentUserId, loginJson],
   );
 
   const handleCancel = useCallback(() => {
