@@ -3,6 +3,7 @@ import Form from '@rjsf/core';
 import validator from '@rjsf/validator-ajv8';
 import SignatureWidget from '../widgets/SignatureWidget';
 import LookupWidget from '../widgets/LookupWidget';
+import DocumentWidget from '../widgets/DocumentWidget';
 import styles from './FormRenderer.module.css';
 
 function ObjectFieldTemplate(props) {
@@ -26,17 +27,8 @@ function ObjectFieldTemplate(props) {
 }
 
 function TableFieldTemplate(props) {
-  const {
-    id,
-    classNames,
-    label,
-    required,
-    errors,
-    help,
-    children,
-    hidden,
-    formContext,
-  } = props;
+  const { id, classNames, label, required, errors, help, children, hidden } =
+    props;
 
   if (hidden) return <div style={{ display: 'none' }}>{children}</div>;
 
@@ -55,7 +47,7 @@ function TableFieldTemplate(props) {
                       '위 내용을 확인하였으며 이에 동의해주세요.',
                   };
                   return fieldMessages[fieldId] || match;
-                }
+                },
               );
             }
             return error;
@@ -92,7 +84,6 @@ export default function FormRenderer({
   readOnly = false,
   onComplete,
 }) {
-  const docTitle = schema?.title || '입력 양식';
   const docDescription = schema?.description;
   const [currentFormData, setCurrentFormData] = React.useState(formData || {});
   // LookupWidget에서 관련 필드 데이터를 받을 때까지 임시 저장
@@ -128,6 +119,7 @@ export default function FormRenderer({
         widgets={{
           signature: SignatureWidget,
           lookup: LookupWidget,
+          document: DocumentWidget,
         }}
         formContext={{
           onRelatedFieldsReady: handleRelatedFieldsReady,

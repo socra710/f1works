@@ -23,6 +23,43 @@ export default function UserForm() {
   const hasShownToastRef = useRef(false);
   const isNavigatingRef = useRef(false);
 
+  const getTodayString = () => new Date().toISOString().split('T')[0];
+
+  const applyDynamicDefaults = useCallback(
+    (template, baseData) => {
+      if (!template?.rawTemplate?.sections) return baseData;
+
+      const nextData = { ...baseData };
+      const todayStr = getTodayString();
+      const loginName = loginJson?.BASE_NAME || '';
+      const loginDepartment = loginJson?.DEPARTMENT_NAME || '';
+
+      const tokenMap = {
+        __TODAY__: () => todayStr,
+        TODAY: () => todayStr,
+        '@today': () => todayStr,
+        __LOGIN_NAME__: () => loginName,
+        LOGIN_NAME: () => loginName,
+        '@loginName': () => loginName,
+        __LOGIN_DEPARTMENT__: () => loginDepartment,
+        LOGIN_DEPARTMENT: () => loginDepartment,
+        '@loginDepartment': () => loginDepartment,
+      };
+
+      template.rawTemplate.sections.forEach((section) => {
+        (section.fields || []).forEach((field) => {
+          const def = field?.default;
+          if (typeof def === 'string' && tokenMap[def]) {
+            nextData[field.id] = tokenMap[def]();
+          }
+        });
+      });
+
+      return nextData;
+    },
+    [loginJson],
+  );
+
   // 상태값 한글 변환 함수
   const getStatusLabel = (status) => {
     const statusMap = {
@@ -123,11 +160,11 @@ export default function UserForm() {
 
       // 템플릿별 디폴트 값 설정
       let initialData = template.defaultData || {};
+      initialData = applyDynamicDefaults(template, initialData);
 
       // 개인정보 동의서
       if (template.id === 'PRIVACY_CONSENT') {
-        const today = new Date();
-        const dateStr = today.toISOString().split('T')[0];
+        const dateStr = getTodayString();
 
         initialData = {
           ...initialData,
@@ -141,8 +178,7 @@ export default function UserForm() {
 
       // IT 자산 인수 확인서
       if (template.id === 'IT_ASSET_TAKEOVER') {
-        const today = new Date();
-        const dateStr = today.toISOString().split('T')[0];
+        const dateStr = getTodayString();
 
         if (loginJson) {
           if (loginJson.BASE_NAME) {
@@ -164,7 +200,7 @@ export default function UserForm() {
       setFormData(initialData);
       setView('create');
     },
-    [showToast, loginJson],
+    [showToast, loginJson, applyDynamicDefaults],
   );
 
   const handleFormDataChange = useCallback((newFormData) => {
