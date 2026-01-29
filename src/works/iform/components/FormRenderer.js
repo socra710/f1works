@@ -3,6 +3,7 @@ import Form from '@rjsf/core';
 import validator from '@rjsf/validator-ajv8';
 import SignatureWidget from '../widgets/SignatureWidget';
 import LookupWidget from '../widgets/LookupWidget';
+import DocumentWidget from '../widgets/DocumentWidget';
 import styles from './FormRenderer.module.css';
 
 function ObjectFieldTemplate(props) {
@@ -55,7 +56,7 @@ function TableFieldTemplate(props) {
                       '위 내용을 확인하였으며 이에 동의해주세요.',
                   };
                   return fieldMessages[fieldId] || match;
-                }
+                },
               );
             }
             return error;
@@ -128,6 +129,7 @@ export default function FormRenderer({
         widgets={{
           signature: SignatureWidget,
           lookup: LookupWidget,
+          document: DocumentWidget,
         }}
         formContext={{
           onRelatedFieldsReady: handleRelatedFieldsReady,

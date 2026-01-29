@@ -44,7 +44,7 @@ async function searchUserList(searchTerm = '') {
     if (!response.success || !Array.isArray(response.data)) {
       console.warn(
         'API response is not successful or data is not array:',
-        response
+        response,
       );
       return [];
     }
@@ -98,12 +98,26 @@ export function buildRjsfSchema(template) {
     if (f.type === 'textarea') {
       uiSchema[f.id]['ui:widget'] = 'textarea';
     }
+    if (f.type === 'document') {
+      uiSchema[f.id]['ui:widget'] = 'document';
+    }
+    if (f.rows) {
+      if (!uiSchema[f.id]['ui:options']) uiSchema[f.id]['ui:options'] = {};
+      uiSchema[f.id]['ui:options'].rows = f.rows;
+    }
     if (f.readOnly) {
       uiSchema[f.id]['ui:readonly'] = true;
     }
     if (f.col) {
       if (!uiSchema[f.id]['ui:options']) uiSchema[f.id]['ui:options'] = {};
       uiSchema[f.id]['ui:options'].col = f.col;
+    }
+    if (f.options) {
+      if (!uiSchema[f.id]['ui:options']) uiSchema[f.id]['ui:options'] = {};
+      uiSchema[f.id]['ui:options'] = {
+        ...uiSchema[f.id]['ui:options'],
+        ...f.options,
+      };
     }
 
     const prop = {};
@@ -663,7 +677,7 @@ function buildTemplateWithDataSource(tpl, templateId, version) {
 export async function getTemplate(id, showToast) {
   try {
     const response = await httpGet(
-      '/jvWorksGetTemplate?templateId=' + encodeURIComponent(id)
+      '/jvWorksGetTemplate?templateId=' + encodeURIComponent(id),
     );
     if (response.success && response.data && response.data.templateJson) {
       const data = response.data;
@@ -796,7 +810,7 @@ export async function getDocumentList(createdBy, status, showToast) {
 export async function getDocument(docId, showToast) {
   try {
     const response = await httpGet(
-      '/jvWorksGetDocument?docId=' + encodeURIComponent(docId)
+      '/jvWorksGetDocument?docId=' + encodeURIComponent(docId),
     );
     if (response.success && response.data) {
       const data = response.data;
