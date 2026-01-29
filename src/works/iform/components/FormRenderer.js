@@ -27,16 +27,8 @@ function ObjectFieldTemplate(props) {
 }
 
 function TableFieldTemplate(props) {
-  const {
-    id,
-    classNames,
-    label,
-    required,
-    errors,
-    help,
-    children,
-    hidden,
-  } = props;
+  const { id, classNames, label, required, errors, help, children, hidden } =
+    props;
 
   if (hidden) return <div style={{ display: 'none' }}>{children}</div>;
 
