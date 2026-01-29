@@ -36,7 +36,6 @@ function TableFieldTemplate(props) {
     help,
     children,
     hidden,
-    formContext,
   } = props;
 
   if (hidden) return <div style={{ display: 'none' }}>{children}</div>;
@@ -93,7 +92,6 @@ export default function FormRenderer({
   readOnly = false,
   onComplete,
 }) {
-  const docTitle = schema?.title || '입력 양식';
   const docDescription = schema?.description;
   const [currentFormData, setCurrentFormData] = React.useState(formData || {});
   // LookupWidget에서 관련 필드 데이터를 받을 때까지 임시 저장
