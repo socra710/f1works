@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import FormRenderer from './components/FormRenderer';
@@ -22,10 +22,10 @@ import { checkAdminRole } from '../admin/adminAPI';
 import styles from './index.module.css';
 
 export default function IFormPage() {
+  const STORAGE_KEY = 'iform.templates.selectedTemplateId';
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [currentUserId, setCurrentUserId] = useState('');
   const [hasAccess, setHasAccess] = useState(false);
   const hasShownToastRef = useRef(false);
   const isNavigatingRef = useRef(false);
@@ -36,7 +36,6 @@ export default function IFormPage() {
   const [uiSchema, setUiSchema] = useState(null);
   const [formData, setFormData] = useState({});
   const [rawTemplate, setRawTemplate] = useState(null);
-  const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
   const [documents, setDocuments] = useState([]);
   const [docFilterTemplate, setDocFilterTemplate] = useState('');
@@ -46,29 +45,6 @@ export default function IFormPage() {
   const [viewSchema, setViewSchema] = useState(null);
   const [viewUiSchema, setViewUiSchema] = useState(null);
   const [viewLoading, setViewLoading] = useState(false);
-
-  // 전체 formData에서 data:image* 값을 재귀적으로 수집하여 서명 프리뷰로 활용
-  const signaturePreviews = useMemo(() => {
-    const out = [];
-    const walk = (node, path) => {
-      if (node == null) return;
-      if (typeof node === 'string') {
-        if (node.startsWith('data:image')) {
-          out.push({ key: path.join('.'), value: node });
-        }
-        return;
-      }
-      if (Array.isArray(node)) {
-        node.forEach((child, idx) => walk(child, [...path, idx]));
-        return;
-      }
-      if (typeof node === 'object') {
-        Object.entries(node).forEach(([k, v]) => walk(v, [...path, k]));
-      }
-    };
-    walk(activeDoc?.formData, []);
-    return out;
-  }, [activeDoc]);
 
   // 상태값 한글 변환 함수
   const getStatusLabel = (status) => {
@@ -156,7 +132,6 @@ export default function IFormPage() {
           return;
         }
 
-        setCurrentUserId(decoded);
         setHasAccess(true);
 
         const templatesData = await listTemplates(showToast);
@@ -199,6 +174,24 @@ export default function IFormPage() {
   }, [loadDocuments]);
 
   useEffect(() => {
+    if (!templates.length) return;
+    setSelectedTemplateId((prev) => {
+      const saved = sessionStorage.getItem(STORAGE_KEY);
+      if (saved && templates.some((t) => t.id === saved)) return saved;
+      if (prev && templates.some((t) => t.id === prev)) return prev;
+      return prev || null;
+    });
+  }, [templates]);
+
+  useEffect(() => {
+    if (!selectedTemplateId) {
+      sessionStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+    sessionStorage.setItem(STORAGE_KEY, selectedTemplateId);
+  }, [selectedTemplateId]);
+
+  useEffect(() => {
     if (!selectedTemplateId) return;
     setRawTemplate(null);
     getTemplate(selectedTemplateId, showToast).then((tpl) => {
@@ -207,14 +200,13 @@ export default function IFormPage() {
         setUiSchema(tpl.uiSchema || {});
         setFormData(tpl.defaultData || {});
         setRawTemplate(tpl.rawTemplate || null);
-        setActiveTab('new');
       }
     });
   }, [selectedTemplateId, showToast]);
 
   const selectedTemplate = useMemo(
     () => templates.find((t) => t.id === selectedTemplateId) || null,
-    [templates, selectedTemplateId]
+    [templates, selectedTemplateId],
   );
 
   const filteredTemplates = useMemo(() => {
@@ -223,7 +215,7 @@ export default function IFormPage() {
     return templates.filter(
       (t) =>
         t.name?.toLowerCase().includes(keyword) ||
-        t.id?.toLowerCase().includes(keyword)
+        t.id?.toLowerCase().includes(keyword),
     );
   }, [templates, search]);
 
@@ -231,15 +223,15 @@ export default function IFormPage() {
   const filteredDocuments = useMemo(() => {
     return documents
       .filter((doc) =>
-        docFilterTemplate ? doc.templateId === docFilterTemplate : true
+        docFilterTemplate ? doc.templateId === docFilterTemplate : true,
       )
       .filter((doc) =>
-        docFilterStatus ? doc.status === docFilterStatus : true
+        docFilterStatus ? doc.status === docFilterStatus : true,
       )
       .filter((doc) =>
         docSearch
           ? (doc.title || '').toLowerCase().includes(docSearch.toLowerCase())
-          : true
+          : true,
       );
   }, [documents, docFilterTemplate, docFilterStatus, docSearch]);
 
@@ -305,7 +297,7 @@ export default function IFormPage() {
 
     // 확인 다이얼로그
     const confirmed = window.confirm(
-      '이 문서를 완료 처리하시겠습니까?\n완료 처리된 문서는 상태가 "완료 처리"로 변경됩니다.'
+      '이 문서를 완료 처리하시겠습니까?\n완료 처리된 문서는 상태가 "완료 처리"로 변경됩니다.',
     );
 
     if (!confirmed) {
@@ -330,7 +322,7 @@ export default function IFormPage() {
     }
 
     const confirmed = window.confirm(
-      '이 문서를 완료 처리하시겠습니까?\n완료 처리된 문서는 상태가 "완료 처리"로 변경됩니다.'
+      '이 문서를 완료 처리하시겠습니까?\n완료 처리된 문서는 상태가 "완료 처리"로 변경됩니다.',
     );
 
     if (!confirmed) {
@@ -353,7 +345,7 @@ export default function IFormPage() {
     }
 
     const confirmed = window.confirm(
-      '이 문서를 반려하시겠습니까?\n반려된 문서는 상태가 "반려됨"으로 변경됩니다.'
+      '이 문서를 반려하시겠습니까?\n반려된 문서는 상태가 "반려됨"으로 변경됩니다.',
     );
 
     if (!confirmed) {
@@ -514,7 +506,14 @@ export default function IFormPage() {
                   </div>
                   <div>
                     {filteredTemplates.map((t) => (
-                      <div key={t.id} className={styles.listItemHover}>
+                      <div
+                        key={t.id}
+                        className={`${styles.listItemHover} ${
+                          selectedTemplateId === t.id
+                            ? styles.listItemActive
+                            : ''
+                        }`}
+                      >
                         <div className={styles.listItemHeader}>
                           <div>
                             <div className={styles.listTitle}>{t.name}</div>
@@ -525,12 +524,12 @@ export default function IFormPage() {
                           </span>
                         </div>
                         <div className={styles.listItemFooter}>
-                          <span className={styles.muted}>선택 후 미리보기</span>
+                          <span className={styles.muted}>선택</span>
                           <button
                             className={styles.ghostButton}
                             onClick={() => setSelectedTemplateId(t.id)}
                           >
-                            미리보기
+                            선택
                           </button>
                         </div>
                       </div>
