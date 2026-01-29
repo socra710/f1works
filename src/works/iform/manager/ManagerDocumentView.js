@@ -130,11 +130,11 @@ export default function ManagerDocumentView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docId]);
 
-  const handleApprove = useCallback(async () => {
+  const handleConfirm = useCallback(async () => {
     if (!document?.docId) return;
 
     const confirmed = window.confirm(
-      '이 문서를 완료 처리하시겠습니까?\n완료 처리된 문서는 상태가 "완료 처리"로 변경됩니다.',
+      '이 문서를 확인 처리하시겠습니까?\n확인 처리된 문서는 상태가 "완료 처리"로 변경됩니다.',
     );
     if (!confirmed) return;
 
@@ -225,14 +225,14 @@ export default function ManagerDocumentView() {
               <>
                 <button
                   className={styles.btnHome}
-                  onClick={handleApprove}
+                  onClick={handleConfirm}
                   style={{
                     color: '#fff',
                     backgroundColor: '#66bb6a',
                     border: 'none',
                   }}
                 >
-                  ✓ 승인
+                  ✓ 확인
                 </button>
                 <button
                   className={styles.btnHome}
