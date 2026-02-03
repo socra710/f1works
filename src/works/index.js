@@ -255,7 +255,7 @@ export default function Works() {
         icon: '🖥️',
         path: '/works/iform/user',
         category: '업무',
-        inNew: '2026-01-02', // 신규 출시 날짜
+        inUpdate: '2026-02-03', // 업데이트 날짜
       },
       {
         title: '고객과의 연결고리',
@@ -400,23 +400,28 @@ export default function Works() {
 
   const updates = [
     {
+      date: '2026.02.03',
+      title: '통합 문서 작성 업데이트',
+      description: '인쇄 미리보기 기능이 추가되고, 일부 버그가 수정되었습니다.',
+    },
+    {
       date: '2026.01.16',
       title: '고객과의 연결고리 기능 출시',
       description:
         '고객사 방문 및 통화 이력을 기록하고 30일 이상 미컨택 고객을 알림받는 기능이 추가되었습니다.',
     },
-    {
-      date: '2026.01.02',
-      title: '통합 문서 작성(베타) 기능 출시',
-      description:
-        '통합 문서(동적 양식) 템플릿을 선택하고 작성할 수 있는 기능이 추가되었습니다.',
-    },
-    {
-      date: '2025.12.22',
-      title: 'H/W 관리대장 기능 출시',
-      description:
-        '보유 중인 하드웨어 자산을 효율적으로 관리합니다. 납품, A/S, 폐기 등 모든 내역을 한곳에서 기록하고 조회할 수 있습니다.',
-    },
+    // {
+    //   date: '2026.01.02',
+    //   title: '통합 문서 작성(베타) 기능 출시',
+    //   description:
+    //     '통합 문서(동적 양식) 템플릿을 선택하고 작성할 수 있는 기능이 추가되었습니다.',
+    // },
+    // {
+    //   date: '2025.12.22',
+    //   title: 'H/W 관리대장 기능 출시',
+    //   description:
+    //     '보유 중인 하드웨어 자산을 효율적으로 관리합니다. 납품, A/S, 폐기 등 모든 내역을 한곳에서 기록하고 조회할 수 있습니다.',
+    // },
     // {
     //   date: '2025.12.16',
     //   title: '배차/모니터/뉴스피드 UI/UX 개선',
@@ -495,13 +500,13 @@ export default function Works() {
       content:
         '포털 및 콘텐츠 영역에 카카오 광고가 게재됩니다.\n현재는 운영자 개인 실험용으로 진행 중이며, 수익은 거의 없습니다.\n\n이용에 불편을 드려 죄송하며, 요청 시 광고 수익 현황은 투명하게 공개 가능합니다.\n(커피값도 안 나와요 😅) 🙏🏻',
     },
-    {
-      date: '2025.12.11',
-      title: 'F1Works 확장 프로그램 다운로드',
-      content: 'F1Works 확장 프로그램을 설치하여 더 편리하게 사용하세요',
-      link: 'https://chromewebstore.google.com/detail/f1works-extensions/ljpcdbbmboicadbkkkobjpnfgdaickjj?authuser=0&hl=ko',
-      isLink: true,
-    },
+    // {
+    //   date: '2025.12.11',
+    //   title: 'F1Works 확장 프로그램 다운로드',
+    //   content: 'F1Works 확장 프로그램을 설치하여 더 편리하게 사용하세요',
+    //   link: 'https://chromewebstore.google.com/detail/f1works-extensions/ljpcdbbmboicadbkkkobjpnfgdaickjj?authuser=0&hl=ko',
+    //   isLink: true,
+    // },
     // {
     //   date: '2025.12.01',
     //   title: '주유 카드 위치 안내',
