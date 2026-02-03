@@ -112,10 +112,53 @@
   font-size: 14px;
 }
 
+.btnPrint {
+  padding: 0.65rem 1.2rem;
+  border-radius: 8px;
+  border: 1px solid #4f46e5;
+  background: linear-gradient(135deg, #5a75e6 0%, #7a56b5 100%);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  box-shadow: 0 6px 14px rgba(90, 117, 230, 0.25);
+}
+
+.btnPrint:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
+.btnPrint:focus {
+  outline: 2px solid rgba(90, 117, 230, 0.4);
+  outline-offset: 2px;
+}
+
 .btnHome:hover {
   background: #f8fafc;
   border-color: #cbd5e1;
   transform: translateY(-1px);
+}
+
+@media print {
+  .container {
+    background: #fff;
+    padding: 0;
+  }
+
+  .content {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .adminHeader,
+  .formHeader,
+  .adminHeaderActions,
+  .loadingBar {
+    display: none !important;
+  }
 }
 
 .header {

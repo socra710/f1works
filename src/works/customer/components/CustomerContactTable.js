@@ -9,16 +9,19 @@ const formatDate = (value) => {
 };
 
 const StatusBadge = ({ status, statusText, daysSinceContact }) => {
+  const isWarning = status === 'WARNING' || daysSinceContact >= 30;
   const getStatusClass = () => {
-    if (status === 'WARNING' || daysSinceContact >= 30) {
+    if (isWarning) {
       return styles.statusWarning;
     }
     return styles.statusNormal;
   };
 
+  const displayText = isWarning ? '관리필요' : statusText || '정상';
+
   return (
     <span className={`${styles.statusBadge} ${getStatusClass()}`}>
-      {statusText || '정상'}
+      {displayText}
     </span>
   );
 };

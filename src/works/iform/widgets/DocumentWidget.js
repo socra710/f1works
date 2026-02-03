@@ -4,6 +4,7 @@ import styles from './DocumentWidget.module.css';
 export default function DocumentWidget(props) {
   const { value, options } = props;
   const text = value || '';
+  const hideTitle = options?.hideTitle;
 
   const { title, body } = useMemo(() => {
     const useFirstLineAsTitle = options?.useFirstLineAsTitle;
@@ -24,7 +25,7 @@ export default function DocumentWidget(props) {
 
   return (
     <div className={styles.wrapper}>
-      {title ? <div className={styles.title}>{title}</div> : null}
+      {!hideTitle && title ? <div className={styles.title}>{title}</div> : null}
       <div className={styles.body}>{body}</div>
     </div>
   );

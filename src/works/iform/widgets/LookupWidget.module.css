@@ -16,7 +16,8 @@
 }
 
 .lookupInput:disabled {
-  opacity: 0.6;
+  opacity: 1;
+  color: #111827;
   cursor: not-allowed;
 }
 
@@ -43,4 +44,23 @@
 .lookupButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+@media print {
+  .lookupWrapper {
+    display: block;
+  }
+
+  .lookupInput {
+    border: none;
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
+    color: #111827;
+    opacity: 1;
+  }
+
+  .lookupButton {
+    display: none !important;
+  }
 }

@@ -22,6 +22,9 @@ export default function ManagerDocumentView() {
   const [template, setTemplate] = useState(null);
   const [formData, setFormData] = useState({});
   const [saveLoading, setSaveLoading] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
+  const printAreaRef = useRef(null);
+  const originalTextareaStylesRef = useRef(new Map());
 
   // 상태값 한글 변환 함수
   const getStatusLabel = (status) => {
@@ -176,6 +179,49 @@ export default function ManagerDocumentView() {
     }
   }, [document, showToast, loadDocument]);
 
+  const handlePrint = useCallback(() => {
+    if (!document || !template) {
+      showToast('인쇄할 문서를 불러오는 중입니다.', 'warning');
+      return;
+    }
+    const container = printAreaRef.current;
+    if (container) {
+      const textareas = container.querySelectorAll('textarea');
+      const nextMap = new Map();
+      textareas.forEach((textarea) => {
+        nextMap.set(textarea, {
+          height: textarea.style.height,
+          overflow: textarea.style.overflow,
+          maxHeight: textarea.style.maxHeight,
+        });
+        textarea.style.height = 'auto';
+        textarea.style.maxHeight = 'none';
+        textarea.style.overflow = 'hidden';
+        textarea.style.height = `${textarea.scrollHeight}px`;
+      });
+      originalTextareaStylesRef.current = nextMap;
+    }
+    setIsPrinting(true);
+    setTimeout(() => window.print(), 50);
+  }, [document, template, showToast]);
+
+  useEffect(() => {
+    const handleAfterPrint = () => {
+      const map = originalTextareaStylesRef.current;
+      if (map && map.size) {
+        map.forEach((styles, textarea) => {
+          textarea.style.height = styles.height || '';
+          textarea.style.overflow = styles.overflow || '';
+          textarea.style.maxHeight = styles.maxHeight || '';
+        });
+      }
+      originalTextareaStylesRef.current = new Map();
+      setIsPrinting(false);
+    };
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => window.removeEventListener('afterprint', handleAfterPrint);
+  }, []);
+
   if (initialLoading) {
     return (
       <div className={styles.container}>
@@ -205,7 +251,7 @@ export default function ManagerDocumentView() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.content}>
+      <div className={styles.content} ref={printAreaRef}>
         {saveLoading && (
           <div
             className={styles.loadingBar}
@@ -221,6 +267,13 @@ export default function ManagerDocumentView() {
             <p className={styles.heroSub}>제출된 문서의 내용을 확인합니다.</p>
           </div>
           <div className={styles.adminHeaderActions}>
+            <button
+              className={styles.btnPrint}
+              onClick={handlePrint}
+              aria-label="문서 인쇄"
+            >
+              인쇄
+            </button>
             {document?.status === 'SUBMITTED' && (
               <>
                 <button
@@ -285,7 +338,7 @@ export default function ManagerDocumentView() {
               schema={template.schema}
               uiSchema={template.uiSchema}
               formData={formData}
-              disabled={saveLoading}
+              disabled={saveLoading || isPrinting}
               readonly
               readOnly
             />
