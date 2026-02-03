@@ -92,7 +92,9 @@
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 14px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
     background 0.15s ease;
   background: #fdfefe;
 }
@@ -116,8 +118,16 @@
 .rjsfForm :global(textarea.form-control[readonly]) {
   background: #f3f4f6;
   border-color: #d1d5db;
-  color: #6b7280;
+  color: #111827;
+  opacity: 1;
   cursor: not-allowed;
+}
+
+.rjsfForm :global(input.form-control:disabled),
+.rjsfForm :global(select.form-control:disabled),
+.rjsfForm :global(textarea.form-control:disabled) {
+  color: #111827;
+  opacity: 1;
 }
 
 .rjsfForm :global(.help-block) {
@@ -157,7 +167,9 @@
   color: #fff;
   cursor: pointer;
   font-weight: 600;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .primary:hover {
@@ -173,7 +185,9 @@
   color: #374151;
   cursor: pointer;
   font-weight: 600;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .secondary:hover {
@@ -185,4 +199,80 @@
 .rjsfForm :global(.btn-info),
 .rjsfForm :global(button.btn-info) {
   display: none !important;
+}
+
+@media print {
+  .rjsfForm :global(#root) {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .tableRow {
+    grid-template-columns: 1fr;
+    border-bottom: none;
+  }
+
+  .cellLabel {
+    border-right: none;
+    background: transparent;
+    padding: 8px 0 4px;
+  }
+
+  .documentRow .cellLabel {
+    display: none !important;
+  }
+
+  .pageBreakBefore {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  .cellLabel,
+  .cellControl {
+    border: none;
+    box-shadow: none;
+  }
+
+  .cellControl {
+    padding: 8px 0;
+    background: #fff;
+  }
+
+  .rjsfForm :global(input.form-control),
+  .rjsfForm :global(select.form-control),
+  .rjsfForm :global(textarea.form-control) {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    padding: 0;
+  }
+
+  .rjsfForm :global(textarea.form-control) {
+    height: auto !important;
+    max-height: none !important;
+    overflow: hidden !important;
+    resize: none !important;
+  }
+
+  .rjsfForm :global(input.form-control[readonly]),
+  .rjsfForm :global(select.form-control[readonly]),
+  .rjsfForm :global(textarea.form-control[readonly]) {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    color: #111827;
+    opacity: 1;
+  }
+
+  .rjsfForm :global(.form-group),
+  .rjsfForm :global(.panel),
+  .rjsfForm :global(.panel-body),
+  .rjsfForm :global(.array-item),
+  .rjsfForm :global(fieldset),
+  .rjsfForm :global(.field) {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
 }

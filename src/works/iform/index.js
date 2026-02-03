@@ -9,8 +9,6 @@ import {
   createDocument,
   saveTemplate,
   getDocumentList,
-  getDocument,
-  updateDocumentStatus,
   buildRjsfSchema,
 } from './api';
 import {
@@ -23,6 +21,7 @@ import styles from './index.module.css';
 
 export default function IFormPage() {
   const STORAGE_KEY = 'iform.templates.selectedTemplateId';
+  const STORAGE_TAB_KEY = 'iform.activeTab';
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -41,10 +40,7 @@ export default function IFormPage() {
   const [docFilterTemplate, setDocFilterTemplate] = useState('');
   const [docFilterStatus, setDocFilterStatus] = useState('');
   const [docSearch, setDocSearch] = useState('');
-  const [activeDoc, setActiveDoc] = useState(null);
-  const [viewSchema, setViewSchema] = useState(null);
-  const [viewUiSchema, setViewUiSchema] = useState(null);
-  const [viewLoading, setViewLoading] = useState(false);
+  const [tabReady, setTabReady] = useState(false);
 
   // 상태값 한글 변환 함수
   const getStatusLabel = (status) => {
@@ -59,32 +55,6 @@ export default function IFormPage() {
     };
     return statusMap[status] || status || 'N/A';
   };
-
-  // 스켈레톤 로딩 UI
-  const renderSkeletonRows = (columnCount, rowCount = 5) => (
-    <>
-      {Array.from({ length: rowCount }).map((_, rowIdx) => (
-        <tr key={`skeleton-${columnCount}-${rowIdx}`} className="skeleton-row">
-          {Array.from({ length: columnCount }).map((__, cellIdx) => (
-            <td
-              key={`skeleton-cell-${columnCount}-${rowIdx}-${cellIdx}`}
-              style={{ padding: '12px 8px' }}
-            >
-              <div
-                className="skeleton-cell"
-                style={{
-                  height: '20px',
-                  backgroundColor: '#e0e0e0',
-                  borderRadius: '4px',
-                  animation: 'skeletonShimmer 1.5s infinite',
-                }}
-              />
-            </td>
-          ))}
-        </tr>
-      ))}
-    </>
-  );
 
   useEffect(() => {
     let isMounted = true;
@@ -133,6 +103,12 @@ export default function IFormPage() {
         }
 
         setHasAccess(true);
+
+        const savedTab = sessionStorage.getItem(STORAGE_TAB_KEY);
+        if (savedTab) {
+          setActiveTab(savedTab);
+        }
+        setTabReady(true);
 
         const templatesData = await listTemplates(showToast);
         setTemplates(templatesData);
@@ -190,6 +166,11 @@ export default function IFormPage() {
     }
     sessionStorage.setItem(STORAGE_KEY, selectedTemplateId);
   }, [selectedTemplateId]);
+
+  useEffect(() => {
+    if (!tabReady || !activeTab) return;
+    sessionStorage.setItem(STORAGE_TAB_KEY, activeTab);
+  }, [activeTab, tabReady]);
 
   useEffect(() => {
     if (!selectedTemplateId) return;
@@ -289,108 +270,13 @@ export default function IFormPage() {
     }
   };
 
-  const handleCompleteDocument = async () => {
-    if (!activeDoc?.docId && !activeDoc?.id) {
+  const openDocument = (doc) => {
+    const docId = doc?.docId || doc?.id;
+    if (!docId) {
       showToast('문서 정보가 없습니다', 'warning');
       return;
     }
-
-    // 확인 다이얼로그
-    const confirmed = window.confirm(
-      '이 문서를 완료 처리하시겠습니까?\n완료 처리된 문서는 상태가 "완료 처리"로 변경됩니다.',
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    const docId = activeDoc.docId || activeDoc.id;
-    const success = await updateDocumentStatus(docId, 'COMPLETED', showToast);
-
-    if (success) {
-      // 문서 목록 새로고침
-      await loadDocuments();
-      // 모달 닫기
-      setActiveDoc(null);
-    }
-  };
-
-  const handleApproveDocument = async () => {
-    if (!activeDoc?.docId && !activeDoc?.id) {
-      showToast('문서 정보가 없습니다', 'warning');
-      return;
-    }
-
-    const confirmed = window.confirm(
-      '이 문서를 완료 처리하시겠습니까?\n완료 처리된 문서는 상태가 "완료 처리"로 변경됩니다.',
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    const docId = activeDoc.docId || activeDoc.id;
-    const success = await updateDocumentStatus(docId, 'COMPLETED', showToast);
-
-    if (success) {
-      await loadDocuments();
-      setActiveDoc(null);
-    }
-  };
-
-  const handleRejectDocument = async () => {
-    if (!activeDoc?.docId && !activeDoc?.id) {
-      showToast('문서 정보가 없습니다', 'warning');
-      return;
-    }
-
-    const confirmed = window.confirm(
-      '이 문서를 반려하시겠습니까?\n반려된 문서는 상태가 "반려됨"으로 변경됩니다.',
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    const docId = activeDoc.docId || activeDoc.id;
-    const success = await updateDocumentStatus(docId, 'REJECTED', showToast);
-
-    if (success) {
-      await loadDocuments();
-      setActiveDoc(null);
-    }
-  };
-
-  const openDocument = async (doc) => {
-    setActiveDoc(doc);
-    setViewSchema(null);
-    setViewUiSchema(null);
-
-    let hydratedDoc = doc;
-    if (doc?.docId || doc?.id) {
-      try {
-        const fetched = await getDocument(doc.docId || doc.id, showToast);
-        if (fetched) {
-          hydratedDoc = { ...doc, ...fetched };
-          setActiveDoc(hydratedDoc);
-        }
-      } catch (e) {
-        showToast('문서 상세 불러오기 실패', 'error');
-      }
-    }
-
-    if (!hydratedDoc?.templateId) return;
-
-    try {
-      setViewLoading(true);
-      const tpl = await getTemplate(hydratedDoc.templateId, showToast);
-      setViewSchema(tpl?.schema || {});
-      setViewUiSchema(tpl?.uiSchema || {});
-    } catch (e) {
-      showToast('문서 불러오기 실패', 'error');
-    } finally {
-      setViewLoading(false);
-    }
+    navigate(`/works/iform/manager/${docId}`);
   };
 
   return (
@@ -750,174 +636,6 @@ export default function IFormPage() {
                       표시할 문서가 없습니다.
                     </div>
                   )}
-                </div>
-              </div>
-            )}
-
-            {activeDoc && (
-              <div className={styles.modalBackdrop}>
-                <div className={styles.modal}>
-                  <div className={styles.modalHeader}>
-                    <div>
-                      <p className={styles.mutedSmall}>문서 상세</p>
-                      <h3 className={styles.modalTitle}>
-                        {activeDoc.title || '제목 없음'}
-                      </h3>
-                      <div className={styles.modalMeta}>
-                        <span className={styles.pillSoft}>
-                          템플릿: {activeDoc.templateId}
-                        </span>
-                        <span
-                          className={
-                            styles['status-' + (activeDoc.status || 'unknown')]
-                          }
-                        >
-                          {' '}
-                          {getStatusLabel(activeDoc.status)}
-                        </span>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      {activeDoc.status === 'SUBMITTED' && (
-                        <>
-                          <button
-                            className={styles.ghostButton}
-                            onClick={handleApproveDocument}
-                            style={{
-                              color: '#fff',
-                              backgroundColor: '#66bb6a',
-                              border: 'none',
-                              padding: '8px 16px',
-                              borderRadius: '6px',
-                              fontWeight: '500',
-                              transition: 'all 0.2s ease',
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.backgroundColor = '#4caf50';
-                              e.target.style.transform = 'translateY(-1px)';
-                              e.target.style.boxShadow =
-                                '0 4px 8px rgba(102, 187, 106, 0.3)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.backgroundColor = '#66bb6a';
-                              e.target.style.transform = 'translateY(0)';
-                              e.target.style.boxShadow = 'none';
-                            }}
-                            aria-label="확인"
-                          >
-                            ✓ 확인
-                          </button>
-                          <button
-                            className={styles.ghostButton}
-                            onClick={handleRejectDocument}
-                            style={{
-                              color: '#fff',
-                              backgroundColor: '#ef5350',
-                              border: 'none',
-                              padding: '8px 16px',
-                              borderRadius: '6px',
-                              fontWeight: '500',
-                              transition: 'all 0.2s ease',
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.backgroundColor = '#e53935';
-                              e.target.style.transform = 'translateY(-1px)';
-                              e.target.style.boxShadow =
-                                '0 4px 8px rgba(239, 83, 80, 0.3)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.backgroundColor = '#ef5350';
-                              e.target.style.transform = 'translateY(0)';
-                              e.target.style.boxShadow = 'none';
-                            }}
-                            aria-label="반려"
-                          >
-                            ✕ 반려
-                          </button>
-                        </>
-                      )}
-                      <button
-                        className={styles.ghostButton}
-                        onClick={() => setActiveDoc(null)}
-                        style={{
-                          color: '#666',
-                          backgroundColor: '#f5f5f5',
-                          border: 'none',
-                          padding: '8px 16px',
-                          borderRadius: '6px',
-                          fontWeight: '500',
-                          transition: 'all 0.2s ease',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = '#e0e0e0';
-                          e.target.style.transform = 'translateY(-1px)';
-                          e.target.style.boxShadow =
-                            '0 4px 8px rgba(0, 0, 0, 0.1)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = '#f5f5f5';
-                          e.target.style.transform = 'translateY(0)';
-                          e.target.style.boxShadow = 'none';
-                        }}
-                        aria-label="닫기"
-                      >
-                        닫기
-                      </button>
-                    </div>
-                  </div>
-                  <div className={styles.metaGrid}>
-                    <div>
-                      <p className={styles.metaLabel}>작성일</p>
-                      <p className={styles.metaValue}>
-                        {activeDoc.createdAt
-                          ? new Date(activeDoc.createdAt).toLocaleString()
-                          : '-'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className={styles.metaLabel}>수정일</p>
-                      <p className={styles.metaValue}>
-                        {activeDoc.updatedAt
-                          ? new Date(activeDoc.updatedAt).toLocaleString()
-                          : '-'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className={styles.metaLabel}>상태</p>
-                      <p className={styles.metaValue}>
-                        {getStatusLabel(activeDoc.status)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className={styles.modalBody}>
-                    {viewLoading && (
-                      <table
-                        style={{ width: '100%', borderCollapse: 'collapse' }}
-                      >
-                        <tbody>{renderSkeletonRows(2, 8)}</tbody>
-                      </table>
-                    )}
-                    {!viewLoading && viewSchema ? (
-                      <FormRenderer
-                        schema={viewSchema}
-                        uiSchema={viewUiSchema}
-                        formData={activeDoc.formData || {}}
-                        key={activeDoc.docId || activeDoc.id || 'view-form'}
-                        readOnly
-                        onComplete={
-                          activeDoc.status !== 'COMPLETED'
-                            ? handleCompleteDocument
-                            : undefined
-                        }
-                      />
-                    ) : null}
-                    {!viewLoading && !viewSchema && (
-                      <div className={styles.muted}>
-                        폼 스키마를 불러오지 못했습니다.
-                      </div>
-                    )}
-                  </div>
                 </div>
               </div>
             )}

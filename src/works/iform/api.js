@@ -71,6 +71,20 @@ export function buildRjsfSchema(template) {
     };
 
   const fields = (template.sections || []).flatMap((s) => s.fields || []);
+  let hasDocumentField = false;
+  let firstFieldAfterDocumentId = null;
+
+  (template.sections || []).forEach((section) => {
+    (section.fields || []).forEach((field) => {
+      if (field.type === 'document') {
+        hasDocumentField = true;
+        return;
+      }
+      if (hasDocumentField && !firstFieldAfterDocumentId) {
+        firstFieldAfterDocumentId = field.id;
+      }
+    });
+  });
   const properties = {};
   const required = [];
   const uiSchema = { 'ui:order': [] };
@@ -118,6 +132,11 @@ export function buildRjsfSchema(template) {
         ...uiSchema[f.id]['ui:options'],
         ...f.options,
       };
+    }
+
+    if (firstFieldAfterDocumentId && f.id === firstFieldAfterDocumentId) {
+      if (!uiSchema[f.id]['ui:options']) uiSchema[f.id]['ui:options'] = {};
+      uiSchema[f.id]['ui:options'].pageBreakBefore = true;
     }
 
     const prop = {};

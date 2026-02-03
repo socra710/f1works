@@ -21,3 +21,12 @@
   font-size: 14px;
   color: #1f2937;
 }
+
+@media print {
+  .wrapper {
+    border: none;
+    background: #fff;
+    padding: 0;
+    box-shadow: none;
+  }
+}
