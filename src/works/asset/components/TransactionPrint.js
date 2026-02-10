@@ -115,7 +115,6 @@ export const printTransactionSheets = (rows) => {
     const customerBizNo = primary.customerBizNo || primary.customerCode || '';
     const customerAddr = primary.customerAddress || '';
     const customerTel = primary.customerTel || '';
-    const customerFax = primary.customerFax || '';
     const customerEmail = primary.customerEmail || '';
 
     let html = `<div class="page-container ${colorTheme}">`;
@@ -303,7 +302,7 @@ export const printTransactionSheets = (rows) => {
   win.document.write(renderSheet('red', '(공급자 보관용)'));
 
   win.document.write(
-    `<script>window.onload = () => { window.print(); }<\/script>`,
+    `<script>window.onload = () => { window.print(); }</script>`,
   );
   win.document.write(`</body></html>`);
   win.document.close();
