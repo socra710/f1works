@@ -18,6 +18,7 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
     category: '신규납품',
     receiptNo: '',
     hwName: '',
+    specification: '',
     quantity: 1,
     manager: '',
     collectionDate: '',
@@ -81,6 +82,7 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
         category: hardware.category || '신규납품',
         receiptNo: hardware.receiptNo || '',
         hwName: hardware.hwName || '',
+        specification: hardware.specification || '',
         quantity: qty || 1,
         manager: hardware.manager || '',
         collectionDate: hardware.collectionDate || '',
@@ -199,7 +201,7 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
     const unit = Number(
       String(formData.unitPrice || '')
         .toString()
-        .replace(/[^\d]/g, '')
+        .replace(/[^\d]/g, ''),
     );
     if (!supplyEdited) {
       const supply = isNaN(qty * unit) ? '' : Math.round(qty * unit);
@@ -209,7 +211,7 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
       const supplyNumeric = Number(
         String(formData.supplyAmount || qty * unit)
           .toString()
-          .replace(/[^\d]/g, '')
+          .replace(/[^\d]/g, ''),
       );
       const tax = isNaN(supplyNumeric * 0.1)
         ? ''
@@ -266,6 +268,7 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
       receiptNo: receiptNoToSave,
       manager: managerToSave,
       userId: loginUserId || managerToSave,
+      specification: formData.specification || '',
       customerCode: formData.customerCode || '',
       customerAddress: formData.customerAddress || '',
       customerTel: formData.customerTel || '',
@@ -301,7 +304,7 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
   };
 
   return (
-    <div className={styles.modalOverlay} onClick={() => onClose(false)}>
+    <div className={styles.modalOverlay}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2>{hardware ? 'H/W 수정' : 'H/W 추가'}</h2>
@@ -353,6 +356,19 @@ const HardwareForm = ({ hardware, onClose, hardwareList = [] }) => {
                 onChange={handleChange}
                 placeholder="하드웨어 명칭"
                 required
+              />
+            </div>
+          </div>
+
+          <div className={styles.formRow}>
+            <div className={`${styles.field} ${styles['field--full']}`}>
+              <label>규격</label>
+              <input
+                type="text"
+                name="specification"
+                value={formData.specification}
+                onChange={handleChange}
+                placeholder="규격 입력"
               />
             </div>
           </div>

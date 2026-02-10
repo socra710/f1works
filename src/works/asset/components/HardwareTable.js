@@ -17,8 +17,8 @@ const formatMoney = (v) => {
 };
 
 const TableHeader = ({ isNewView, isRepairView }) => {
-  // 기본 정보 컬럼 수: NO, 구분, 접수번호, H/W 명, 수량, 단가, 공급가액, 세액, 담당자 = 9
-  const basicInfoColSpan = 9;
+  // 기본 정보 컬럼 수: NO, 구분, 접수번호, H/W 명, 규격, 수량, 단가, 공급가액, 세액, 담당자 = 10
+  const basicInfoColSpan = 10;
 
   return (
     <thead>
@@ -53,6 +53,7 @@ const TableHeader = ({ isNewView, isRepairView }) => {
         <th>구분</th>
         <th>접수번호</th>
         <th>H/W 명</th>
+        <th>규격</th>
         <th>수량</th>
         <th>단가</th>
         <th>공급가액</th>
@@ -116,7 +117,7 @@ const HardwareTable = ({
   };
   if (loading) {
     const skeletonRows = Array.from({ length: 5 });
-    const columnsCount = isNewView ? 13 : isRepairView ? 16 : 18;
+    const columnsCount = isNewView ? 14 : isRepairView ? 17 : 19;
 
     return (
       <div className={styles.hardwareTableWrapper}>
@@ -146,7 +147,7 @@ const HardwareTable = ({
           {filteredList.length === 0 ? (
             <tr>
               <td
-                colSpan={isNewView ? 13 : isRepairView ? 16 : 18}
+                colSpan={isNewView ? 14 : isRepairView ? 17 : 19}
                 className={styles.noData}
               >
                 등록된 데이터가 없습니다.
@@ -161,6 +162,9 @@ const HardwareTable = ({
                 </td>
                 <td style={{ textAlign: 'center' }}>{hw.receiptNo || '-'}</td>
                 <td className={styles.hwName}>{hw.hwName}</td>
+                <td style={{ textAlign: 'center' }}>
+                  {hw.specification || '-'}
+                </td>
                 <td style={{ textAlign: 'center' }}>{hw.quantity}</td>
                 <td style={{ textAlign: 'right' }}>
                   {formatMoney(hw.unitPrice)}

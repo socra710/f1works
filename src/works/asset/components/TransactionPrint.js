@@ -6,7 +6,7 @@ export const printTransactionSheets = (rows) => {
     const n = Number(
       String(v ?? '')
         .toString()
-        .replace(/,/g, '')
+        .replace(/,/g, ''),
     );
     if (!isFinite(n)) return '0';
     return n.toLocaleString('ko-KR');
@@ -220,7 +220,7 @@ export const printTransactionSheets = (rows) => {
           <td>${dateLabel}</td>
           <td>${hw.category || ''}</td>
           <td class="left" style="padding-left:6px">${hw.hwName || ''}</td>
-          <td>${hw.manufacturer || ''}</td>
+          <td>${hw.specification || ''}</td>
           <td>${qty}</td>
           <td class="right">${money(unit)}</td>
           <td class="right">${money(supplyRaw)}</td>
@@ -283,12 +283,12 @@ export const printTransactionSheets = (rows) => {
   };
 
   win.document.write(
-    `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>거래명세서</title>${style}</head><body>`
+    `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>거래명세서</title>${style}</head><body>`,
   );
 
   // 인쇄 버튼
   win.document.write(
-    `<button class="print-button" onclick="window.print()">🖨️ 인쇄</button>`
+    `<button class="print-button" onclick="window.print()">🖨️ 인쇄</button>`,
   );
 
   // 파란색 버전 (공급받는자 보관용)
@@ -296,14 +296,14 @@ export const printTransactionSheets = (rows) => {
 
   // 절취선
   win.document.write(
-    `<div class="cut-line">✂ - - - - - - - - - - - - - - - - - 절 취 선 - - - - - - - - - - - - - - - - - ✂</div>`
+    `<div class="cut-line">✂ - - - - - - - - - - - - - - - - - 절 취 선 - - - - - - - - - - - - - - - - - ✂</div>`,
   );
 
   // 빨간색 버전 (공급자 보관용)
   win.document.write(renderSheet('red', '(공급자 보관용)'));
 
   win.document.write(
-    `<script>window.onload = () => { window.print(); }<\/script>`
+    `<script>window.onload = () => { window.print(); }<\/script>`,
   );
   win.document.write(`</body></html>`);
   win.document.close();
