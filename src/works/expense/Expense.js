@@ -78,6 +78,7 @@ export default function Expense() {
     },
   ]);
   const [allChecked, setAllChecked] = useState(false);
+  const [allCorporateChecked, setAllCorporateChecked] = useState(false);
   const [corporateCards, setCorporateCards] = useState([]);
   const authCheckRef = useRef(false);
   const [authChecked, setAuthChecked] = useState(false);
@@ -1854,7 +1855,25 @@ export default function Expense() {
     const checked = event.target.checked;
     setAllChecked(checked);
     setRows((prevRows) =>
-      prevRows.map((row) => ({ ...row, managerConfirmed: checked })),
+      prevRows.map((row) => {
+        if (row.gbn === 'EXPENSE' || !row.gbn) {
+          return { ...row, managerConfirmed: checked };
+        }
+        return row;
+      }),
+    );
+  };
+
+  const handleCorporateCheckAll = (event) => {
+    const checked = event.target.checked;
+    setAllCorporateChecked(checked);
+    setRows((prevRows) =>
+      prevRows.map((row) => {
+        if (row.gbn === 'CORPORATE') {
+          return { ...row, managerConfirmed: checked };
+        }
+        return row;
+      }),
     );
   };
 
@@ -2959,7 +2978,30 @@ export default function Expense() {
                               textAlign: 'center',
                             }}
                           >
-                            확인
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={allCorporateChecked}
+                                onChange={handleCorporateCheckAll}
+                                disabled={status === 'COMPLETED'}
+                                style={{
+                                  cursor:
+                                    status === 'COMPLETED'
+                                      ? 'not-allowed'
+                                      : 'pointer',
+                                  width: '18px',
+                                  height: '18px',
+                                }}
+                              />
+                              <span>확인</span>
+                            </div>
                           </th>
                         )}
                         <th
