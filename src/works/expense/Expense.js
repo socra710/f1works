@@ -88,6 +88,11 @@ export default function Expense() {
   const [showUserSelectModal, setShowUserSelectModal] = useState(false);
   const [userList, setUserList] = useState([]);
   const [userSearchTerm, setUserSearchTerm] = useState('');
+  // 지급액 요약 섹션별 접기/펼치기
+  const [summaryExpenseSectionExpanded, setSummaryExpenseSectionExpanded] =
+    useState(false);
+  const [summaryCorporateSectionExpanded, setSummaryCorporateSectionExpanded] =
+    useState(false);
 
   const renderSkeletonRows = (columnCount, rowCount = 5) => (
     <>
@@ -1017,6 +1022,24 @@ export default function Expense() {
   const calculateCorporatePay = () => {
     return rows
       .filter((row) => row.type === 'corporate')
+      .reduce((sum, row) => sum + calcPay(row), 0);
+  };
+
+  // 일반경비: 카테고리별 합계
+  const calculateExpensePayByCategory = (categoryCode) => {
+    return rows
+      .filter(
+        (row) => row.type !== 'corporate' && row.category === categoryCode,
+      )
+      .reduce((sum, row) => sum + calcPay(row), 0);
+  };
+
+  // 법인카드: 카테고리별 합계
+  const calculateCorporatePayByCategory = (categoryCode) => {
+    return rows
+      .filter(
+        (row) => row.type === 'corporate' && row.category === categoryCode,
+      )
       .reduce((sum, row) => sum + calcPay(row), 0);
   };
 
@@ -3484,6 +3507,35 @@ export default function Expense() {
                                         </tr>
                                       );
                                     })}
+                                {/* 각 법인카드별 소계 */}
+                                {cardRows.length > 0 && (
+                                  <tr className="expense-subtotal">
+                                    <td
+                                      colSpan="7"
+                                      style={{
+                                        textAlign: 'right',
+                                        fontWeight: 600,
+                                      }}
+                                    >
+                                      소계
+                                    </td>
+                                    <td
+                                      style={{
+                                        textAlign: 'right',
+                                        fontWeight: 700,
+                                        color: '#10b981',
+                                      }}
+                                    >
+                                      {cardRows
+                                        .reduce(
+                                          (sum, row) => sum + calcPay(row),
+                                          0,
+                                        )
+                                        .toLocaleString()}
+                                    </td>
+                                    <td></td>
+                                  </tr>
+                                )}
                               </tbody>
                             </table>
                           </div>
@@ -3495,6 +3547,232 @@ export default function Expense() {
               </>
             )}
           </>
+        )}
+        {/* 소계 그리드 - 관리자 모드에서만 표시 */}
+        {isManagerMode && (
+          <section className="expense-section">
+            <h2 className="section-title">지급액 요약</h2>
+            <div className="expense-summary-table">
+              <table className="expense-table">
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', width: '50%' }}>항목</th>
+                    <th style={{ textAlign: 'right', width: '50%' }}>금액</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* 일반경비 섹션 */}
+                  {calculateExpensePay() > 0 && (
+                    <>
+                      <tr
+                        className="summary-section-header"
+                        onClick={() =>
+                          setSummaryExpenseSectionExpanded(
+                            !summaryExpenseSectionExpanded,
+                          )
+                        }
+                        style={{
+                          cursor: 'pointer',
+                          backgroundColor: '#f0f4ff',
+                          transition: 'background-color 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#e8ecff';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f0f4ff';
+                        }}
+                      >
+                        <td
+                          colSpan="2"
+                          style={{
+                            color: '#667eea',
+                            fontWeight: 700,
+                            fontSize: '0.95rem',
+                            paddingTop: '1rem',
+                            paddingBottom: '1rem',
+                          }}
+                        >
+                          {summaryExpenseSectionExpanded ? '▼' : '▶'} 일반경비
+                        </td>
+                      </tr>
+                      {summaryExpenseSectionExpanded && (
+                        <>
+                          {categories.map((cat) => {
+                            const amount = calculateExpensePayByCategory(
+                              cat.code,
+                            );
+                            return amount > 0 ? (
+                              <tr
+                                key={`expense-${cat.code}`}
+                                className="summary-row"
+                              >
+                                <td
+                                  style={{
+                                    color: '#555',
+                                    fontWeight: 400,
+                                    paddingLeft: '2rem',
+                                  }}
+                                >
+                                  {cat.name}
+                                </td>
+                                <td
+                                  style={{
+                                    textAlign: 'right',
+                                    fontWeight: 500,
+                                    color: '#2c3e50',
+                                  }}
+                                >
+                                  {amount.toLocaleString()} 원
+                                </td>
+                              </tr>
+                            ) : null;
+                          })}
+                          <tr className="summary-subtotal-row">
+                            <td
+                              style={{
+                                color: '#667eea',
+                                fontWeight: 600,
+                                paddingLeft: '2rem',
+                              }}
+                            >
+                              일반경비 소계
+                            </td>
+                            <td
+                              style={{
+                                textAlign: 'right',
+                                fontWeight: 700,
+                                color: '#667eea',
+                              }}
+                            >
+                              {calculateExpensePay().toLocaleString()} 원
+                            </td>
+                          </tr>
+                        </>
+                      )}
+                    </>
+                  )}
+
+                  {/* 법인카드 섹션 */}
+                  {calculateCorporatePay() > 0 && (
+                    <>
+                      <tr
+                        className="summary-section-header"
+                        onClick={() =>
+                          setSummaryCorporateSectionExpanded(
+                            !summaryCorporateSectionExpanded,
+                          )
+                        }
+                        style={{
+                          cursor: 'pointer',
+                          backgroundColor: '#fffbf0',
+                          transition: 'background-color 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#fff8e8';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#fffbf0';
+                        }}
+                      >
+                        <td
+                          colSpan="2"
+                          style={{
+                            color: '#f59e0b',
+                            fontWeight: 700,
+                            fontSize: '0.95rem',
+                            paddingTop: '1.5rem',
+                            paddingBottom: '1rem',
+                          }}
+                        >
+                          {summaryCorporateSectionExpanded ? '▼' : '▶'} 법인카드
+                        </td>
+                      </tr>
+                      {summaryCorporateSectionExpanded && (
+                        <>
+                          {categories.map((cat) => {
+                            const amount = calculateCorporatePayByCategory(
+                              cat.code,
+                            );
+                            return amount > 0 ? (
+                              <tr
+                                key={`corporate-${cat.code}`}
+                                className="summary-row"
+                              >
+                                <td
+                                  style={{
+                                    color: '#555',
+                                    fontWeight: 400,
+                                    paddingLeft: '2rem',
+                                  }}
+                                >
+                                  {cat.name}
+                                </td>
+                                <td
+                                  style={{
+                                    textAlign: 'right',
+                                    fontWeight: 500,
+                                    color: '#2c3e50',
+                                  }}
+                                >
+                                  {amount.toLocaleString()} 원
+                                </td>
+                              </tr>
+                            ) : null;
+                          })}
+                          <tr className="summary-subtotal-row">
+                            <td
+                              style={{
+                                color: '#f59e0b',
+                                fontWeight: 600,
+                                paddingLeft: '2rem',
+                              }}
+                            >
+                              법인카드 소계
+                            </td>
+                            <td
+                              style={{
+                                textAlign: 'right',
+                                fontWeight: 700,
+                                color: '#f59e0b',
+                              }}
+                            >
+                              {calculateCorporatePay().toLocaleString()} 원
+                            </td>
+                          </tr>
+                        </>
+                      )}
+                    </>
+                  )}
+
+                  {/* 총합계 */}
+                  <tr className="summary-total-row">
+                    <td
+                      style={{
+                        color: '#2c3e50',
+                        fontWeight: 700,
+                        borderTop: '2px solid #e0e0e0',
+                        paddingTop: '1rem',
+                      }}
+                    >
+                      총합계
+                    </td>
+                    <td
+                      style={{
+                        textAlign: 'right',
+                        fontWeight: 700,
+                        color: '#10b981',
+                        borderTop: '2px solid #e0e0e0',
+                        paddingTop: '1rem',
+                      }}
+                    >
+                      {calculateTotalPay().toLocaleString()} 원
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
         )}
         {/* 총 지급액 합계 */}
         <section className="expense-section">
