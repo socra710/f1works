@@ -646,6 +646,81 @@
   font-weight: bold;
 }
 
+/* 소계 그리드 */
+.expense-summary-table {
+  background: #f9fafc;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e0e7ff;
+}
+
+.expense-summary-table .expense-table {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  margin: 0;
+}
+
+.expense-summary-table .expense-table thead th {
+  background: #f0f4ff;
+  border-bottom: 2px solid #e0e7ff;
+  padding: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.expense-summary-table .summary-row {
+  border-bottom: 1px solid #eaeaea;
+}
+
+.expense-summary-table .summary-row td {
+  padding: 0.875rem 1rem;
+  vertical-align: middle;
+}
+
+.expense-summary-table .summary-section-header {
+  border-bottom: 1px solid #d0d7ff;
+  background-color: transparent;
+}
+
+.expense-summary-table .summary-section-header td {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+.summary-toggle-header:hover {
+  background-color: #f5f7ff;
+  border-radius: 4px;
+  padding: 1rem;
+  margin: -1rem 0;
+  transition: all 0.2s ease;
+}
+
+.expense-summary-table .summary-subtotal-row {
+  background-color: #fafbff;
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.expense-summary-table .summary-subtotal-row td {
+  padding: 0.95rem 1rem;
+  vertical-align: middle;
+}
+
+.expense-summary-table .summary-row:last-of-type {
+  border-bottom: none;
+}
+
+.expense-summary-table .summary-total-row {
+  background: #f0f8ff;
+}
+
+.expense-summary-table .summary-total-row td {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
 /* 반응형 디자인 */
 @media screen and (max-width: 1024px) {
   .expense-content {
