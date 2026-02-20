@@ -1720,6 +1720,31 @@ export default function Expense() {
       return;
     }
 
+    // 제출 가능한 월 검증 (전달만 제출 가능)
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // 1-12
+    const [yearStr, monthStr] = month.split('-');
+    const targetYear = parseInt(yearStr);
+    const targetMonth = parseInt(monthStr);
+
+    // 현재월과 전달의 연월 계산
+    const currentYearMonth = currentYear * 12 + currentMonth;
+    const targetYearMonth = targetYear * 12 + targetMonth;
+    const lastMonthYearMonth = currentYear * 12 + currentMonth - 1;
+
+    // 현재월은 제출 불가
+    if (targetYearMonth >= currentYearMonth) {
+      showToast('현재월은 아직 제출기간이 아닙니다.', 'warning');
+      return;
+    }
+
+    // 전달보다 이전 월도 제출 불가
+    if (targetYearMonth < lastMonthYearMonth) {
+      showToast('전달분만 제출 가능합니다.', 'warning');
+      return;
+    }
+
     // 제출없음 확인 다이얼로그
     showDialog({
       title: '제출없음 확인',
