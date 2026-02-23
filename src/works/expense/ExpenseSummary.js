@@ -1506,15 +1506,45 @@ export default function ExpenseSummary() {
                                 }}
                               >
                                 {(() => {
-                                  const rates = [
-                                    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-                                  ]
+                                  // 선택한 년도가 현재 년도면 전월까지, 과거 년도면 전체 12개월
+                                  const currentYear = new Date().getFullYear();
+                                  const currentMonth =
+                                    new Date().getMonth() + 1;
+                                  const maxMonth =
+                                    parseInt(year) === currentYear
+                                      ? Math.min(currentMonth - 1, 12)
+                                      : 12;
+                                  const months = Array.from(
+                                    { length: maxMonth },
+                                    (_, i) => i + 1,
+                                  );
+                                  const rates = months
                                     .map(
                                       (m) =>
                                         monthlyWorkStats[m]?.expenseDailyRate ||
                                         0,
                                     )
                                     .filter((r) => r && r !== 0);
+
+                                  console.log(
+                                    '🔍 총경비 일평균단가 합계 계산:',
+                                    {
+                                      year,
+                                      currentYear,
+                                      currentMonth,
+                                      maxMonth,
+                                      months,
+                                      rates,
+                                      result:
+                                        rates.length > 0
+                                          ? Math.round(
+                                              rates.reduce((a, b) => a + b, 0) /
+                                                rates.length,
+                                            )
+                                          : 0,
+                                    },
+                                  );
+
                                   return rates.length > 0
                                     ? Math.round(
                                         rates.reduce((a, b) => a + b, 0) /
@@ -1560,9 +1590,19 @@ export default function ExpenseSummary() {
                               )}
                               <td className="category-total-amount">
                                 {(() => {
-                                  const percentages = [
-                                    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-                                  ]
+                                  // 선택한 년도가 현재 년도면 전월까지, 과거 년도면 전체 12개월
+                                  const currentYear = new Date().getFullYear();
+                                  const currentMonth =
+                                    new Date().getMonth() + 1;
+                                  const maxMonth =
+                                    parseInt(year) === currentYear
+                                      ? Math.min(currentMonth - 1, 12)
+                                      : 12;
+                                  const months = Array.from(
+                                    { length: maxMonth },
+                                    (_, i) => i + 1,
+                                  );
+                                  const percentages = months
                                     .map((m) => {
                                       const p =
                                         monthlyWorkStats[m]?.expensePercentage;
@@ -1581,6 +1621,7 @@ export default function ExpenseSummary() {
                                           ) / percentages.length,
                                         )
                                       : 0;
+
                                   return (
                                     <span
                                       style={{
@@ -1632,9 +1673,19 @@ export default function ExpenseSummary() {
                                 }}
                               >
                                 {(() => {
-                                  const rates = [
-                                    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-                                  ]
+                                  // 선택한 년도가 현재 년도면 전월까지, 과거 년도면 전체 12개월
+                                  const currentYear = new Date().getFullYear();
+                                  const currentMonth =
+                                    new Date().getMonth() + 1;
+                                  const maxMonth =
+                                    parseInt(year) === currentYear
+                                      ? Math.min(currentMonth - 1, 12)
+                                      : 12;
+                                  const months = Array.from(
+                                    { length: maxMonth },
+                                    (_, i) => i + 1,
+                                  );
+                                  const rates = months
                                     .map(
                                       (m) =>
                                         monthlyWorkStats[m]?.mealDailyRate || 0,
@@ -1685,9 +1736,19 @@ export default function ExpenseSummary() {
                               )}
                               <td className="category-total-amount">
                                 {(() => {
-                                  const percentages = [
-                                    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-                                  ]
+                                  // 선택한 년도가 현재 년도면 전월까지, 과거 년도면 전체 12개월
+                                  const currentYear = new Date().getFullYear();
+                                  const currentMonth =
+                                    new Date().getMonth() + 1;
+                                  const maxMonth =
+                                    parseInt(year) === currentYear
+                                      ? Math.min(currentMonth - 1, 12)
+                                      : 12;
+                                  const months = Array.from(
+                                    { length: maxMonth },
+                                    (_, i) => i + 1,
+                                  );
+                                  const percentages = months
                                     .map((m) => {
                                       const p =
                                         monthlyWorkStats[m]?.mealPercentage;
