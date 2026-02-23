@@ -1475,95 +1475,22 @@ export default function ExpenseSummary() {
                             </tr>,
                           );
 
-                          // 총경비 - 일평균단가
-                          allRows.push(
-                            <tr
-                              key="total-expense-daily-rate"
-                              className="category-total-row"
-                            >
-                              <td className="category">총경비</td>
-                              <td className="subcategory">일평균단가</td>
-                              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
-                                (month) => (
-                                  <td
-                                    key={month}
-                                    className="monthly-amount"
-                                    style={{ textAlign: 'right' }}
-                                  >
-                                    {monthlyWorkStats[month]?.expenseDailyRate
-                                      ? monthlyWorkStats[
-                                          month
-                                        ].expenseDailyRate.toLocaleString()
-                                      : '-'}
-                                  </td>
-                                ),
-                              )}
-                              <td
-                                className="category-total-amount"
-                                style={{
-                                  textAlign: 'right',
-                                  fontWeight: 'bold',
-                                }}
-                              >
-                                {(() => {
-                                  // 선택한 년도가 현재 년도면 전월까지, 과거 년도면 전체 12개월
-                                  const currentYear = new Date().getFullYear();
-                                  const currentMonth =
-                                    new Date().getMonth() + 1;
-                                  const maxMonth =
-                                    parseInt(year) === currentYear
-                                      ? Math.min(currentMonth - 1, 12)
-                                      : 12;
-                                  const months = Array.from(
-                                    { length: maxMonth },
-                                    (_, i) => i + 1,
-                                  );
-                                  const rates = months
-                                    .map(
-                                      (m) =>
-                                        monthlyWorkStats[m]?.expenseDailyRate ||
-                                        0,
-                                    )
-                                    .filter((r) => r && r !== 0);
+                          // 총경비 - 일평균단가 (숨김)
 
-                                  console.log(
-                                    '🔍 총경비 일평균단가 합계 계산:',
-                                    {
-                                      year,
-                                      currentYear,
-                                      currentMonth,
-                                      maxMonth,
-                                      months,
-                                      rates,
-                                      result:
-                                        rates.length > 0
-                                          ? Math.round(
-                                              rates.reduce((a, b) => a + b, 0) /
-                                                rates.length,
-                                            )
-                                          : 0,
-                                    },
-                                  );
-
-                                  return rates.length > 0
-                                    ? Math.round(
-                                        rates.reduce((a, b) => a + b, 0) /
-                                          rates.length,
-                                      ).toLocaleString()
-                                    : '-';
-                                })()}
-                              </td>
-                            </tr>,
-                          );
-
-                          // 총경비 - %
+                          // 총경비 - 증감률(%)
                           allRows.push(
                             <tr
                               key="total-expense-percentage"
                               className="data-row"
                             >
-                              <td className="category"></td>
-                              <td className="subcategory">%</td>
+                              <td className="category">총경비</td>
+                              <td
+                                className="category"
+                                rowSpan="2"
+                                style={{ textAlign: 'center' }}
+                              >
+                                증감률(%)
+                              </td>
                               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
                                 (month) => {
                                   const percentage =
@@ -1571,24 +1498,40 @@ export default function ExpenseSummary() {
                                   const percentageNum = percentage
                                     ? parseInt(percentage.toString())
                                     : 0;
+                                  let displayText = '-';
+                                  let textColor = 'inherit';
+                                  if (percentageNum > 0) {
+                                    if (percentageNum > 100) {
+                                      const diff = percentageNum - 100;
+                                      displayText = `△ +${diff}%`;
+                                      textColor = 'red';
+                                    } else if (percentageNum < 100) {
+                                      const diff = percentageNum - 100;
+                                      displayText = `▼ ${diff}%`;
+                                      textColor = 'blue';
+                                    } else {
+                                      displayText = '100%';
+                                      textColor = 'inherit';
+                                    }
+                                  }
                                   return (
                                     <td
                                       key={month}
                                       className="monthly-amount"
                                       style={{
                                         textAlign: 'center',
-                                        color:
-                                          percentageNum > 100
-                                            ? 'red'
-                                            : 'inherit',
+                                        color: textColor,
                                       }}
                                     >
-                                      {percentage || '-'}
+                                      {displayText}
                                     </td>
                                   );
                                 },
                               )}
-                              <td className="category-total-amount">
+                              <td
+                                className="category-total-amount"
+                                style={{ textAlign: 'center' }}
+                              >
                                 {(() => {
                                   // 선택한 년도가 현재 년도면 전월까지, 과거 년도면 전체 12개월
                                   const currentYear = new Date().getFullYear();
@@ -1622,19 +1565,31 @@ export default function ExpenseSummary() {
                                         )
                                       : 0;
 
+                                  let displayText = '-';
+                                  let textColor = 'inherit';
+                                  if (avgPercentage > 0) {
+                                    if (avgPercentage > 100) {
+                                      const diff = avgPercentage - 100;
+                                      displayText = `△ +${diff}%`;
+                                      textColor = 'red';
+                                    } else if (avgPercentage < 100) {
+                                      const diff = avgPercentage - 100;
+                                      displayText = `▼ ${diff}%`;
+                                      textColor = 'blue';
+                                    } else {
+                                      displayText = '100%';
+                                      textColor = 'inherit';
+                                    }
+                                  }
+
                                   return (
                                     <span
                                       style={{
                                         fontWeight: 'bold',
-                                        color:
-                                          avgPercentage > 100
-                                            ? 'red'
-                                            : 'inherit',
+                                        color: textColor,
                                       }}
                                     >
-                                      {percentages.length > 0
-                                        ? avgPercentage + '%'
-                                        : '-'}
+                                      {displayText}
                                     </span>
                                   );
                                 })()}
@@ -1642,74 +1597,15 @@ export default function ExpenseSummary() {
                             </tr>,
                           );
 
-                          // 총식사비 - 일평균단가
-                          allRows.push(
-                            <tr
-                              key="total-meal-daily-rate"
-                              className="category-total-row"
-                            >
-                              <td className="category">총식사비</td>
-                              <td className="subcategory">일평균단가</td>
-                              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
-                                (month) => (
-                                  <td
-                                    key={month}
-                                    className="monthly-amount"
-                                    style={{ textAlign: 'right' }}
-                                  >
-                                    {monthlyWorkStats[month]?.mealDailyRate
-                                      ? monthlyWorkStats[
-                                          month
-                                        ].mealDailyRate.toLocaleString()
-                                      : '-'}
-                                  </td>
-                                ),
-                              )}
-                              <td
-                                className="category-total-amount"
-                                style={{
-                                  textAlign: 'right',
-                                  fontWeight: 'bold',
-                                }}
-                              >
-                                {(() => {
-                                  // 선택한 년도가 현재 년도면 전월까지, 과거 년도면 전체 12개월
-                                  const currentYear = new Date().getFullYear();
-                                  const currentMonth =
-                                    new Date().getMonth() + 1;
-                                  const maxMonth =
-                                    parseInt(year) === currentYear
-                                      ? Math.min(currentMonth - 1, 12)
-                                      : 12;
-                                  const months = Array.from(
-                                    { length: maxMonth },
-                                    (_, i) => i + 1,
-                                  );
-                                  const rates = months
-                                    .map(
-                                      (m) =>
-                                        monthlyWorkStats[m]?.mealDailyRate || 0,
-                                    )
-                                    .filter((r) => r && r !== 0);
-                                  return rates.length > 0
-                                    ? Math.round(
-                                        rates.reduce((a, b) => a + b, 0) /
-                                          rates.length,
-                                      ).toLocaleString()
-                                    : '-';
-                                })()}
-                              </td>
-                            </tr>,
-                          );
+                          // 총식사비 - 일평균단가 (숨김)
 
-                          // 총식사비 - %
+                          // 총식사비 - 증감률(%)
                           allRows.push(
                             <tr
                               key="total-meal-percentage"
                               className="data-row"
                             >
-                              <td className="category"></td>
-                              <td className="subcategory">%</td>
+                              <td className="category">총식사비</td>
                               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
                                 (month) => {
                                   const percentage =
@@ -1717,24 +1613,40 @@ export default function ExpenseSummary() {
                                   const percentageNum = percentage
                                     ? parseInt(percentage.toString())
                                     : 0;
+                                  let displayText = '-';
+                                  let textColor = 'inherit';
+                                  if (percentageNum > 0) {
+                                    if (percentageNum > 100) {
+                                      const diff = percentageNum - 100;
+                                      displayText = `△ +${diff}%`;
+                                      textColor = 'red';
+                                    } else if (percentageNum < 100) {
+                                      const diff = percentageNum - 100;
+                                      displayText = `▼ ${diff}%`;
+                                      textColor = 'blue';
+                                    } else {
+                                      displayText = '100%';
+                                      textColor = 'inherit';
+                                    }
+                                  }
                                   return (
                                     <td
                                       key={month}
                                       className="monthly-amount"
                                       style={{
                                         textAlign: 'center',
-                                        color:
-                                          percentageNum > 100
-                                            ? 'red'
-                                            : 'inherit',
+                                        color: textColor,
                                       }}
                                     >
-                                      {percentage || '-'}
+                                      {displayText}
                                     </td>
                                   );
                                 },
                               )}
-                              <td className="category-total-amount">
+                              <td
+                                className="category-total-amount"
+                                style={{ textAlign: 'center' }}
+                              >
                                 {(() => {
                                   // 선택한 년도가 현재 년도면 전월까지, 과거 년도면 전체 12개월
                                   const currentYear = new Date().getFullYear();
@@ -1767,19 +1679,32 @@ export default function ExpenseSummary() {
                                           ) / percentages.length,
                                         )
                                       : 0;
+
+                                  let displayText = '-';
+                                  let textColor = 'inherit';
+                                  if (avgPercentage > 0) {
+                                    if (avgPercentage > 100) {
+                                      const diff = avgPercentage - 100;
+                                      displayText = `△ +${diff}%`;
+                                      textColor = 'red';
+                                    } else if (avgPercentage < 100) {
+                                      const diff = avgPercentage - 100;
+                                      displayText = `▼ ${diff}%`;
+                                      textColor = 'blue';
+                                    } else {
+                                      displayText = '100%';
+                                      textColor = 'inherit';
+                                    }
+                                  }
+
                                   return (
                                     <span
                                       style={{
                                         fontWeight: 'bold',
-                                        color:
-                                          avgPercentage > 100
-                                            ? 'red'
-                                            : 'inherit',
+                                        color: textColor,
                                       }}
                                     >
-                                      {percentages.length > 0
-                                        ? avgPercentage + '%'
-                                        : '-'}
+                                      {displayText}
                                     </span>
                                   );
                                 })()}
