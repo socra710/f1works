@@ -1503,10 +1503,10 @@ export default function ExpenseSummary() {
                                   if (percentageNum > 0) {
                                     if (percentageNum > 100) {
                                       const diff = percentageNum - 100;
-                                      displayText = `△ +${diff}%`;
+                                      displayText = `▲ ${diff}%`;
                                       textColor = 'red';
                                     } else if (percentageNum < 100) {
-                                      const diff = percentageNum - 100;
+                                      const diff = 100 - percentageNum;
                                       displayText = `▼ ${diff}%`;
                                       textColor = 'blue';
                                     } else {
@@ -1570,10 +1570,10 @@ export default function ExpenseSummary() {
                                   if (avgPercentage > 0) {
                                     if (avgPercentage > 100) {
                                       const diff = avgPercentage - 100;
-                                      displayText = `△ +${diff}%`;
+                                      displayText = `▲ ${diff}%`;
                                       textColor = 'red';
                                     } else if (avgPercentage < 100) {
-                                      const diff = avgPercentage - 100;
+                                      const diff = 100 - avgPercentage;
                                       displayText = `▼ ${diff}%`;
                                       textColor = 'blue';
                                     } else {
@@ -1618,10 +1618,10 @@ export default function ExpenseSummary() {
                                   if (percentageNum > 0) {
                                     if (percentageNum > 100) {
                                       const diff = percentageNum - 100;
-                                      displayText = `△ +${diff}%`;
+                                      displayText = `▲ ${diff}%`;
                                       textColor = 'red';
                                     } else if (percentageNum < 100) {
-                                      const diff = percentageNum - 100;
+                                      const diff = 100 - percentageNum;
                                       displayText = `▼ ${diff}%`;
                                       textColor = 'blue';
                                     } else {
@@ -1685,10 +1685,10 @@ export default function ExpenseSummary() {
                                   if (avgPercentage > 0) {
                                     if (avgPercentage > 100) {
                                       const diff = avgPercentage - 100;
-                                      displayText = `△ +${diff}%`;
+                                      displayText = `▲ ${diff}%`;
                                       textColor = 'red';
                                     } else if (avgPercentage < 100) {
-                                      const diff = avgPercentage - 100;
+                                      const diff = 100 - avgPercentage;
                                       displayText = `▼ ${diff}%`;
                                       textColor = 'blue';
                                     } else {
