@@ -1051,6 +1051,10 @@
   background-color: #f0f4ff;
 }
 
+.yearly-summary-table tbody tr.status-separator-row td {
+  border-top: 2px solid #bfc9d9;
+}
+
 /* 카테고리 소계 행 */
 .yearly-summary-table tbody tr.category-total-row {
   background-color: #f0f0f0;
