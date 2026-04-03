@@ -1490,6 +1490,15 @@ export default function ExpenseSummary() {
                                 style={{ textAlign: 'center' }}
                               >
                                 증감률(%)
+                                <div
+                                  style={{
+                                    fontSize: '11px',
+                                    color: '#666',
+                                    marginTop: '2px',
+                                  }}
+                                >
+                                  해당년도 평균 기준, 일평균
+                                </div>
                               </td>
                               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
                                 (month) => {
