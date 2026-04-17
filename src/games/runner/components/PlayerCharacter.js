@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+// eslint-disable-next-line no-unused-vars
 import styles from '../Runner.module.css';
 
 const PLAYER_SIZE = 50;
@@ -145,7 +146,7 @@ const PlayerCharacter = ({
           >
             {selectedCharacter.emoji}
           </div>
-        )
+        ),
       )}
 
       {/* 실드 효과 */}
@@ -167,7 +168,7 @@ const PlayerCharacter = ({
               zIndex: 8,
             }}
           />
-          
+
           {/* 중앙 고리 (빛나는 효과) */}
           <div
             className="shield-effect"
@@ -179,7 +180,8 @@ const PlayerCharacter = ({
               height: `${playerSize + 20}px`,
               border: '3px solid rgba(100, 220, 255, 0.9)',
               borderRadius: '50%',
-              boxShadow: '0 0 15px rgba(100, 220, 255, 0.8), 0 0 30px rgba(100, 200, 255, 0.5), inset 0 0 15px rgba(150, 230, 255, 0.4)',
+              boxShadow:
+                '0 0 15px rgba(100, 220, 255, 0.8), 0 0 30px rgba(100, 200, 255, 0.5), inset 0 0 15px rgba(150, 230, 255, 0.4)',
               animation: 'shield-pulse 1.5s infinite ease-in-out',
               pointerEvents: 'none',
               zIndex: 9,
@@ -187,7 +189,7 @@ const PlayerCharacter = ({
           />
         </>
       )}
-      
+
       {/* 플레이어 */}
       {isImage ? (
         <img

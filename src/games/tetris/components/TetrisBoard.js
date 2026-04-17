@@ -1,7 +1,13 @@
 import React from 'react';
 import { BLOCK_SIZE, COLS, ROWS } from '../utils/constants';
 
-const TetrisBoard = ({ canvasRef, board, currentPiece, bloodParticles, colorMap = {} }) => {
+const TetrisBoard = ({
+  canvasRef,
+  board,
+  currentPiece,
+  bloodParticles,
+  colorMap = {},
+}) => {
   const drawBoard = React.useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -22,7 +28,7 @@ const TetrisBoard = ({ canvasRef, board, currentPiece, bloodParticles, colorMap 
               x * BLOCK_SIZE,
               y * BLOCK_SIZE,
               BLOCK_SIZE - 1,
-              BLOCK_SIZE - 1
+              BLOCK_SIZE - 1,
             );
           }
           ctx.strokeStyle = '#333';
@@ -30,7 +36,7 @@ const TetrisBoard = ({ canvasRef, board, currentPiece, bloodParticles, colorMap 
             x * BLOCK_SIZE,
             y * BLOCK_SIZE,
             BLOCK_SIZE,
-            BLOCK_SIZE
+            BLOCK_SIZE,
           );
         }
       }
@@ -49,7 +55,7 @@ const TetrisBoard = ({ canvasRef, board, currentPiece, bloodParticles, colorMap 
                 boardX * BLOCK_SIZE,
                 boardY * BLOCK_SIZE,
                 BLOCK_SIZE - 1,
-                BLOCK_SIZE - 1
+                BLOCK_SIZE - 1,
               );
             }
           }
@@ -69,6 +75,7 @@ const TetrisBoard = ({ canvasRef, board, currentPiece, bloodParticles, colorMap 
     }
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canvasRef, board, currentPiece, bloodParticles]);
 
   // 보드 상태가 변경될 때마다 다시 그리기

@@ -33,8 +33,10 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
   const inputRefsSets = useRef([]);
   const [quizQuestion, setQuizQuestion] = useState('');
   const [realQuizAnswer, setRealQuizAnswer] = useState('');
+  // eslint-disable-next-line no-unused-vars
   const [allSetsSubmitted, setAllSetsSubmitted] = useState(false);
   const [isSubmittedSets, setIsSubmittedSets] = useState(Array(6).fill(false));
+  // eslint-disable-next-line no-unused-vars
   const [remainingTimeSets, setRemainingTimeSets] = useState(0);
   const [isCorrectAnswerSubmitted, setIsCorrectAnswerSubmitted] =
     useState(false);
@@ -42,6 +44,7 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
   const [activeInputSet, setActiveInputSet] = useState(0);
   const [fetchedData, setFetchedData] = useState([]);
   const [wordNo, setWordNo] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [visitorId, setVisitorId] = useState('');
   const [submitFlag, setSubmitFlag] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -59,6 +62,7 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
     const stats = localStorage.getItem(gameStatKey);
     setGameStats(stats ? JSON.parse(stats) : defaultStats);
     updateGameStats(stats ? JSON.parse(stats) : defaultStats);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -67,6 +71,7 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
       localStorage.setItem(gameStatKey, JSON.stringify(gameStats));
       updateGameStats(gameStats);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameStats]);
 
   // 다른 곳을 클릭할 때 포커스를 잃지 않도록 하는 이벤트 핸들러
@@ -106,6 +111,7 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
     ) {
       inputRefsSets.current[activeSet][activeInputSet].current.focus();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSet, activeInputSet, inputRefsSets.current]);
 
   useEffect(() => {
@@ -124,7 +130,7 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
         if (response.data.success === 'false') {
           alert(
             '시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' +
-              response.data.message
+              response.data.message,
           );
           return;
         }
@@ -165,7 +171,7 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
               .map(() =>
                 Array(quizQuestion.length)
                   .fill(null)
-                  .map(() => React.createRef())
+                  .map(() => React.createRef()),
               );
 
             // 로컬 스토리지에서 데이터 가져오기
@@ -182,6 +188,7 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
       .catch(function (error) {
         console.error(error);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // useEffect(() => {
@@ -284,6 +291,7 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
 
       // updateCssFulll(activeSet, fetchedData[activeSet].userAnswer);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSet, fetchedData, loading]);
 
   const isCorrectAnswerSets = (setIndex) => {
@@ -310,6 +318,7 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
     const isOnlyUppercaseLetters = /^[A-Z]*$/;
 
     var value = inko.ko2en(targetValue);
+    // eslint-disable-next-line no-unused-vars
     value = targetValue.toUpperCase();
 
     if (
@@ -494,7 +503,7 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
               if (response.data.success === 'false') {
                 alert(
                   '시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' +
-                    response.data.message
+                    response.data.message,
                 );
                 return;
               }
@@ -554,6 +563,7 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
               }
 
               let guess = {};
+              // eslint-disable-next-line array-callback-return
               answersSets.map((answerSet, setIndex) => {
                 if (answersSets[setIndex].join('') !== '') {
                   guess[setIndex] = {
@@ -598,11 +608,14 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
       });
   };
 
+  // eslint-disable-next-line no-unused-vars
   const updateCss = async (setIndex, answer) => {
     let originWord = realQuizAnswer;
+    // eslint-disable-next-line no-unused-vars
     let css = 'input-answer';
 
     for (let c = 0; c < 5; c++) {
+      // eslint-disable-next-line no-unused-vars
       let currTile = inputRefsSets.current[setIndex][c].current;
       let letter = answer[c];
 
@@ -639,6 +652,7 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
       return css;
     }
 
+    // eslint-disable-next-line no-unused-vars
     let currTile = inputRefsSets.current[setIndex][c].current;
     let letter = answer[c];
 
@@ -669,7 +683,7 @@ const WordSet = ({ updateTodayWordNo, updateGameStats }) => {
   const getSuccessRate = (gameStats) => {
     return Math.round(
       (100 * (gameStats.totalGames - gameStats.gamesFailed)) /
-        Math.max(gameStats.totalGames, 1)
+        Math.max(gameStats.totalGames, 1),
     );
   };
 

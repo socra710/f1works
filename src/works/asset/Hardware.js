@@ -25,6 +25,7 @@ const Hardware = () => {
   const [filter, setFilter] = useState('all'); // all, new, repair
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [authChecked, setAuthChecked] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {

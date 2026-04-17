@@ -33,6 +33,7 @@ const ModalNo = ({
 
   const generateEmojiGrid = () => {
     let guess = '';
+    // eslint-disable-next-line array-callback-return
     answersSets.map((_, setIndex) => {
       if (isSubmittedSets[setIndex]) {
         let originWord = realQuizAnswer;
@@ -94,7 +95,7 @@ const ModalNo = ({
     navigator.clipboard.writeText(
       '클론 게임 "오늘의 단어"를 즐겨보세요! 🎮 단어 추리 게임의 재미를 느껴보세요. 🧠🔍\n\n' +
         generateEmojiGrid() +
-        '\n👉 https://f1works.netlify.app/games/wordle'
+        '\n👉 https://f1works.netlify.app/games/wordle',
     );
 
     toast.info('복사되었습니다.\n원하는 곳에 붙여넣기(Ctrl+V)해주세요.', {
@@ -109,6 +110,7 @@ const ModalNo = ({
     });
   };
 
+  // eslint-disable-next-line no-unused-vars
   const renderDivSets = () => {
     return answersSets.map((_, setIndex) => (
       <div
@@ -156,7 +158,7 @@ const ModalNo = ({
         React.createElement('div', {
           key: c,
           className: classNames.join(' '),
-        })
+        }),
       );
     }
 
@@ -188,7 +190,7 @@ const ModalNo = ({
     const values = gameStats?.winDistribution;
     const calculatedTotal = values.reduce((sum, value) => sum + value, 0);
     const calculatedPercentages = values.map(
-      (value) => (value / calculatedTotal) * 100
+      (value) => (value / calculatedTotal) * 100,
     );
 
     return (
@@ -201,7 +203,7 @@ const ModalNo = ({
             <div className="guess-graph" aria-hidden="true">
               <div
                 className={`graph-bar ${
-                  gameStats?.todayIdx == index ? 'correct' : ''
+                  gameStats?.todayIdx === index ? 'correct' : ''
                 }`}
                 style={{
                   width: `${
@@ -291,14 +293,14 @@ const ModalNo = ({
         </div>
         <hr></hr>
         <div className="bottom-div">
-          <a className="a-kakao" id="kakaotalk-sharing-btn" href="#">
+          <a className="a-kakao" id="kakaotalk-sharing-btn" href="#!">
             <img
               src="https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_medium.png"
               alt="카카오톡 공유 보내기 버튼"
               onClick={handleShare}
             />
           </a>
-          <a href="#">
+          <a href="#!">
             <img src={shareImg} alt="복사하기" onClick={handleShareCopy} />
           </a>
         </div>

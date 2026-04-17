@@ -15,7 +15,7 @@ export default function Feed() {
     const fetchNews = async (items) => {
       try {
         const response = await axios.get(
-          `${API_BASE_URL}/jvWorksGetNewsDesc?factoryCode=000001&userId=`
+          `${API_BASE_URL}/jvWorksGetNewsDesc?factoryCode=000001&userId=`,
         );
 
         setNewsNew(response.data.data);
@@ -35,7 +35,7 @@ export default function Feed() {
     const fetchNewsTop = async () => {
       try {
         const response = await axios.get(
-          `${API_BASE_URL}/jvWorksGetNewsTop?factoryCode=000001&userId=`
+          `${API_BASE_URL}/jvWorksGetNewsTop?factoryCode=000001&userId=`,
         );
 
         fetchNews(response.data.data);
@@ -46,6 +46,7 @@ export default function Feed() {
     };
 
     fetchNewsTop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onImageError = (e) => {
@@ -98,6 +99,7 @@ export default function Feed() {
               <section className={styles.feedSection}>
                 <div className={styles.sectionHeader}>
                   <iframe
+                    title="쿠팡 광고"
                     src="https://coupa.ng/ceU5PI"
                     width="100%"
                     height="44"
@@ -162,6 +164,7 @@ export default function Feed() {
                       {index === 3 && (
                         <div className={styles.adCard}>
                           <iframe
+                            title="쿠팡 파트너스 광고"
                             src="https://ads-partners.coupang.com/widgets.html?id=750690&template=carousel&trackingCode=AF6973392&subId=&width=300&height=380&tsource="
                             width="300"
                             height="380"

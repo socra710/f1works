@@ -16,6 +16,7 @@ export default function Notice() {
     document.body.appendChild(script);
 
     onViewNotice(id, gbn, usrId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, gbn]);
 
   // 예: 공지사항 데이터를 가져오는 API 호출
@@ -34,7 +35,7 @@ export default function Notice() {
         if (data.success === 'false') {
           alert(
             '시스템 내부 문제가 발생했습니다.\n상세내용을 알 수 없거나 계속 문제가 발생할 경우 관리자에게 문의하세요.\n\n상세내용 >> ' +
-              data.message
+              data.message,
           );
           return;
         }

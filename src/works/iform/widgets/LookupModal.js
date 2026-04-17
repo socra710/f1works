@@ -15,6 +15,7 @@ export default function LookupModal({
     if (isOpen && lookupConfig?.autoLoad) {
       handleSearch();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, lookupConfig]);
 
   const handleSearch = async () => {
@@ -28,7 +29,7 @@ export default function LookupModal({
       console.warn(
         'dataSource is not a function:',
         typeof lookupConfig.dataSource,
-        lookupConfig.dataSource
+        lookupConfig.dataSource,
       );
       setResults(lookupConfig?.mockData || []);
       return;
@@ -55,6 +56,7 @@ export default function LookupModal({
   if (!isOpen) return null;
 
   const columns = lookupConfig?.columns || [{ key: 'value', label: '값' }];
+  // eslint-disable-next-line no-unused-vars
   const displayKey = lookupConfig?.displayKey || 'name';
 
   return (

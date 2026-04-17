@@ -64,6 +64,7 @@ export default function Calendar() {
     return () => {
       mounted = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   useEffect(() => {
@@ -72,6 +73,7 @@ export default function Calendar() {
     }
 
     onViewCalendar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authUser]);
 
   const onViewCalendar = () => {
@@ -87,7 +89,7 @@ export default function Calendar() {
         if (e.success === 'false') {
           showToast(
             '시스템 내부 문제가 발생했습니다. 관리자에게 문의하세요.',
-            'error'
+            'error',
           );
           return;
         }
@@ -163,6 +165,7 @@ export default function Calendar() {
         calendarRef.current.getApi().changeView('dayGridMonth');
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [innerWidth]);
 
   return (
@@ -311,7 +314,7 @@ export default function Calendar() {
           <ModalHelp isOpen={isOpen} />
           <div id="snackbar">Some text some message..</div>
           <div id="lightbox">
-            <img id="lightboxImage" />
+            <img id="lightboxImage" alt="" />
           </div>
         </>
       )}

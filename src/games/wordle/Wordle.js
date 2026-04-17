@@ -1,7 +1,7 @@
 import React from 'react';
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 
 import WordSet from './components/WordSet';
 import ModalHow from './components/ModalHow';
