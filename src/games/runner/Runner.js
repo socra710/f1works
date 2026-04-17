@@ -102,7 +102,7 @@ const Runner = () => {
 
     const isMobile =
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
+        navigator.userAgent,
       );
     if (isMobile) {
       showToast('모바일에서는 플레이 할 수 없습니다.', 'error');
@@ -168,6 +168,7 @@ const Runner = () => {
 
   // 파워업 아이템 관련 상태
   const [powerUps, setPowerUps] = useState([]); // 게임 화면에 존재하는 파워업들
+  // eslint-disable-next-line no-unused-vars
   const [activePowerUp, setActivePowerUp] = useState(null); // {type, endTime}
   const [shieldActive, setShieldActive] = useState(false); // 실드 활성화 여부
 
@@ -182,8 +183,8 @@ const Runner = () => {
       try {
         const res = await fetch(
           `${API_BASE_URL}/jvWorksGetUserPurchases?userId=${encodeURIComponent(
-            userId
-          )}`
+            userId,
+          )}`,
         );
         if (!res.ok) return;
 
@@ -192,7 +193,7 @@ const Runner = () => {
           // CHARACTER 카테고리만 필터링
           const purchasedChars = json.items
             .filter(
-              (item) => item.itemCode && item.itemCode.startsWith('CHAR_')
+              (item) => item.itemCode && item.itemCode.startsWith('CHAR_'),
             )
             .map((item) => ({
               id: item.itemCode.toLowerCase(),
@@ -227,7 +228,7 @@ const Runner = () => {
   const bobTimeRef = useRef(0);
   const bobOffsetRef = useRef(0);
   const lastTsRef = useRef(
-    typeof performance !== 'undefined' ? performance.now() : 0
+    typeof performance !== 'undefined' ? performance.now() : 0,
   );
   // 지면 여부 (state 지연 없이 즉시 판단용)
   const isOnGroundRef = useRef(true);
@@ -350,7 +351,7 @@ const Runner = () => {
         console.error('코인 동기화 실패:', error);
       }
     },
-    []
+    [],
   );
 
   const fetchServerCoins = useCallback(
@@ -364,12 +365,12 @@ const Runner = () => {
       try {
         const res = await fetch(
           `${API_BASE_URL}/jvWorksGetRunnerCoins?userId=${encodeURIComponent(
-            uid
+            uid,
           )}`,
           {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
-          }
+          },
         );
 
         if (res.ok) {
@@ -392,7 +393,7 @@ const Runner = () => {
               setHighScore(resolvedHighScore);
               localStorage.setItem(
                 'runnerHighScore',
-                resolvedHighScore.toString()
+                resolvedHighScore.toString(),
               );
 
               // 서버에서 닉네임도 가져와서 세팅
@@ -422,7 +423,7 @@ const Runner = () => {
                   uid,
                   resolved,
                   localHighScore,
-                  nameForServer
+                  nameForServer,
                 );
               }
             }
@@ -443,7 +444,7 @@ const Runner = () => {
         setPlayerName(localName.trim());
       }
     },
-    [hasLoadedServerCoins, setPlayerName, syncCoinBank]
+    [hasLoadedServerCoins, setPlayerName, syncCoinBank],
   );
 
   useEffect(() => {
@@ -843,7 +844,7 @@ const Runner = () => {
         // 200점마다 시즌 변경 (중복 방지)
         if (newScore % 200 === 0) {
           setSeasonIndex((prevIdx) =>
-            randomDifferentIndex(prevIdx, SEASONS.length)
+            randomDifferentIndex(prevIdx, SEASONS.length),
           );
         }
         return newScore;
@@ -950,7 +951,7 @@ const Runner = () => {
           // 하나만 생성: 싱글/더블/트리플 중 랜덤
           const choice = Math.random();
           coinsToSpawn.push(
-            choice < 0.4 ? singleCoin : choice < 0.7 ? doubleCoin : tripleCoin
+            choice < 0.4 ? singleCoin : choice < 0.7 ? doubleCoin : tripleCoin,
           );
         } else if (count === 2) {
           // 두 개 생성
@@ -1122,8 +1123,8 @@ const Runner = () => {
         seasonEffectsRef.current.intensity === 'extreme'
           ? 1.8
           : seasonEffectsRef.current.intensity === 'heavy'
-          ? 1.4
-          : 1;
+            ? 1.4
+            : 1;
       const fogTop =
         fogBaseTop * (1 - 0.25 * speedFactor) * intensityMultiplier;
       const fogGround =
@@ -1151,7 +1152,7 @@ const Runner = () => {
           (isOnGroundRef.current ? bobOffsetRef.current : 0);
         setGhosts((prev) => {
           const next = [{ bottom: playerBottomNow, leftOffset: 0 }].concat(
-            prev
+            prev,
           );
           return next.slice(0, 5);
         });
@@ -1162,11 +1163,11 @@ const Runner = () => {
       // 먼지 파티클 스폰 및 이동 업데이트
       particleCooldownRef.current = Math.max(
         0,
-        particleCooldownRef.current - dt
+        particleCooldownRef.current - dt,
       );
       const spawnInterval = Math.max(
         0.03,
-        0.08 / Math.max(1, gameSpeedRef.current)
+        0.08 / Math.max(1, gameSpeedRef.current),
       );
       const shouldSpawn =
         gameState === 'playing' &&
@@ -1205,7 +1206,7 @@ const Runner = () => {
 
       // 모션 블러 업데이트 및 필터링 (최대 20개로 제한)
       setMotionBlurs((prev) =>
-        prev.filter((blur) => (blur.delay -= dt) > -0.4).slice(-20)
+        prev.filter((blur) => (blur.delay -= dt) > -0.4).slice(-20),
       );
 
       // 점프 먼지 이펙트 업데이트 및 필터링 (최대 50개로 제한)
@@ -1334,6 +1335,7 @@ const Runner = () => {
         clearTimeout(birdIntervalRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState]);
 
   // 충돌 감지 (별도 useEffect)
@@ -1588,6 +1590,7 @@ const Runner = () => {
     saveScoreAuto,
     setShowNameModal,
     shieldActive,
+    powerUps,
   ]);
 
   return (
@@ -1800,7 +1803,7 @@ const Runner = () => {
                         (
                           (fogTopBlurRef.current + fogGroundBlurRef.current) /
                           2
-                        ).toFixed(2)
+                        ).toFixed(2),
                       )
                     : 0;
 
@@ -1993,10 +1996,10 @@ const Runner = () => {
                         filter: `blur(${star.blur}px)`,
                         boxShadow: `0 0 ${Math.max(
                           1.5,
-                          star.size * 1.6
+                          star.size * 1.6,
                         )}px rgba(255,255,255,${Math.min(
                           1,
-                          star.opacity + 0.35
+                          star.opacity + 0.35,
                         )})`,
                       }}
                     />
@@ -2032,14 +2035,14 @@ const Runner = () => {
                       // 극강 날씨일 때 비 스트릭 강도 증가
                       const baseOpacity = Math.min(
                         0.45,
-                        0.25 + Math.max(0, (gameSpeedRef.current - 1) * 0.06)
+                        0.25 + Math.max(0, (gameSpeedRef.current - 1) * 0.06),
                       );
                       const intensityMultiplier =
                         seasonEffects.intensity === 'extreme'
                           ? 2.5
                           : seasonEffects.intensity === 'heavy'
-                          ? 1.6
-                          : 1;
+                            ? 1.6
+                            : 1;
                       return Math.min(0.95, baseOpacity * intensityMultiplier);
                     })(),
                     mixBlendMode: 'screen',
@@ -2120,8 +2123,8 @@ const Runner = () => {
                         0.2,
                         (fogTopOpacityRef.current +
                           fogGroundOpacityRef.current) *
-                          0.65
-                      )
+                          0.65,
+                      ),
                     ),
                     transition: 'opacity 0.3s ease',
                   }}
@@ -2221,7 +2224,7 @@ const Runner = () => {
                   style={{
                     animationDuration: `${Math.max(
                       0.6,
-                      2 / Math.max(1, gameSpeed)
+                      2 / Math.max(1, gameSpeed),
                     )}s`,
                     transform: `translateY(${terrainOffsetRef.current}px)`,
                   }}

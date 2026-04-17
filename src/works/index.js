@@ -71,6 +71,9 @@ export default function Works() {
     return savedTab || '업무';
   });
   const [notificationVisible, setNotificationVisible] = useState(false);
+  const [showAllUpdates, setShowAllUpdates] = useState(false);
+  const [showAllNotices, setShowAllNotices] = useState(false);
+  const VISIBLE_COUNT = 3;
 
   const persistAdminStatus = (status) => {
     try {
@@ -400,6 +403,11 @@ export default function Works() {
 
   const updates = [
     {
+      date: '2026.04.17',
+      title: 'F1Works 웹 폰트 변경 적용',
+      description: 'KoPubWorldDotum 폰트가 적용되어 가독성이 향상되었습니다.',
+    },
+    {
       date: '2026.02.03',
       title: '통합 문서 작성 업데이트',
       description: '인쇄 미리보기 기능이 추가되고, 일부 버그가 수정되었습니다.',
@@ -410,65 +418,64 @@ export default function Works() {
       description:
         '고객사 방문 및 통화 이력을 기록하고 30일 이상 미컨택 고객을 알림받는 기능이 추가되었습니다.',
     },
-    // {
-    //   date: '2026.01.02',
-    //   title: '통합 문서 작성(베타) 기능 출시',
-    //   description:
-    //     '통합 문서(동적 양식) 템플릿을 선택하고 작성할 수 있는 기능이 추가되었습니다.',
-    // },
-    // {
-    //   date: '2025.12.22',
-    //   title: 'H/W 관리대장 기능 출시',
-    //   description:
-    //     '보유 중인 하드웨어 자산을 효율적으로 관리합니다. 납품, A/S, 폐기 등 모든 내역을 한곳에서 기록하고 조회할 수 있습니다.',
-    // },
-    // {
-    //   date: '2025.12.16',
-    //   title: '배차/모니터/뉴스피드 UI/UX 개선',
-    //   description:
-    //     '배차/모니터/뉴스피드 페이지의 UI/UX가 더욱 직관적으로 개선되었습니다',
-    // },
+    {
+      date: '2026.01.02',
+      title: '통합 문서 작성(베타) 기능 출시',
+      description:
+        '통합 문서(동적 양식) 템플릿을 선택하고 작성할 수 있는 기능이 추가되었습니다.',
+    },
+    {
+      date: '2025.12.22',
+      title: 'H/W 관리대장 기능 출시',
+      description:
+        '보유 중인 하드웨어 자산을 효율적으로 관리합니다. 납품, A/S, 폐기 등 모든 내역을 한곳에서 기록하고 조회할 수 있습니다.',
+    },
+    {
+      date: '2025.12.16',
+      title: '배차/모니터/뉴스피드 UI/UX 개선',
+      description:
+        '배차/모니터/뉴스피드 페이지의 UI/UX가 더욱 직관적으로 개선되었습니다',
+    },
     {
       date: '2025.12.13',
       title: '신규 게임 2종 출시',
       description:
         '테트리스와 러너 게임이 새롭게 추가되어 짧은 휴식을 즐기실 수 있습니다.',
     },
-    // {
-    //   date: '2025.12.11',
-    //   title: '재미로 보는 인사이트',
-    //   description:
-    //     '직원들의 근태·배차 데이터를 바탕으로 실시간 랭킹을 보여드립니다.',
-    // },
-    // {
-    //   date: '2025.12.04',
-    //   title: '경비 청구 기능 출시',
-    //   description:
-    //     '월별 경비 청구 및 승인 현황을 확인할 수 있는 기능이 추가되었습니다',
-    // },
-    // {
-    //   date: '2025.12.03',
-    //   title: '메인 페이지 개편',
-    //   description: '모든 기능을 한눈에 볼 수 있는 대시보드 형태로 개선했습니다',
-    // },
-    // {
-    //   date: '2025.12.01',
-    //   title: '차량 정보 업데이트',
-    //   description: '배차 시스템의 차량 정보가 최신화되었습니다',
-    // },
-    // {
-    //   date: '2025.01.01',
-    //   title: '모니터 신청 화면 추가',
-    //   description: '모니터 대여 신청 및 현황 확인 기능이 추가되었습니다',
-    // },
+    {
+      date: '2025.12.11',
+      title: '재미로 보는 인사이트',
+      description:
+        '직원들의 근태·배차 데이터를 바탕으로 실시간 랭킹을 보여드립니다.',
+    },
+    {
+      date: '2025.12.04',
+      title: '경비 청구 기능 출시',
+      description:
+        '월별 경비 청구 및 승인 현황을 확인할 수 있는 기능이 추가되었습니다',
+    },
+    {
+      date: '2025.12.03',
+      title: '메인 페이지 개편',
+      description: '모든 기능을 한눈에 볼 수 있는 대시보드 형태로 개선했습니다',
+    },
+    {
+      date: '2025.12.01',
+      title: '차량 정보 업데이트',
+      description: '배차 시스템의 차량 정보가 최신화되었습니다',
+    },
+    {
+      date: '2025.01.01',
+      title: '모니터 신청 화면 추가',
+      description: '모니터 대여 신청 및 현황 확인 기능이 추가되었습니다',
+    },
   ];
 
   const notices = [
     {
-      date: '2026.01.19',
-      title: '오늘의 메뉴 알림 서비스 일시 중단 안내',
-      content:
-        '소담 식당 사장님 개인 사정으로 인해 "오늘의 메뉴" 알림 서비스가 일시 중단됩니다.\n\n서비스 재개 시 별도 공지드리겠습니다. 이용에 불편을 드려 죄송합니다.',
+      date: '2026.04.01',
+      title: '오늘의 메뉴 알림 서비스 재개 안내',
+      content: '오늘의 메뉴 알림 서비스가 재개되었습니다!',
     },
     {
       date: '2025.12.23',
@@ -500,18 +507,18 @@ export default function Works() {
       content:
         '포털 및 콘텐츠 영역에 카카오 광고가 게재됩니다.\n현재는 운영자 개인 실험용으로 진행 중이며, 수익은 거의 없습니다.\n\n이용에 불편을 드려 죄송하며, 요청 시 광고 수익 현황은 투명하게 공개 가능합니다.\n(커피값도 안 나와요 😅) 🙏🏻',
     },
-    // {
-    //   date: '2025.12.11',
-    //   title: 'F1Works 확장 프로그램 다운로드',
-    //   content: 'F1Works 확장 프로그램을 설치하여 더 편리하게 사용하세요',
-    //   link: 'https://chromewebstore.google.com/detail/f1works-extensions/ljpcdbbmboicadbkkkobjpnfgdaickjj?authuser=0&hl=ko',
-    //   isLink: true,
-    // },
-    // {
-    //   date: '2025.12.01',
-    //   title: '주유 카드 위치 안내',
-    //   content: '주유 카드는 중앙 팔걸이 보관함 비닐 케이스에 있습니다',
-    // },
+    {
+      date: '2025.12.11',
+      title: 'F1Works 확장 프로그램 다운로드',
+      content: 'F1Works 확장 프로그램을 설치하여 더 편리하게 사용하세요',
+      link: 'https://chromewebstore.google.com/detail/f1works-extensions/ljpcdbbmboicadbkkkobjpnfgdaickjj?authuser=0&hl=ko',
+      isLink: true,
+    },
+    {
+      date: '2025.12.01',
+      title: '주유 카드 위치 안내',
+      content: '주유 카드는 중앙 팔걸이 보관함 비닐 케이스에 있습니다',
+    },
   ];
 
   // 상단 알림 배너 설정
@@ -814,15 +821,27 @@ export default function Works() {
               <h3>📢 최근 업데이트</h3>
             </div>
             <div className="info-card-body">
-              {updates.map((update, index) => (
-                <div key={index} className="info-item">
-                  <div className="info-date">{update.date}</div>
-                  <div className="info-content">
-                    <h4>{update.title}</h4>
-                    <p>{update.description}</p>
+              {(showAllUpdates ? updates : updates.slice(0, VISIBLE_COUNT)).map(
+                (update, index) => (
+                  <div key={index} className="info-item">
+                    <div className="info-date">{update.date}</div>
+                    <div className="info-content">
+                      <h4>{update.title}</h4>
+                      <p>{update.description}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ),
+              )}
+              {updates.length > VISIBLE_COUNT && (
+                <button
+                  className="info-show-more"
+                  onClick={() => setShowAllUpdates((prev) => !prev)}
+                >
+                  {showAllUpdates
+                    ? '접기 ▲'
+                    : `더보기 (${updates.length - VISIBLE_COUNT}건 더) ▼`}
+                </button>
+              )}
             </div>
           </div>
 
@@ -831,22 +850,34 @@ export default function Works() {
               <h3>📌 공지사항</h3>
             </div>
             <div className="info-card-body">
-              {notices.map((notice, index) => (
-                <div
-                  key={index}
-                  className="info-item"
-                  onClick={() =>
-                    notice.isLink && window.open(notice.link, '_blank')
-                  }
-                  style={{ cursor: notice.isLink ? 'pointer' : 'default' }}
-                >
-                  <div className="info-date">{notice.date}</div>
-                  <div className="info-content">
-                    <h4>{notice.title}</h4>
-                    <p style={{ whiteSpace: 'pre-line' }}>{notice.content}</p>
+              {(showAllNotices ? notices : notices.slice(0, VISIBLE_COUNT)).map(
+                (notice, index) => (
+                  <div
+                    key={index}
+                    className="info-item"
+                    onClick={() =>
+                      notice.isLink && window.open(notice.link, '_blank')
+                    }
+                    style={{ cursor: notice.isLink ? 'pointer' : 'default' }}
+                  >
+                    <div className="info-date">{notice.date}</div>
+                    <div className="info-content">
+                      <h4>{notice.title}</h4>
+                      <p style={{ whiteSpace: 'pre-line' }}>{notice.content}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ),
+              )}
+              {notices.length > VISIBLE_COUNT && (
+                <button
+                  className="info-show-more"
+                  onClick={() => setShowAllNotices((prev) => !prev)}
+                >
+                  {showAllNotices
+                    ? '접기 ▲'
+                    : `더보기 (${notices.length - VISIBLE_COUNT}건 더) ▼`}
+                </button>
+              )}
             </div>
           </div>
         </div>

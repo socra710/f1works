@@ -62,8 +62,8 @@ const CharacterShop = ({
       try {
         const res = await fetch(
           `${API_BASE_URL}/jvWorksGetUserPurchases?userId=${encodeURIComponent(
-            userId
-          )}`
+            userId,
+          )}`,
         );
         if (!res.ok) throw new Error('구매 목록 로드 실패');
 
@@ -188,8 +188,9 @@ const CharacterShop = ({
       });
 
   // 보유중인 아이템 상세 리스트 (상단 요약 표시용)
+  // eslint-disable-next-line no-unused-vars
   const purchasedItemDetails = items.filter((item) =>
-    purchasedItems.includes(item.id)
+    purchasedItems.includes(item.id),
   );
 
   // 구매 처리
@@ -210,7 +211,7 @@ const CharacterShop = ({
     if (coins < finalPrice) {
       showToast(
         `코인이 부족합니다. 필요: ${finalPrice}, 보유: ${coins}`,
-        'warning'
+        'warning',
       );
       return;
     }
@@ -377,16 +378,16 @@ const CharacterShop = ({
                 const badgeClass = isLimited
                   ? styles['badge-limited-top']
                   : isPromo
-                  ? styles['badge-promo']
-                  : styles['badge-discount'];
+                    ? styles['badge-promo']
+                    : styles['badge-discount'];
                 const badgeLabel =
                   item.eventLabel ||
                   (isLimited ? '한정' : isPromo ? '프로모션' : '할인');
                 const priceToneClass = isLimited
                   ? styles['price-limited']
                   : isPromo
-                  ? styles['price-promo']
-                  : styles['price-discount'];
+                    ? styles['price-promo']
+                    : styles['price-discount'];
                 const badgePeriod = periodMeta.text;
 
                 return (
@@ -398,8 +399,8 @@ const CharacterShop = ({
                       isPromo
                         ? styles['on-promo']
                         : hasDiscount && !isLimited
-                        ? styles['on-sale']
-                        : ''
+                          ? styles['on-sale']
+                          : ''
                     }`}
                     onClick={() =>
                       !isPurchased && setSelectedItemForDetails(item)
@@ -540,8 +541,8 @@ const CharacterShop = ({
                       isLimited
                         ? styles['badge-limited-top']
                         : isPromo
-                        ? styles['badge-promo']
-                        : styles['badge-discount']
+                          ? styles['badge-promo']
+                          : styles['badge-discount']
                     }
                   >
                     <div>
@@ -570,8 +571,8 @@ const CharacterShop = ({
                   const priceToneClass = isLimited
                     ? styles['price-limited']
                     : isPromo
-                    ? styles['price-promo']
-                    : styles['price-discount'];
+                      ? styles['price-promo']
+                      : styles['price-discount'];
                   if (hasDiscount) {
                     const meta = getDiscountPeriodMeta(selectedItemForDetails);
                     return (
@@ -622,8 +623,8 @@ const CharacterShop = ({
                         isLimited
                           ? styles['price-limited']
                           : isPromo
-                          ? styles['price-promo']
-                          : ''
+                            ? styles['price-promo']
+                            : ''
                       }
                     >
                       💰 {selectedItemForDetails.price} 코인
@@ -805,6 +806,7 @@ function getDiscountPeriod(item) {
 /**
  * 백엔드 미구현 시 임시 기간을 제공 (오늘부터 7일)
  */
+// eslint-disable-next-line no-unused-vars
 function getFallbackPeriod(days = 7) {
   const now = new Date();
   const end = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
@@ -857,6 +859,7 @@ function getDiscountPeriodMeta(item) {
   if (!item) return { text: '', icon: '📅', isUrgent: false };
   // 원본 기간 텍스트 우선
   const actualText = getDiscountPeriod(item);
+  // eslint-disable-next-line no-unused-vars
   const isPromo = item.eventType === 'PRMO';
 
   // 시작/종료 원시값 수집

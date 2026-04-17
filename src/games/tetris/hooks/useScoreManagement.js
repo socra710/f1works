@@ -1,12 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { API_BASE_URL, MAX_DAILY_SERVER_SAVES } from '../utils/constants';
-import {
-  getDailySaveInfo,
-  setDailySaveInfo,
-  getTodayString,
-  savePlayerName,
-  loadPlayerName,
-} from '../utils/storageUtils';
+import { API_BASE_URL } from '../utils/constants';
+import { savePlayerName, loadPlayerName } from '../utils/storageUtils';
 
 export const useScoreManagement = () => {
   const [highScores, setHighScores] = useState([]);
@@ -35,7 +29,7 @@ export const useScoreManagement = () => {
             name: s.name,
             score: s.score,
             date: s.date,
-          }))
+          })),
         );
       } else {
         setHighScores([]);
@@ -99,7 +93,7 @@ export const useScoreManagement = () => {
         setShowNameModal(false);
       }
     },
-    [fetchHighScores]
+    [fetchHighScores],
   );
 
   const handleSaveName = useCallback(
@@ -109,7 +103,7 @@ export const useScoreManagement = () => {
       setSaveAttemptsLeft(999);
       saveScoreToServer(trimmedName, score, userId);
     },
-    [saveScoreToServer]
+    [saveScoreToServer],
   );
 
   const handleCancelModal = useCallback(() => {

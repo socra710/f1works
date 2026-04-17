@@ -28,7 +28,7 @@ const Tetris = () => {
 
     const isMobile =
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
+        navigator.userAgent,
       );
     if (isMobile) {
       showToast('모바일에서는 플레이 할 수 없습니다.', 'error');
@@ -108,6 +108,7 @@ const Tetris = () => {
       map[c] = palette[idx] || c;
     });
     return map;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme]);
 
   // 게임 로직 훅

@@ -1113,15 +1113,28 @@ export default function ExpenseSummary() {
                           );
 
                           let renderedStatusCount = {};
-                          entries.forEach(([name, data]) => {
+                          entries.forEach(([name, data], index) => {
                             const statusKey = data.status || '기타';
+                            const prevStatusKey =
+                              index > 0
+                                ? entries[index - 1][1].status || '기타'
+                                : null;
+                            const isStatusBoundary =
+                              index > 0 && prevStatusKey !== statusKey;
                             const shouldRenderStatus =
                               !renderedStatusCount[statusKey];
                             renderedStatusCount[statusKey] =
                               (renderedStatusCount[statusKey] || 0) + 1;
 
                             allRows.push(
-                              <tr key={name}>
+                              <tr
+                                key={name}
+                                className={
+                                  isStatusBoundary
+                                    ? 'status-separator-row'
+                                    : undefined
+                                }
+                              >
                                 {shouldRenderStatus && (
                                   <td
                                     className="category"

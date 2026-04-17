@@ -64,7 +64,7 @@ export const useScoreManagement = () => {
             score: s.score,
             coins: s.coins || 0,
             date: s.date,
-          }))
+          })),
         );
       } else {
         setHighScores([]);
@@ -90,12 +90,12 @@ export const useScoreManagement = () => {
       try {
         const res = await fetch(
           `${API_BASE_URL}/jvWorksGetRunnerCoins?userId=${encodeURIComponent(
-            uid
+            uid,
           )}`,
           {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
-          }
+          },
         );
         if (!res.ok) return;
         const json = await res.json();
@@ -125,6 +125,7 @@ export const useScoreManagement = () => {
   }, [fetchHighScores]);
 
   // 서버에 점수 저장
+  // eslint-disable-next-line no-unused-vars
   const saveScoreToServer = useCallback(
     async (name, score, coins, userId) => {
       setIsSaving(true);
@@ -159,7 +160,7 @@ export const useScoreManagement = () => {
         setIsSaving(false);
       }
     },
-    [fetchHighScores]
+    [fetchHighScores],
   );
 
   // 게임 종료 시 자동 점수/코인 저장 (모달 없이 바로 저장)
@@ -184,7 +185,7 @@ export const useScoreManagement = () => {
         console.error('자동 점수 저장 실패:', error);
       }
     },
-    [fetchHighScores]
+    [fetchHighScores],
   );
 
   // 닉네임 저장 핸들러
@@ -210,7 +211,7 @@ export const useScoreManagement = () => {
             nickname: name.trim(),
             userId: userId || '',
           }),
-        }
+        },
       );
 
       if (checkResponse.ok) {
@@ -218,7 +219,7 @@ export const useScoreManagement = () => {
         if (checkData.success && checkData.isDuplicate) {
           showToast(
             checkData.message || '이미 사용 중인 닉네임입니다',
-            'warning'
+            'warning',
           );
           return;
         }
@@ -227,7 +228,7 @@ export const useScoreManagement = () => {
       console.error('닉네임 중복 체크 실패:', error);
       showToast(
         '닉네임 중복 체크 중 문제가 발생했어요. 다시 시도해주세요.',
-        'error'
+        'error',
       );
       // 중복 체크 실패 시에도 계속 진행 (네트워크 오류 등)
     }

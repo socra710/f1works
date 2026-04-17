@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import 'font-kopubworld/css/dotum.css';
 import './index.css';
 import App from './App';
 import Modal from 'react-modal';
@@ -17,7 +18,7 @@ root.render(
     <HelmetProvider>
       <App />
     </HelmetProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );
 
 // if (container.hasChildNodes()) {

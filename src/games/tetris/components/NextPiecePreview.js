@@ -48,11 +48,12 @@ const NextPiecePreview = ({ canvasRef, nextPiece, colorMap = {} }) => {
             offsetX + x * previewBlockSize,
             offsetY + y * previewBlockSize,
             previewBlockSize - 1,
-            previewBlockSize - 1
+            previewBlockSize - 1,
           );
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canvasRef, nextPiece]);
 
   React.useEffect(() => {

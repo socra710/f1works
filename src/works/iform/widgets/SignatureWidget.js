@@ -5,6 +5,7 @@ import styles from './SignatureWidget.module.css';
 export default function SignatureWidget(props) {
   const { value, onChange, readonly, disabled } = props;
   const sigRef = useRef(null);
+  // eslint-disable-next-line no-unused-vars
   const [hasSignature, setHasSignature] = useState(!!value);
   const isLoadedRef = useRef(false);
 

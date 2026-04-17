@@ -15,7 +15,7 @@ export default function AnalysisBanner({ comment, isLoading, onExpand }) {
         g
           .split(/\n/)
           .map((l) => l.trim())
-          .filter((l) => l.length > 0)
+          .filter((l) => l.length > 0),
       )
       .filter((g) => g.length > 0);
   }, [comment]);
@@ -26,7 +26,7 @@ export default function AnalysisBanner({ comment, isLoading, onExpand }) {
   const lineLengths = useMemo(() => flatLines.map(getTextLen), [flatLines]);
   const totalCharsAll = useMemo(
     () => lineLengths.reduce((a, b) => a + b, 0),
-    [lineLengths]
+    [lineLengths],
   );
 
   // 안전한 HTML 슬라이스 (문자 기준). 태그는 유지하고 텍스트만 자름.
@@ -95,6 +95,7 @@ export default function AnalysisBanner({ comment, isLoading, onExpand }) {
   // 코멘트 변경 시 초기화 (접힘/펼침과 무관)
   useEffect(() => {
     resetStreaming();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [comment]);
 
   // 확장 시에만 타이핑 시작. 접었다 펴도 진행 상태 유지.
@@ -268,7 +269,7 @@ export default function AnalysisBanner({ comment, isLoading, onExpand }) {
                           key={`g-${gi}-l-${li}`}
                           style={{ marginBottom: 4 }}
                           dangerouslySetInnerHTML={{ __html: html }}
-                        />
+                        />,
                       );
                       remainingGlobal -= len;
                     } else {
@@ -278,7 +279,7 @@ export default function AnalysisBanner({ comment, isLoading, onExpand }) {
                           key={`g-${gi}-l-${li}`}
                           style={{ marginBottom: 4 }}
                           dangerouslySetInnerHTML={{ __html: sliced }}
-                        />
+                        />,
                       );
                       remainingGlobal = 0;
                       break;
