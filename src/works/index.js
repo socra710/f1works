@@ -416,7 +416,7 @@ export default function Works() {
       date: '2026.04.30',
       title: 'F1Works 모니터링 추가',
       description:
-        '관리 탭에서 운영 웹서버 상태 페이지로 바로 이동할 수 있습니다.',
+        '관리 탭에서 운영 웹서버 상태 모니터링 페이지로 바로 이동할 수 있습니다.',
     },
     {
       date: '2026.04.17',
