@@ -311,7 +311,7 @@ export default function Works() {
       },
       {
         title: 'F1Works 모니터링',
-        description: '운영 웹서버 상태 및 스케줄러를 모니터링하세요',
+        description: '운영 웹서버 상태를 모니터링하세요',
         icon: '📡',
         path: 'http://192.168.80.115:3000/monitor',
         category: '관리',
@@ -416,7 +416,7 @@ export default function Works() {
       date: '2026.04.30',
       title: 'F1Works 모니터링 추가',
       description:
-        '관리 탭에서 운영 웹서버 상태 및 스케줄러 모니터링 페이지로 바로 이동할 수 있습니다.',
+        '관리 탭에서 운영 웹서버 상태 페이지로 바로 이동할 수 있습니다.',
     },
     {
       date: '2026.04.17',
