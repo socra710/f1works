@@ -5,4 +5,5 @@ export const menuOptions = [
   { key: 'ASSET', label: '자산 관리' },
   { key: 'IFORM', label: '통합 문서 관리' },
   { key: 'CUSTOMER', label: '고객 관리' },
+  { key: 'SERVER_HEALTH', label: '서버 관리' },
 ];

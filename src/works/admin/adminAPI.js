@@ -138,12 +138,14 @@ export const checkAdminRole = async ({ userId, menuKey }) => {
 
 export const searchUsers = async ({ factoryCode = '000001', query = '' }) => {
   ensureBaseUrl();
+
+  const formData = new FormData();
+  formData.append('factoryCode', factoryCode);
+  formData.append('query', query);
+
   const response = await fetch(`${API_BASE_URL}/jvWorksGetUserList`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({ factoryCode, query }).toString(),
+    body: formData,
   });
 
   const data = await parseJsonSafe(response, '사용자 검색에 실패했습니다.');

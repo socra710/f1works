@@ -73,7 +73,7 @@ export default function Works() {
   const [notificationVisible, setNotificationVisible] = useState(false);
   const [showAllUpdates, setShowAllUpdates] = useState(false);
   const [showAllNotices, setShowAllNotices] = useState(false);
-  const VISIBLE_COUNT = 3;
+  const VISIBLE_COUNT = 4;
 
   const persistAdminStatus = (status) => {
     try {
@@ -310,6 +310,16 @@ export default function Works() {
         inNew: '2025-12-26', // 신규 출시 날짜
       },
       {
+        title: 'F1Works 모니터링',
+        description: '운영 웹서버 상태 및 스케줄러를 모니터링하세요',
+        icon: '📡',
+        path: 'http://192.168.80.115:3000/monitor',
+        category: '관리',
+        requiresAdmin: true,
+        requiredMenuKey: 'SERVER_HEALTH',
+        inNew: '2026-04-30', // 신규 출시 날짜
+      },
+      {
         title: '오늘의 단어',
         description: '영어 단어 퍼즐 게임으로 짧은 휴식을 즐겨보세요',
         icon: '🎮',
@@ -402,6 +412,12 @@ export default function Works() {
   }, [checked, categoriesWithItems, selectedTab, userMenuKeys]);
 
   const updates = [
+    {
+      date: '2026.04.30',
+      title: 'F1Works 모니터링 추가',
+      description:
+        '관리 탭에서 운영 웹서버 상태 및 스케줄러 모니터링 페이지로 바로 이동할 수 있습니다.',
+    },
     {
       date: '2026.04.17',
       title: 'F1Works 웹 폰트 변경 적용',
@@ -562,7 +578,7 @@ export default function Works() {
   };
 
   const handleNavigate = (path) => {
-    if (path.startsWith('https://')) {
+    if (path.startsWith('https://') || path.startsWith('http://')) {
       window.open(path, '_blank');
       return;
     }
