@@ -342,13 +342,7 @@ export default function Works() {
         category: '게임',
         inNew: '2025-12-22', // 신규 출시 날짜
       },
-      {
-        title: '오늘의 메뉴',
-        description: '소담뷔페 오늘의 메뉴를 확인하세요',
-        icon: '🍽️',
-        path: 'https://watbab.com',
-        category: '메뉴',
-      },
+      // 소담 오늘의 메뉴 서비스 종료로 메뉴 카드 숨김
       {
         title: '뉴스 피드',
         description: 'Works 사용자를 위한 뉴스 피드',
@@ -489,9 +483,10 @@ export default function Works() {
 
   const notices = [
     {
-      date: '2026.04.01',
-      title: '오늘의 메뉴 알림 서비스 재개 안내',
-      content: '오늘의 메뉴 알림 서비스가 재개되었습니다!',
+      date: '2026.07.10',
+      title: '오늘의 메뉴 서비스 종료 안내',
+      content:
+        '소담 오늘의 메뉴 서비스가 종료되었습니다. 이용해주셔서 감사합니다.',
     },
     {
       date: '2025.12.23',
