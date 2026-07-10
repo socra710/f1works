@@ -1,0 +1,798 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>F1Works 소개 문서</title>
+    <style>
+      @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+      :root {
+        --bg: #f3f6fb;
+        --surface: #ffffff;
+        --text: #182133;
+        --muted: #5c6882;
+        --brand: #0d3b66;
+        --brand-2: #1d7ccf;
+        --accent: #f4b942;
+        --line: #d8e0ee;
+        --slot-bg: #eef3fb;
+        --slot-line: #8ea6c7;
+        --ok: #0f766e;
+        --radius-xl: 22px;
+        --radius-md: 14px;
+        --shadow: 0 14px 32px rgba(16, 38, 71, 0.1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        font-family:
+          'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(
+            900px 420px at 90% -10%,
+            #d7e9ff 0%,
+            rgba(215, 233, 255, 0) 70%
+          ),
+          radial-gradient(
+            800px 360px at -10% 20%,
+            #ffeecf 0%,
+            rgba(255, 238, 207, 0) 65%
+          ),
+          var(--bg);
+        line-height: 1.6;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        backdrop-filter: blur(10px);
+        background: rgba(243, 246, 251, 0.86);
+        border-bottom: 1px solid rgba(216, 224, 238, 0.9);
+      }
+
+      .topbar-inner {
+        max-width: 1160px;
+        margin: 0 auto;
+        padding: 12px 20px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      .brand {
+        font-weight: 800;
+        letter-spacing: 0.2px;
+        color: var(--brand);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 15px;
+      }
+
+      .brand-mark {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        background: linear-gradient(120deg, var(--brand), var(--brand-2));
+        box-shadow: 0 0 0 6px rgba(29, 124, 207, 0.12);
+      }
+
+      .nav {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .nav a {
+        text-decoration: none;
+        color: var(--muted);
+        font-size: 13px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid rgba(216, 224, 238, 0.9);
+        transition: 0.2s ease;
+      }
+
+      .nav a:hover {
+        color: var(--brand);
+        transform: translateY(-1px);
+        border-color: #b9c9e2;
+      }
+
+      main {
+        max-width: 1160px;
+        margin: 28px auto 90px;
+        padding: 0 20px;
+        display: grid;
+        gap: 22px;
+      }
+
+      .hero {
+        background: linear-gradient(
+          140deg,
+          #0d3b66 0%,
+          #1f5f98 58%,
+          #1d7ccf 100%
+        );
+        color: #f8fbff;
+        border-radius: var(--radius-xl);
+        padding: 38px;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+        animation: rise 520ms ease both;
+      }
+
+      .hero::after {
+        content: '';
+        position: absolute;
+        width: 460px;
+        height: 460px;
+        border-radius: 50%;
+        right: -120px;
+        top: -220px;
+        background: radial-gradient(
+          circle,
+          rgba(244, 185, 66, 0.34),
+          rgba(244, 185, 66, 0)
+        );
+        pointer-events: none;
+      }
+
+      .hero h1 {
+        margin: 0 0 12px;
+        font-size: clamp(30px, 4vw, 48px);
+        line-height: 1.16;
+        letter-spacing: -0.02em;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 760px;
+        color: rgba(248, 251, 255, 0.93);
+        font-size: 17px;
+      }
+
+      .hero-meta {
+        margin-top: 18px;
+        display: inline-flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .chip {
+        font-size: 12px;
+        font-weight: 700;
+        color: #0d3b66;
+        background: #fef5df;
+        border: 1px solid rgba(254, 245, 223, 0.5);
+        padding: 6px 10px;
+        border-radius: 999px;
+      }
+
+      .section {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow);
+        padding: 28px;
+        animation: rise 520ms ease both;
+      }
+
+      .section:nth-child(2) {
+        animation-delay: 50ms;
+      }
+      .section:nth-child(3) {
+        animation-delay: 80ms;
+      }
+      .section:nth-child(4) {
+        animation-delay: 110ms;
+      }
+      .section:nth-child(5) {
+        animation-delay: 140ms;
+      }
+      .section:nth-child(6) {
+        animation-delay: 170ms;
+      }
+      .section:nth-child(7) {
+        animation-delay: 200ms;
+      }
+      .section:nth-child(8) {
+        animation-delay: 230ms;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+      }
+
+      .section-id {
+        color: var(--brand-2);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .section h2 {
+        margin: 0;
+        font-size: clamp(22px, 3vw, 30px);
+        letter-spacing: -0.01em;
+      }
+
+      .section-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 1fr;
+        gap: 18px;
+      }
+
+      .content p {
+        margin: 0 0 12px;
+        color: var(--muted);
+      }
+
+      .content ul {
+        margin: 0;
+        padding-left: 20px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .module-list {
+        margin-top: 8px;
+      }
+
+      .module-list li {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1;
+        padding: 5px 8px;
+        border-radius: 999px;
+        letter-spacing: 0.04em;
+      }
+
+      .badge.external {
+        color: #7a4d00;
+        background: #fff3da;
+        border: 1px solid #f3d89c;
+      }
+
+      .badge.basic {
+        color: #305080;
+        background: #e8f0ff;
+        border: 1px solid #bed0f3;
+      }
+
+      .key-message {
+        margin-top: 14px;
+        padding: 11px 14px;
+        border-radius: 10px;
+        background: #f7fbff;
+        border: 1px solid #d7e8ff;
+        color: #10416d;
+        font-weight: 700;
+        font-size: 14px;
+      }
+
+      .image-slot {
+        border: 2px dashed var(--slot-line);
+        background:
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.72),
+            rgba(255, 255, 255, 0.72)
+          ),
+          repeating-linear-gradient(
+            -45deg,
+            rgba(142, 166, 199, 0.15),
+            rgba(142, 166, 199, 0.15) 10px,
+            rgba(142, 166, 199, 0.05) 10px,
+            rgba(142, 166, 199, 0.05) 20px
+          );
+        border-radius: var(--radius-md);
+        min-height: 250px;
+        padding: 16px;
+        display: grid;
+        align-content: center;
+        justify-items: center;
+        text-align: center;
+        gap: 8px;
+        color: #50607d;
+      }
+
+      .image-slot strong {
+        color: #27466f;
+        font-size: 15px;
+      }
+
+      .image-slot .hint {
+        font-size: 13px;
+        color: #627494;
+      }
+
+      .image-slot .replace {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #6a7d9f;
+        background: #edf3ff;
+        border: 1px solid #d4e2fb;
+        border-radius: 8px;
+        padding: 7px 10px;
+      }
+
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .kpi {
+        background: #f7faf8;
+        border: 1px solid #d2e8e4;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 14px;
+        color: #184742;
+      }
+
+      .timeline {
+        margin: 0;
+        padding-left: 20px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .cta {
+        border-radius: var(--radius-xl);
+        border: 1px solid #c9d9f3;
+        padding: 26px;
+        background: linear-gradient(145deg, #f9fcff 0%, #ecf4ff 100%);
+        box-shadow: var(--shadow);
+      }
+
+      .cta p {
+        margin: 0;
+        color: #27466f;
+      }
+
+      .footer-note {
+        margin-top: 10px;
+        font-size: 12px;
+        color: #7183a2;
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 1000px) {
+        .section-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .kpi-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .hero,
+        .section,
+        .cta {
+          padding: 20px;
+        }
+
+        .topbar-inner {
+          padding: 10px 12px;
+        }
+
+        .nav a {
+          font-size: 12px;
+          padding: 5px 9px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          F1Works 소개 문서
+        </div>
+        <nav class="nav" aria-label="섹션 이동">
+          <a href="#intro">도입</a>
+          <a href="#home-screen">홈화면</a>
+          <a href="#work-module">업무</a>
+          <a href="#game-module">게임</a>
+          <a href="#menu-module">메뉴</a>
+          <a href="#news-module">뉴스</a>
+          <a href="#admin-module">관리</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section id="intro" class="hero">
+        <h1>F1Works 소개</h1>
+        <p>
+          F1Works는 사내 업무를 하나의 흐름으로 연결해 사용하는 통합
+          플랫폼입니다. 사용자 업무 처리부터 관리자 운영까지 한 곳에서 확인하고
+          실행할 수 있도록 구성되어 있습니다.
+        </p>
+        <div class="hero-meta">
+          <span class="chip">사내 통합 플랫폼</span>
+          <span class="chip">업무 효율화</span>
+          <span class="chip">운영 가시성 강화</span>
+        </div>
+      </section>
+
+      <section id="home-screen" class="section">
+        <div class="section-header">
+          <span class="section-id">Section 00</span>
+          <h2>홈화면: 전체 기능으로 연결되는 시작점</h2>
+        </div>
+        <div class="section-grid">
+          <div class="content">
+            <p>
+              홈화면은 주요 기능으로 빠르게 이동할 수 있는 진입 지점입니다.
+              사용자 입장에서 자주 사용하는 메뉴와 최신 정보 접근을 한 곳에서
+              제공합니다.
+            </p>
+            <ul class="module-list">
+              <li>카테고리별 기능 접근(업무, 게임, 메뉴, 뉴스, 관리)</li>
+              <li>주요 화면으로의 빠른 이동 허브</li>
+              <li>사용자 동선 중심의 통합 진입 구조</li>
+            </ul>
+            <div class="key-message">
+              핵심 메시지: 홈화면 하나로 F1Works의 전체 기능 흐름에 즉시 진입할
+              수 있습니다.
+            </div>
+          </div>
+          <div class="image-slot" aria-label="홈화면 이미지 자리">
+            <img
+              src="f1works.netlify.app1.jpeg"
+              alt="F1Works 홈화면 대시보드"
+              style="
+                width: 100%;
+                height: auto;
+                border-radius: 10px;
+                object-fit: cover;
+              "
+            />
+          </div>
+        </div>
+      </section>
+
+      <section id="work-module" class="section">
+        <div class="section-header">
+          <span class="section-id">Section 01</span>
+          <h2>업무: 신청부터 기록까지 한 곳에서</h2>
+        </div>
+        <div class="section-grid">
+          <div class="content">
+            <p>
+              사용자 업무 흐름과 관리자 운영 흐름이 만나는 핵심 영역입니다. 실제
+              운영 중인 기능 7개를 포함합니다.
+            </p>
+            <ul class="module-list">
+              <li>배차 신청</li>
+              <li>모니터 신청</li>
+              <li>
+                일정 관리
+                <span class="badge basic">기본 구현</span>
+              </li>
+              <li>경비 청구</li>
+              <li>H/W 관리대장</li>
+              <li>통합 문서 작성(베타)</li>
+              <li>고객과의 연결고리</li>
+            </ul>
+            <div class="key-message">
+              핵심 메시지: 현업 입력, 승인 연계, 이력 누적이 끊기지 않는 업무
+              기반을 제공합니다.
+            </div>
+          </div>
+          <div class="image-slot" aria-label="업무 카테고리 이미지 자리">
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                width: 100%;
+                min-height: 280px;
+              "
+            >
+              <img
+                src="f1works.netlify.app2.jpeg"
+                alt="홈화면 캡처 1"
+                style="
+                  width: 100%;
+                  height: 100%;
+                  border-radius: 10px;
+                  object-fit: cover;
+                "
+              />
+              <div
+                style="
+                  display: grid;
+                  grid-template-rows: 1fr 1fr;
+                  gap: 10px;
+                  height: 100%;
+                "
+              >
+                <img
+                  src="f1works.netlify.app3.jpeg"
+                  alt="홈화면 캡처 2"
+                  style="
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 10px;
+                    object-fit: cover;
+                  "
+                />
+                <img
+                  src="f1works.netlify.app4.jpeg"
+                  alt="홈화면 캡처 3"
+                  style="
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 10px;
+                    object-fit: cover;
+                  "
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="game-module" class="section">
+        <div class="section-header">
+          <span class="section-id">Section 02</span>
+          <h2>게임: 참여와 재미를 더하는 사내 콘텐츠</h2>
+        </div>
+        <div class="section-grid">
+          <div class="content">
+            <p>
+              사내 사용자 참여도를 높이기 위해 3개의 게임 콘텐츠가 운영되고
+              있으며 점수/기록 관리가 연동됩니다.
+            </p>
+            <ul class="module-list">
+              <li>오늘의 단어 (Wordle)</li>
+              <li>테트리스</li>
+              <li>러너</li>
+            </ul>
+            <div class="key-message">
+              핵심 메시지: 업무 플랫폼 안에서 사용자 참여 경험까지 함께
+              제공합니다.
+            </div>
+          </div>
+          <div class="image-slot" aria-label="게임 카테고리 이미지 자리">
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                width: 100%;
+                min-height: 280px;
+              "
+            >
+              <img
+                src="f1works.netlify.app5.jpeg"
+                alt="홈화면 캡처 1"
+                style="
+                  width: 100%;
+                  height: 100%;
+                  border-radius: 10px;
+                  object-fit: cover;
+                "
+              />
+              <img
+                src="f1works.netlify.app6.jpeg"
+                alt="홈화면 캡처 2"
+                style="
+                  width: 100%;
+                  height: 100%;
+                  border-radius: 10px;
+                  object-fit: cover;
+                "
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="menu-module" class="section">
+        <div class="section-header">
+          <span class="section-id">Section 03</span>
+          <h2>메뉴: 오늘의 메뉴 빠른 확인</h2>
+        </div>
+        <div class="section-grid">
+          <div class="content">
+            <p>
+              사용자 편의 기능으로 당일 식단 확인을 빠르게 제공합니다. 내부
+              구현은 연결 허브 역할이고 실제 메뉴 서비스는 외부 연동입니다.
+            </p>
+            <ul class="module-list">
+              <li>
+                오늘의 메뉴
+                <span class="badge external">외부 연동</span>
+              </li>
+            </ul>
+            <div class="key-message">
+              핵심 메시지: 반복 조회 시간을 줄여 사용자 접근성을 높입니다.
+            </div>
+          </div>
+          <div class="image-slot" aria-label="메뉴 카테고리 이미지 자리">
+            <img
+              src="f1works.netlify.app8.jpeg"
+              alt="홈화면 캡처 1"
+              style="
+                width: 100%;
+                height: 300px;
+                border-radius: 10px;
+                object-fit: cover;
+              "
+            />
+          </div>
+        </div>
+      </section>
+
+      <section id="news-module" class="section">
+        <div class="section-header">
+          <span class="section-id">Section 04</span>
+          <h2>뉴스: 업무 화면에서 바로 확인하는 피드</h2>
+        </div>
+        <div class="section-grid">
+          <div class="content">
+            <p>
+              업무 화면과 분리되지 않은 뉴스 확인 경험을 제공해 정보 접근 속도를
+              높입니다.
+            </p>
+            <ul class="module-list">
+              <li>뉴스 피드 (상단/최신 분리 조회)</li>
+            </ul>
+            <div class="key-message">
+              핵심 메시지: 필요한 소식을 업무 동선 안에서 빠르게 확인할 수
+              있습니다.
+            </div>
+          </div>
+          <div class="image-slot" aria-label="뉴스 카테고리 이미지 자리">
+            <img
+              src="f1works.netlify.app7.jpeg"
+              alt="홈화면 캡처 1"
+              style="
+                width: 100%;
+                height: 300px;
+                border-radius: 10px;
+                object-fit: cover;
+              "
+            />
+          </div>
+        </div>
+      </section>
+
+      <section id="admin-module" class="section">
+        <div class="section-header">
+          <span class="section-id">Section 05</span>
+          <h2>관리: 권한 기반으로 운영을 통제하는 영역</h2>
+        </div>
+        <div class="section-grid">
+          <div class="content">
+            <p>
+              관리자 영역은 승인, 집계, 권한 설정, 문서 운영, 모니터링까지
+              포함해 운영 일관성을 보장합니다.
+            </p>
+            <ul class="module-list">
+              <li>경비 청구 관리 (승인/반려)</li>
+              <li>경비 청구 집계 (월별 집계/조회)</li>
+              <li>통합 문서 관리 (템플릿/결재 관리)</li>
+              <li>관리자 설정 (권한 및 메뉴 관리)</li>
+              <li>
+                F1Works 모니터링
+                <span class="badge external">외부 연동</span>
+              </li>
+            </ul>
+            <div class="key-message">
+              핵심 메시지: 담당자가 바뀌어도 정책 기반으로 동일한 운영 품질을
+              유지합니다.
+            </div>
+          </div>
+          <div class="image-slot" aria-label="관리 카테고리 이미지 자리">
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                width: 100%;
+                align-items: start;
+              "
+            >
+              <img
+                src="f1works.netlify.app9.jpeg"
+                alt="홈화면 캡처 1"
+                style="
+                  width: 100%;
+                  height: auto;
+                  display: block;
+                  border-radius: 10px;
+                "
+              />
+              <div
+                style="
+                  display: grid;
+                  grid-template-rows: auto auto;
+                  gap: 10px;
+                  height: auto;
+                "
+              >
+                <img
+                  src="f1works.netlify.app10.jpeg"
+                  alt="홈화면 캡처 2"
+                  style="
+                    width: 100%;
+                    height: auto;
+                    display: block;
+                    border-radius: 10px;
+                  "
+                />
+                <img
+                  src="f1works.netlify.app11.jpeg"
+                  alt="홈화면 캡처 3"
+                  style="
+                    width: 100%;
+                    height: auto;
+                    display: block;
+                    border-radius: 10px;
+                  "
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="cta" aria-labelledby="closing-title">
+        <h2 id="closing-title">마무리 한 줄</h2>
+        <p>
+          F1Works는 업무, 게임, 메뉴, 뉴스, 관리 5개 카테고리를 하나의 흐름으로
+          연결한 운영 플랫폼입니다.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>
