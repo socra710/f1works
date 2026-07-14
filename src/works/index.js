@@ -407,6 +407,12 @@ export default function Works() {
 
   const updates = [
     {
+      date: '2026.07.14',
+      title: '배차 소모품 이력 표시 업데이트',
+      description:
+        '배차 신청 화면 상단에서 소모품별 최근 교환일과 주행거리(km)를 확인할 수 있으며, 더보기/접기로 간편하게 펼쳐볼 수 있습니다.',
+    },
+    {
       date: '2026.04.30',
       title: 'F1Works 모니터링 추가',
       description:
