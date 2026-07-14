@@ -7,6 +7,245 @@ import { waitForExtensionLogin, isMobileUA } from '../../common/extensionLogin';
 
 import ModalHelp from '../components/ModalHelp';
 
+const CONSUMABLE_PREVIEW_COUNT = 2;
+
+const CONSUMABLE_CATEGORIES = [
+  { key: 'engineOil', label: '엔진오일', keywords: ['엔진오일'] },
+  {
+    key: 'airFilter',
+    label: '에어컨필터',
+    keywords: ['에어컨필터', '에어컨 필터'],
+  },
+  { key: 'wiper', label: '와이퍼', keywords: ['와이퍼'] },
+  { key: 'tire', label: '타이어', keywords: ['타이어'] },
+  {
+    key: 'brakePad',
+    label: '브레이크패드',
+    keywords: ['브레이크패드', '브레이크 패드'],
+  },
+  { key: 'battery', label: '배터리', keywords: ['배터리'] },
+];
+
+const buildDefaultConsumableMap = () => {
+  const base = {};
+  CONSUMABLE_CATEGORIES.forEach((category) => {
+    base[category.key] = {
+      date: null,
+      km: null,
+    };
+  });
+  return base;
+};
+
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const normalizeDateText = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  const parts = value.split(/[./-]/).map((item) => item.trim());
+  if (parts.length !== 3) {
+    return null;
+  }
+
+  const [yearRaw, monthRaw, dayRaw] = parts;
+  const year = Number(yearRaw);
+  const month = Number(monthRaw);
+  const day = Number(dayRaw);
+
+  if (
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    !Number.isInteger(day) ||
+    year < 2000 ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31
+  ) {
+    return null;
+  }
+
+  const normalized =
+    String(year).padStart(4, '0') +
+    '-' +
+    String(month).padStart(2, '0') +
+    '-' +
+    String(day).padStart(2, '0');
+
+  const testDate = new Date(normalized + 'T00:00:00');
+  if (Number.isNaN(testDate.getTime())) {
+    return null;
+  }
+
+  return normalized;
+};
+
+const parseKmToNumber = (rawKm) => {
+  if (!rawKm) {
+    return null;
+  }
+
+  const normalizedDigits = rawKm.replace(/[.,\s]/g, '');
+  const kmNumber = Number(normalizedDigits);
+
+  if (!Number.isFinite(kmNumber) || kmNumber <= 0) {
+    return null;
+  }
+
+  return Math.floor(kmNumber);
+};
+
+const formatKm = (kmNumber) => {
+  if (!Number.isFinite(kmNumber)) {
+    return null;
+  }
+  return kmNumber.toLocaleString('ko-KR') + 'km';
+};
+
+const extractKmFromSegment = (segmentText) => {
+  if (!segmentText) {
+    return null;
+  }
+
+  const kmByUnit = segmentText.match(
+    /(\d{1,3}(?:,\d{3})+|\d{3,7})\s*(?:km|KM|Km|키로|킬로)/i,
+  );
+  const kmByLabel = segmentText.match(
+    /(?:주행(?:거리)?|누적(?:주행거리)?|거리)\s*[:=]?\s*(\d{1,3}(?:,\d{3})+|\d{3,7})/i,
+  );
+  const kmByMan = segmentText.match(/(\d{1,3}(?:\.\d+)?)\s*만(?:\s*km)?/i);
+
+  if (kmByMan && kmByMan[1]) {
+    const tenThousands = Number(kmByMan[1]);
+    if (Number.isFinite(tenThousands) && tenThousands > 0) {
+      return Math.floor(tenThousands * 10000);
+    }
+  }
+
+  const rawKm = (kmByUnit && kmByUnit[1]) || (kmByLabel && kmByLabel[1]);
+  return parseKmToNumber(rawKm);
+};
+
+const parseLatestConsumableInfoInText = (text, keywords, fallbackDate) => {
+  if (!text) {
+    return null;
+  }
+
+  const datePattern = '(\\d{4}[./-]\\d{1,2}[./-]\\d{1,2})';
+  const kmPattern =
+    '(?:\\d{1,3}(?:,\\d{3})+|\\d{3,7}|\\d{1,3}(?:\\.\\d+)?\\s*만)\\s*(?:km|KM|Km|키로|킬로)?';
+  const candidates = [];
+  const normalizedFallbackDate = normalizeDateText(fallbackDate);
+
+  const pushCandidate = (rawDate, segmentText) => {
+    const date = normalizeDateText(rawDate);
+    if (!date) {
+      return;
+    }
+
+    const km = extractKmFromSegment(segmentText);
+
+    candidates.push({ date, km });
+  };
+
+  keywords.forEach((keyword) => {
+    const escaped = escapeRegExp(keyword);
+
+    // 1순위: 카테고리:날짜(, km)
+    const strictPattern = new RegExp(
+      `${escaped}\\s*[:=]\\s*${datePattern}(?:[\\s,;/|-]+${kmPattern})?`,
+      'gi',
+    );
+    let strictMatch = strictPattern.exec(text);
+    while (strictMatch) {
+      pushCandidate(strictMatch[1], strictMatch[0]);
+      strictMatch = strictPattern.exec(text);
+    }
+
+    // 2순위: 카테고리 주변 자유문장 보조 인식 (카테고리 앞/뒤 날짜)
+    const nearPattern = new RegExp(
+      `${escaped}[\\s\\S]{0,40}?${datePattern}|${datePattern}[\\s\\S]{0,40}?${escaped}`,
+      'gi',
+    );
+    let nearMatch = nearPattern.exec(text);
+    while (nearMatch) {
+      const rawDate = nearMatch[1] || nearMatch[2];
+      pushCandidate(rawDate, nearMatch[0]);
+      nearMatch = nearPattern.exec(text);
+    }
+
+    // 3순위: 날짜 미기재 교환 문구는 해당 행 날짜를 교환일로 사용
+    if (normalizedFallbackDate) {
+      const hasKeyword = new RegExp(escaped, 'i').test(text);
+      const hasMaintenanceAction = /(교환|교체|수리|보수|보충|완료)/i.test(
+        text,
+      );
+      const seemsPlanned = /(예정|다음\s*교환\s*주기|교환\s*주기)/i.test(text);
+
+      if (hasKeyword && hasMaintenanceAction && !seemsPlanned) {
+        candidates.push({
+          date: normalizedFallbackDate,
+          km: extractKmFromSegment(text),
+        });
+      }
+    }
+  });
+
+  if (candidates.length === 0) {
+    return null;
+  }
+
+  candidates.sort((a, b) => {
+    if (a.date === b.date) {
+      return (b.km || 0) - (a.km || 0);
+    }
+    return a.date > b.date ? -1 : 1;
+  });
+
+  const top = candidates[0];
+  return {
+    date: top.date,
+    km: formatKm(top.km),
+  };
+};
+
+const summarizeConsumableHistory = (rows = []) => {
+  const result = buildDefaultConsumableMap();
+
+  rows.forEach((row) => {
+    const bigo = (row?.BIGO || '').replaceAll('<br />', '\n');
+    const rowDate = row?.USE_DATE_TO || row?.USE_DATE_FROM || row?.APP_DATE;
+
+    CONSUMABLE_CATEGORIES.forEach((category) => {
+      const latestInRow = parseLatestConsumableInfoInText(
+        bigo,
+        category.keywords,
+        rowDate,
+      );
+      if (!latestInRow) {
+        return;
+      }
+
+      const currentLatest = result[category.key]?.date;
+      if (!currentLatest || latestInRow.date > currentLatest) {
+        result[category.key] = latestInRow;
+      }
+
+      if (
+        currentLatest === latestInRow.date &&
+        !result[category.key]?.km &&
+        latestInRow.km
+      ) {
+        result[category.key] = latestInRow;
+      }
+    });
+  });
+
+  return result;
+};
+
 export default function Car() {
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
@@ -18,6 +257,10 @@ export default function Car() {
   const [carStatus, setCarStatus] = useState('운행 가능');
   const [carStatusDesc, setCarStatusDesc] =
     useState('배차 요청 후 담당자 확인');
+  const [consumableHistory, setConsumableHistory] = useState(
+    buildDefaultConsumableMap,
+  );
+  const [consumableExpanded, setConsumableExpanded] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -450,6 +693,9 @@ export default function Car() {
       .then((e) => e.json())
       .then((e) => {
         if (e.data.length === 0) {
+          setConsumableHistory(buildDefaultConsumableMap());
+          setCarStatus('운행 가능');
+          setCarStatusDesc('배차 요청 후 담당자 확인');
           return;
         }
 
@@ -470,6 +716,8 @@ export default function Car() {
         // 스켈레톤이 제거된 후 tbody 정리 (이제 스켈레톤 JSX 요소가 없음)
         setTimeout(() => {
           ele.innerHTML = '';
+
+          setConsumableHistory(summarizeConsumableHistory(e.data));
 
           // 첫번째 배차 데이터로 상태 업데이트
           if (e.data.length > 0) {
@@ -769,6 +1017,41 @@ export default function Car() {
                 <small className={styles['stat-desc']}>
                   유량/주차 위치 기재
                 </small>
+              </div>
+              <div className={styles['stat-card']}>
+                <p className={styles['stat-label']}>소모품 최근 교환</p>
+                <div className={styles['consumable-list']}>
+                  {(consumableExpanded
+                    ? CONSUMABLE_CATEGORIES
+                    : CONSUMABLE_CATEGORIES.slice(0, CONSUMABLE_PREVIEW_COUNT)
+                  ).map((category) => (
+                    <div
+                      key={category.key}
+                      className={styles['consumable-item']}
+                      title={`${category.label} 최근 교환일`}
+                    >
+                      <span className={styles['consumable-name']}>
+                        {category.label}
+                      </span>
+                      <span className={styles['consumable-date']}>
+                        {consumableHistory[category.key]?.date || '미기록'}
+                      </span>
+                      <span className={styles['consumable-km']}>
+                        {consumableHistory[category.key]?.km || 'km 미기록'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className={styles['consumable-toggle']}
+                  onClick={() => setConsumableExpanded((prev) => !prev)}
+                  aria-expanded={consumableExpanded}
+                >
+                  {consumableExpanded
+                    ? '접기'
+                    : `더보기 (+${CONSUMABLE_CATEGORIES.length - CONSUMABLE_PREVIEW_COUNT})`}
+                </button>
               </div>
             </div>
           </section>
