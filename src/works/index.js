@@ -6,6 +6,8 @@ import { getAttendanceRanking, getDispatchRanking } from './expense/expenseAPI';
 import { checkAdminRole } from './admin/adminAPI';
 import { waitForExtensionLogin, decodeUserId } from '../common/extensionLogin';
 
+const NEW_GAME_RELEASE_URL = 'https://github.com/socra710/code-idle-releases/releases/tag/v0.1.7';
+
 // 날짜 기반 배지 표시 체크 함수 (한 달 이내인지 확인)
 const isWithinOneMonth = (dateString) => {
   if (!dateString) return false;
@@ -342,6 +344,14 @@ export default function Works() {
         category: '게임',
         inNew: '2025-12-22', // 신규 출시 날짜
       },
+      {
+        title: '개발자 키우기',
+        description: '개발자를 키우고 작업실을 꾸미는 방치형 성장 게임',
+        icon: '🎮',
+        path: NEW_GAME_RELEASE_URL,
+        category: '게임',
+        inNew: '2026-11-03', // 신규 출시 날짜
+      },
       // 소담 오늘의 메뉴 서비스 종료로 메뉴 카드 숨김
       {
         title: '뉴스 피드',
@@ -406,6 +416,12 @@ export default function Works() {
   }, [checked, categoriesWithItems, selectedTab, userMenuKeys]);
 
   const updates = [
+    {
+      date: '2026.11.03',
+      title: '개발자 키우기 게임 출시',
+      description:
+        '개발자를 키우고 작업실을 꾸미는 방치형 성장 게임을 릴리즈 페이지에서 만나보세요.',
+    },
     {
       date: '2026.07.14',
       title: '배차 소모품 이력 표시 업데이트',
