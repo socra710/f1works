@@ -6,7 +6,7 @@ import { getAttendanceRanking, getDispatchRanking } from './expense/expenseAPI';
 import { checkAdminRole } from './admin/adminAPI';
 import { waitForExtensionLogin, decodeUserId } from '../common/extensionLogin';
 
-const NEW_GAME_RELEASE_URL = 'https://github.com/socra710/code-idle-releases/releases/tag/v0.1.7';
+const NEW_GAME_RELEASE_URL = 'https://github.com/socra710/code-idle-releases/releases';
 
 // 날짜 기반 배지 표시 체크 함수 (한 달 이내인지 확인)
 const isWithinOneMonth = (dateString) => {
