@@ -1,0 +1,81 @@
+{
+  "templateId": "ILLEGAL_SOFTWARE_PLEDGE",
+  "title": "불법 소프트웨어 사용 금지 서약서",
+  "name": "불법 소프트웨어 사용 금지 서약서",
+  "description": "회사 소프트웨어 관리 방침 준수를 위한 서약서",
+  "version": "1.0",
+  "layout": { "type": "grid", "columns": 12 },
+  "sections": [
+    {
+      "id": "section_1",
+      "title": "불법 소프트웨어 사용 금지 서약서",
+      "type": "form",
+      "fields": [
+        {
+          "id": "pledge_body",
+          "label": "서약 내용",
+          "type": "document",
+          "rows": 36,
+          "default": "불법 소프트웨어 사용 금지 서약서\n\n본인은 에프원소프트(주)(이하 \"회사\")의 임직원으로서 「저작권법」 등 관계 법령과 회사의 소프트웨어 관리 방침을 준수하며, 회사 업무 및 회사 지급 장비에서 소프트웨어를 적법하게 사용할 것을 다음과 같이 서약합니다.\n\n— 다 음 —\n\n1. 정품 소프트웨어만 사용 : 회사가 구매·승인한 정품 소프트웨어 또는 사용 조건이 허용된 무료 소프트웨어만 업무에 사용하겠습니다.\n\n2. 불법 복제 및 우회 금지 : 불법 복제본, 크랙·키젠·패치 파일, 라이선스 서버 우회 등 정당한 사용권 없이 소프트웨어를 설치하거나 사용하지 않겠습니다.\n\n3. 무단 설치 금지 : 회사 지급 장비(노트북·PC 등)에 회사 승인 없이 소프트웨어를 설치하지 않으며, 개인 소유 소프트웨어나 체험판도 사전 승인 후에만 설치하겠습니다.\n\n4. 라이선스 정보 관리 : 회사 소유 라이선스 키·계정을 외부인에게 제공하거나 허용 범위를 넘어 사용하지 않겠습니다.\n\n5. 점검 협조 : 회사가 실시하는 소프트웨어 설치 현황 점검에 협조하겠습니다. 점검은 소프트웨어 설치 및 라이선스 현황 확인 목적에 한정됩니다.\n\n6. 위반 사실 보고 : 불법 소프트웨어의 설치·사용 사실을 알게 된 경우 즉시 소속 부서장 또는 담당 부서에 보고하겠습니다.\n\n7. 퇴사·장비 반납 시 조치 : 퇴사하거나 장비를 반납할 때 회사 지시에 따라 장비를 원상태로 반납하겠습니다.\n\n8. 위반 시 책임 : 본 서약을 위반한 경우 취업규칙 등 사내 규정에 따른 징계를 받을 수 있으며, 본인의 고의 또는 과실로 회사에 손해가 발생한 경우 관계 법령이 정하는 범위에서 그 책임을 부담하겠습니다.\n\n본인은 위 사항을 충분히 이해하였으며, 이를 성실히 준수할 것을 서약합니다.\n\n에프원소프트(주) 대표이사 귀하",
+          "options": {
+            "useFirstLineAsTitle": true,
+            "usePledgeFormatting": true
+          },
+          "readOnly": true,
+          "col": 12
+        }
+      ]
+    },
+    {
+      "id": "section_2",
+      "title": "서약자 정보 및 서명",
+      "type": "form",
+      "fields": [
+        {
+          "id": "pledge_date",
+          "label": "서약일",
+          "type": "date",
+          "default": "__TODAY__",
+          "required": true,
+          "col": 6
+        },
+        {
+          "id": "department",
+          "label": "소속",
+          "type": "text",
+          "default": "__LOGIN_DEPARTMENT__",
+          "required": true,
+          "col": 6
+        },
+        {
+          "id": "position",
+          "label": "직위",
+          "type": "text",
+          "default": "__LOGIN_POSITION__",
+          "required": true,
+          "col": 6
+        },
+        {
+          "id": "full_name",
+          "label": "서약자",
+          "type": "text",
+          "default": "__LOGIN_NAME__",
+          "required": true,
+          "col": 6
+        }
+      ]
+    }
+  ],
+  "agreement": {
+    "required": true,
+    "checkLabel": "본인은 위 불법 소프트웨어 사용 금지 서약 내용을 확인하고 동의합니다.",
+    "text": "본 서약 내용을 충분히 이해하였으며 성실히 준수하겠습니다."
+  },
+  "signatures": [
+    {
+      "id": "signature",
+      "label": "서약자 서명 또는 인",
+      "required": true
+    }
+  ]
+}

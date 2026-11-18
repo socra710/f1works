@@ -5,6 +5,7 @@ export default function DocumentWidget(props) {
   const { value, options } = props;
   const text = value || '';
   const hideTitle = options?.hideTitle;
+  const usePledgeFormatting = options?.usePledgeFormatting;
 
   const { title, body } = useMemo(() => {
     const useFirstLineAsTitle = options?.useFirstLineAsTitle;
@@ -22,6 +23,63 @@ export default function DocumentWidget(props) {
 
     return { title: docTitle, body: docBody };
   }, [text, options]);
+
+  if (usePledgeFormatting) {
+    return (
+      <div className={`${styles.wrapper} ${styles.pledgeWrapper}`}>
+        {!hideTitle && title ? (
+          <h2 className={styles.pledgeTitle}>{title}</h2>
+        ) : null}
+        <div className={styles.pledgeBody}>
+          {body.split('\n').map((line, index) => {
+            const content = line.trim();
+            if (!content) {
+              return (
+                <div
+                  key={`spacer-${index}`}
+                  className={styles.pledgeSpacer}
+                  aria-hidden="true"
+                />
+              );
+            }
+
+            if (content === '— 다 음 —') {
+              return (
+                <p key={index} className={styles.pledgeSectionTitle}>
+                  {content}
+                </p>
+              );
+            }
+
+            const clause = content.match(/^(\d+\.)\s*(.*?)\s*:\s*(.*)$/);
+            if (clause) {
+              return (
+                <p key={index} className={styles.pledgeClause}>
+                  <span>{clause[1]}</span>
+                  <span>
+                    <strong>{clause[2]}</strong> : {clause[3]}
+                  </span>
+                </p>
+              );
+            }
+
+            return (
+              <p
+                key={index}
+                className={
+                  content.startsWith('에프원소프트')
+                    ? styles.pledgeRecipient
+                    : styles.pledgeParagraph
+                }
+              >
+                {content}
+              </p>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.wrapper}>
