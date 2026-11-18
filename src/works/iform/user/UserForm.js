@@ -44,6 +44,7 @@ export default function UserForm() {
         __LOGIN_DEPARTMENT__: () => loginDepartment,
         LOGIN_DEPARTMENT: () => loginDepartment,
         '@loginDepartment': () => loginDepartment,
+        __LOGIN_POSITION__: () => loginJson?.LEVEL_NAME || '',
       };
 
       template.rawTemplate.sections.forEach((section) => {

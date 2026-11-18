@@ -22,11 +22,74 @@
   color: #1f2937;
 }
 
+.pledgeWrapper {
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  background: #fff;
+  box-shadow: none;
+  color: #111;
+}
+
+.pledgeTitle {
+  margin: 0 0 18px;
+  padding: 0 0 10px;
+  border-bottom: 1px solid #222;
+  color: #111;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.pledgeBody {
+  color: #111;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.pledgeParagraph,
+.pledgeSectionTitle,
+.pledgeRecipient {
+  margin: 0;
+}
+
+.pledgeSpacer {
+  height: 14px;
+}
+
+.pledgeSectionTitle {
+  margin: 4px 0 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.pledgeClause {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  margin: 0 0 6px;
+}
+
+.pledgeRecipient {
+  margin-top: 16px;
+  font-weight: 600;
+  text-align: center;
+}
+
 @media print {
   .wrapper {
     border: none;
     background: #fff;
     padding: 0;
     box-shadow: none;
+  }
+
+  .pledgeTitle {
+    font-size: 20px;
+  }
+
+  .pledgeBody {
+    font-size: 14px;
   }
 }
