@@ -757,17 +757,12 @@ export async function saveTemplate(tpl, showToast) {
       return { ok: true };
     }
     if (showToast) showToast('템플릿 저장 실패', 'error');
+    return { ok: false };
   } catch (e) {
-    console.warn('API failed, using localStorage', e);
+    console.warn('Template API save failed', e);
     if (showToast) showToast('템플릿 저장 실패: ' + e.message, 'error');
+    return { ok: false };
   }
-  const list = readLS(LS_KEY_TEMPLATES, [sampleTemplate]);
-  const matchKey = tpl.id || tpl.templateId;
-  const idx = list.findIndex((t) => (t.id || t.templateId) === matchKey);
-  if (idx >= 0) list[idx] = tpl;
-  else list.push(tpl);
-  writeLS(LS_KEY_TEMPLATES, list);
-  return { ok: true };
 }
 
 export async function createDocument(doc, showToast) {
